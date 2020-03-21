@@ -18,7 +18,7 @@ class AccountingTitle(models.Model):
 
 class AccountingDetails(models.Model):
     id = models.AutoField(primary_key=True)
-    title = models.ForeignKey(AccountingTitle, on_delete=models.CASCADE)
+    accounting_id = models.ForeignKey(AccountingTitle, on_delete=models.CASCADE)
     date = models.DateField()
     value = models.IntegerField()
     note = models.TextField()
