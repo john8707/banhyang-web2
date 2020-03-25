@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
+<ul>
+    <li><a href="{% url 'accounting_main' %}">회계</a></li>
+    <li><a href="{% url 'concert_create' %}">합주</a></li>
+</ul>
+
 
 {% endblock %}

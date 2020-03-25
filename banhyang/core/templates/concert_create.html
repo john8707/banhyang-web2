@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="formwrapper">
+    <form method="POST" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-content">
+            Name <br>
+            {{ form.name }}
+        </div>
+        <div class="form-content">
+            Starting Time <br>
+            {{ form.starttime }}
+        </div>
+        <div class="form-content">
+            End Time <br>
+            {{ form.endtime }}
+        </div>
+        <div class="form-content">
+            Location <br>
+            {{ form.location }}
+        </div>
+
+        <div class="form-content">
+            Times per song <br>
+            {{ form.minutes }}
+        </div>
+
+
+        <input type="submit" value="submit">
+    </form>
+</div>
+
+
+{% endblock %}

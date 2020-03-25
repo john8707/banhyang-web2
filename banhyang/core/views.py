@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .forms import CreateForm, AddForm
+from .forms import AccountingCreateForm, AccountingAddForm, ConcertCreateForm
 from django.views.decorators.csrf import csrf_exempt
-from .models import AccountingTitle, AccountingDetails
+from .models import AccountingTitle, AccountingDetails, Schedule 
 from django.db.models import Sum
 # Create your views here.
 
@@ -20,14 +20,14 @@ def accounting_main(request):
 def accounting_create(request):
     
     if request.method == "POST":
-        form = CreateForm(request.POST)
+        form = AccountingCreateForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
             f.save()
             return redirect('accounting_main')
         
     else:
-        form = CreateForm()
+        form = AccountingCreateForm()
         return render(request, 'accounting_create.html', {'form' : form,})
 
 def accounting_details(request, id):
@@ -36,14 +36,14 @@ def accounting_details(request, id):
     accounting_sum = accounting_list.aggregate(Sum('value'))
 
     if request.method == "POST":
-        form = AddForm(request.POST)
+        form = AccountingAddForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
             f.accounting_id = info
             f.save()
             return redirect('accounting_details', id=id)
     else:
-        form = AddForm()
+        form = AccountingAddForm()
     return render(request, 'accounting_details.html', {'accounting_list' : accounting_list, 'info' : info, 'sum' : accounting_sum, 'form' : form
     })
 
@@ -51,3 +51,20 @@ def accounting_details_delete(request, accounting_id, detail_id):
     detail_to_delete = get_object_or_404(AccountingDetails, id = detail_id)
     detail_to_delete.delete()
     return redirect('accounting_details', id=accounting_id)
+
+##TODO 눈에 보이고자 하는 날짜 선택하기 -> 유저가 선택해서 업로드 -> 관리자가 전체를 볼 수 있게하자
+### + 마감 기능, 보이는 날짜 바꾸기
+
+def concert_create(request):
+    
+    if request.method == "POST":
+        form = ConcertCreateForm(request)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.div = form.minutes
+            f.save()
+            return redirect('index')
+    else:
+        form = ConcertCreateForm()
+
+    return render(request, 'concert_create.html', {'form' : form})
