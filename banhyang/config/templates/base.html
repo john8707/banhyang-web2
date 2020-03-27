@@ -10,6 +10,12 @@
     <h1>개발용 페이지입니다.</h1>
     <h6>https://github.com/john8707/banhyang-web2</h6>
     <section>
+        <ul>
+            <li><a href="{% url 'accounting_main' %}">회계</a></li>
+            <li><a href="{% url 'concert' %}">합주</a></li>
+        </ul>
+    </section>
+    <section>
         {% block content %}
         {% endblock %}
 

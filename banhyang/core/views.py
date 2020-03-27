@@ -54,14 +54,21 @@ def accounting_details_delete(request, accounting_id, detail_id):
 
 ##TODO 눈에 보이고자 하는 날짜 선택하기 -> 유저가 선택해서 업로드 -> 관리자가 전체를 볼 수 있게하자
 ### + 마감 기능, 보이는 날짜 바꾸기
+### 한번 생성 시 계산 한 번 한 후 DB에 저장하자. 매번 하면 개느릴 것 같음
+
+def concert(request):
+
+    return render(request, 'concert.html')
 
 def concert_create(request):
     
     if request.method == "POST":
-        form = ConcertCreateForm(request)
+        form = ConcertCreateForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
-            f.div = form.minutes
+            f.div = form.cleaned_data['minutes']
+            f.starttime = form.cleaned_data['starttime']
+            f.endtime = form.cleaned_data['endtime']
             f.save()
             return redirect('index')
     else:

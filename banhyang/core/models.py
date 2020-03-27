@@ -28,8 +28,9 @@ class AccountingDetails(models.Model):
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    starttime = models.DateTimeField()
-    endtime = models.DateTimeField()
+    date = models.DateTimeField()
+    starttime = models.TimeField()
+    endtime = models.TimeField()
     location = models.CharField(max_length=255,  null=True)
     div = models.IntegerField()
 

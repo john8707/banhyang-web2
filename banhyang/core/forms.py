@@ -17,7 +17,14 @@ class AccountingAddForm(forms.ModelForm):
         fields = ['date', 'value', 'note', 'remark']
 
 class ConcertCreateForm(forms.ModelForm):
-    minutes = forms.ChoiceField(choices=[(6, "10분"), (3, "20분"), (2, "30분")])
     class Meta:
         model = Schedule
-        fields = ['name', 'starttime', 'endtime', 'location']
+        fields = ['name', 'date', 'location']
+    
+    def __init__(self, *args, **kwargs):
+        super(ConcertCreateForm, self).__init__(*args, **kwargs)
+        self.fields['minutes'] = forms.ChoiceField(choices=[(6, "10분"), (3, "20분"), (2, "30분")])
+        self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'])
+        self.fields['starttime'].widget.attrs['placeholder'] = "시간:분 형식(ex 7:30)"
+        self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
+        self.fields['endtime'].widget.attrs['placeholder'] = "시간:분 형식(ex 7:30)"
