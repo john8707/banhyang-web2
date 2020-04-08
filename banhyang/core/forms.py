@@ -37,5 +37,6 @@ class ConcertApplyForm(forms.Form):
 
 
     username = forms.CharField(label="이름")
+    #TODO : 이름, 전화번호, 활동기수인지 validate
     number = forms.IntegerField(label="전화번호 뒷자리 4개")
-    not_available = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+    not_available = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, label="불가능한 시간을 선택해주세요.")
