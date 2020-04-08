@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .forms import AccountingCreateForm, AccountingAddForm, ConcertCreateForm
+from .forms import AccountingCreateForm, AccountingAddForm, ConcertCreateForm, ConcertApplyForm
 from django.views.decorators.csrf import csrf_exempt
 from .models import AccountingTitle, AccountingDetails, Schedule 
 from django.db.models import Sum
+from datetime import timedelta, date, datetime, time
 # Create your views here.
 
 #통상적으로 HTML 문서와 같은 이름을 사용하자!!
@@ -61,17 +62,49 @@ def concert(request):
     return render(request, 'concert.html')
 
 def concert_create(request):
-    
+    #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것, )
     if request.method == "POST":
         form = ConcertCreateForm(request.POST)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
             f = form.save(commit=False)
             f.div = form.cleaned_data['minutes']
             f.starttime = form.cleaned_data['starttime']
             f.endtime = form.cleaned_data['endtime']
             f.save()
-            return redirect('index')
+            return redirect('concert')
     else:
         form = ConcertCreateForm()
 
     return render(request, 'concert_create.html', {'form' : form})
+
+def concert_apply(request):
+    #불참 타임
+    if request.method == "POST":
+        form = ConcertApplyForm(request.POST)
+    else:
+        current_concert = Schedule.objects.filter(is_current=False)
+        res = {}
+        choice = []
+        for i in current_concert:
+            temp = {}
+            temp['name'] = i.name
+            temp['date'] = i.date
+            temp['time_list'] = []
+            temp_time = datetime.combine(date.today(), i.starttime)
+            endtime = datetime.combine(date.today(), i.endtime)
+            time_per_song = 60 / i.div
+            div_day = 0
+            while  temp_time + timedelta(minutes=time_per_song) < endtime:
+                if div_day == 0:
+                    choice.append(((i.id, div_day),"%s - %s, (%s)"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"), temp['date'].strftime('%m/%d'))))
+                else:
+                    choice.append(((i.id, div_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
+                temp_time += timedelta(minutes=time_per_song)
+                div_day += 1
+
+            choice.append(((i.id, div_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
+
+            res[i.id] = temp
+        form = ConcertApplyForm(choices=choice)
+        
+    return render(request, 'concert_apply.html', {'form' : form})
