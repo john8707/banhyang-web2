@@ -16,13 +16,13 @@ class AccountingAddForm(forms.ModelForm):
         model = AccountingDetails
         fields = ['date', 'value', 'note', 'remark']
 
-class ConcertCreateForm(forms.ModelForm):
+class PracticeCreateForm(forms.ModelForm):
     class Meta:
         model = Schedule
         fields = ['name', 'date', 'location']
     
     def __init__(self, *args, **kwargs):
-        super(ConcertCreateForm, self).__init__(*args, **kwargs)
+        super(PracticeCreateForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs['placeholder'] = "ex 정기합주"
         self.fields['minutes'] = forms.ChoiceField(choices=[(6, "10분"), (3, "20분"), (2, "30분")])
         self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'])
@@ -30,9 +30,9 @@ class ConcertCreateForm(forms.ModelForm):
         self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
         self.fields['endtime'].widget.attrs['placeholder'] = "시간:분 형식(ex 8:00)"
 
-class ConcertApplyForm(forms.Form):
+class PracticeApplyForm(forms.Form):
     def __init__(self, choices=(), *args, **kwargs):
-        super(ConcertApplyForm, self).__init__(*args, **kwargs)
+        super(PracticeApplyForm, self).__init__(*args, **kwargs)
         self.fields['not_available'].choices = choices
 
 

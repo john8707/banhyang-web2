@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .forms import AccountingCreateForm, AccountingAddForm, ConcertCreateForm, ConcertApplyForm
+from .forms import AccountingCreateForm, AccountingAddForm, PracticeCreateForm, PracticeApplyForm
 from django.views.decorators.csrf import csrf_exempt
 from .models import AccountingTitle, AccountingDetails, Schedule 
 from django.db.models import Sum
@@ -57,35 +57,36 @@ def accounting_details_delete(request, accounting_id, detail_id):
 ### + 마감 기능, 보이는 날짜 바꾸기
 ### 한번 생성 시 계산 한 번 한 후 DB에 저장하자. 매번 하면 개느릴 것 같음
 
-def concert(request):
+def practice(request):
 
-    return render(request, 'concert.html')
+    return render(request, 'practice.html')
 
-def concert_create(request):
+def practice_create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것, )
     if request.method == "POST":
-        form = ConcertCreateForm(request.POST)
+        form = PracticeCreateForm(request.POST)
         if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
             f = form.save(commit=False)
             f.div = form.cleaned_data['minutes']
             f.starttime = form.cleaned_data['starttime']
             f.endtime = form.cleaned_data['endtime']
             f.save()
-            return redirect('concert')
+            return redirect('practice')
     else:
-        form = ConcertCreateForm()
+        form = PracticeCreateForm()
 
-    return render(request, 'concert_create.html', {'form' : form})
+    return render(request, 'practice_create.html', {'form' : form})
 
-def concert_apply(request):
+def practice_apply(request):
     #불참 타임
     if request.method == "POST":
-        form = ConcertApplyForm(request.POST)
+        form = PracticeApplyForm(request.POST)
+        return redirect('practice')
     else:
-        current_concert = Schedule.objects.filter(is_current=False)
+        current_practice = Schedule.objects.filter(is_current=False)
         res = {}
         choice = []
-        for i in current_concert:
+        for i in current_practice:
             temp = {}
             temp['name'] = i.name
             temp['date'] = i.date
@@ -105,6 +106,6 @@ def concert_apply(request):
             choice.append(((i.id, div_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
 
             res[i.id] = temp
-        form = ConcertApplyForm(choices=choice)
+        form = PracticeApplyForm(choices=choice)
         
-    return render(request, 'concert_apply.html', {'form' : form})
+    return render(request, 'practice_apply.html', {'form' : form})
