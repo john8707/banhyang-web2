@@ -1,5 +1,5 @@
 from django import forms
-from .models import AccountingTitle, AccountingDetails, Schedule
+from .models import AccountingTitle, AccountingDetails, Schedule, SongData
 
 class AccountingCreateForm(forms.ModelForm):
     class Meta:
@@ -11,10 +11,12 @@ class AccountingCreateForm(forms.ModelForm):
             'description' : forms.Textarea(attrs={'placeholder' : 'ex) 6월 12일 @라이브와이어'})
         }
 
+
 class AccountingAddForm(forms.ModelForm):
     class Meta:
         model = AccountingDetails
         fields = ['date', 'value', 'note', 'remark']
+
 
 class PracticeCreateForm(forms.ModelForm):
     class Meta:
@@ -30,6 +32,7 @@ class PracticeCreateForm(forms.ModelForm):
         self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
         self.fields['endtime'].widget.attrs['placeholder'] = "시간:분 형식(ex 8:00)"
 
+
 class PracticeApplyForm(forms.Form):
     def __init__(self, choices=(), *args, **kwargs):
         super(PracticeApplyForm, self).__init__(*args, **kwargs)
@@ -40,3 +43,9 @@ class PracticeApplyForm(forms.Form):
     #TODO : 이름, 전화번호, 활동기수인지 validate
     number = forms.IntegerField(label="전화번호 뒷자리 4개")
     not_available = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, label="불가능한 시간을 선택해주세요.")
+
+
+class SongAddForm(forms.ModelForm):
+    class Meta:
+        model = SongData
+        fields = '__all__'

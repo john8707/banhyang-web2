@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<h1>공연 곡 목록</h1>
+<table>
+    <tr>
+        <td>제목</td>
+        <td>보컬</td>
+        <td>기타</td>
+        <td>베이스</td>
+        <td>키보드</td>
+        <td>드럼</td>
+
+        
+    </tr>
+    {% for song in songs %}
+    <tr>
+        <td>{{song.songname}}</td>
+        <td>{{song.vocal1}}{% if song.vocal2 %},{{song.vocal2}}{% endif %}</td>
+        <td>{{song.guitar1}}{% if song.guitar2 %},{{song.guitar2}}{% endif %}</td>
+        <td>{{song.bass}}</td>
+        <td>{{song.keyboard1}}{% if song.keyboard2 %},{{song.keyboard2}}{% endif %}</td>
+        <td>{{song.drum}}</td>
+
+
+        <td><a href="songs/{{song.id}}">삭제</a></td>
+
+    </tr>
+    {% endfor %}
+    
+
+</table>
+
+<form method="POST" autocomplete="off">
+    {% csrf_token %}
+    {% for field in form %}
+    {{field}}
+    {% endfor %}
+    <input type="submit" value="추가">
+</form>
+
+
+
+{% endblock %}

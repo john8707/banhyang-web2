@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 #TODO : 기본 모델 (생성, 업데이트, 삭제 시간) 만들지 말지 결정하자
 
-##User models
+##Custom user models
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -95,13 +95,27 @@ class Schedule(models.Model):
     endtime = models.TimeField()
     location = models.CharField(max_length=255,  null=True)
     div = models.IntegerField()
-    is_current = models.BooleanField(default=False)
+    is_current = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name + "(" + self.location + ")"
+
 
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.CharField(max_length=255)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     not_available = models.IntegerField()
+
+
+class SongData(models.Model):
+    id = models.AutoField(primary_key=True)
+    songname = models.CharField(max_length=255)
+    vocal1 = models.CharField(max_length=255, null=True, blank=True)
+    vocal2 = models.CharField(max_length=255, null=True, blank=True)
+    guitar1 = models.CharField(max_length=255, null=True, blank=True)
+    guitar2 = models.CharField(max_length=255, null=True, blank=True)
+    bass = models.CharField(max_length=255, null=True, blank=True)
+    keyboard1 = models.CharField(max_length=255, null=True, blank=True)
+    keyboard2 = models.CharField(max_length=255, null=True, blank=True)
+    drum = models.CharField(max_length=255, null=True, blank=True)

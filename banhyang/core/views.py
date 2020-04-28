@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .forms import AccountingCreateForm, AccountingAddForm, PracticeCreateForm, PracticeApplyForm
+from .forms import AccountingCreateForm, AccountingAddForm, PracticeCreateForm, PracticeApplyForm, SongAddForm
 from django.views.decorators.csrf import csrf_exempt
-from .models import AccountingTitle, AccountingDetails, Schedule 
+from .models import AccountingTitle, AccountingDetails, Schedule, SongData
 from django.db.models import Sum
 from datetime import timedelta, date, datetime, time
 # Create your views here.
@@ -11,10 +11,12 @@ from datetime import timedelta, date, datetime, time
 def index(request):
     return render(request, 'index.html')
 
+
 def accounting_main(request):
     accounting_list = AccountingTitle.objects.all()
 
     return render(request, 'accounting_main.html', {'accounting_list' : accounting_list,})
+
 
 #deactivating csrf token
 @csrf_exempt
@@ -30,6 +32,7 @@ def accounting_create(request):
     else:
         form = AccountingCreateForm()
         return render(request, 'accounting_create.html', {'form' : form,})
+
 
 def accounting_details(request, id):
     info = get_object_or_404(AccountingTitle, id=id)
@@ -48,18 +51,53 @@ def accounting_details(request, id):
     return render(request, 'accounting_details.html', {'accounting_list' : accounting_list, 'info' : info, 'sum' : accounting_sum, 'form' : form
     })
 
+
 def accounting_details_delete(request, accounting_id, detail_id):
     detail_to_delete = get_object_or_404(AccountingDetails, id = detail_id)
     detail_to_delete.delete()
     return redirect('accounting_details', id=accounting_id)
 
-##TODO 눈에 보이고자 하는 날짜 선택하기 -> 유저가 선택해서 업로드 -> 관리자가 전체를 볼 수 있게하자
+##TODO 눈에 보이고자 하는 날짜 선택하기 -> 관리자가 전체를 볼 수 있게하자
 ### + 마감 기능, 보이는 날짜 바꾸기
 ### 한번 생성 시 계산 한 번 한 후 DB에 저장하자. 매번 하면 개느릴 것 같음
 
 def practice(request):
+    if request.method == "POST":
+        #TODO DB에 업데이트 하기!
+        form = PracticeApplyForm(request.POST)
+        return redirect('practice')
+    else:
+        current_practice = Schedule.objects.filter(is_current=True)
+        res = {}
+        choice = []
+        for i in current_practice:
+            temp = {}
+            temp['name'] = i.name
+            temp['date'] = i.date
+            temp['time_list'] = []
+            temp_time = datetime.combine(date.today(), i.starttime)
+            endtime = datetime.combine(date.today(), i.endtime)
+            time_per_song = 60 / i.div
+            div_for_day = 0
+            while  temp_time + timedelta(minutes=time_per_song) < endtime:
+                if div_for_day == 0:
+                    choice.append(((i.id, div_for_day),"%s - %s, (%s)"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"), temp['date'].strftime('%m/%d'))))
+                else:
+                    choice.append(((i.id, div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
+                temp_time += timedelta(minutes=time_per_song)
+                div_for_day += 1
 
-    return render(request, 'practice.html')
+            choice.append(((i.id, div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
+
+            res[i.id] = temp
+        form = PracticeApplyForm(choices=choice)
+        
+    return render(request, 'practice.html', {'form' : form})
+
+
+def practice_setting(request):
+    return render(request, 'practice_setting.html')
+
 
 def practice_create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것, )
@@ -77,35 +115,21 @@ def practice_create(request):
 
     return render(request, 'practice_create.html', {'form' : form})
 
-def practice_apply(request):
-    #불참 타임
+
+def practice_song_list(request):
     if request.method == "POST":
-        form = PracticeApplyForm(request.POST)
-        return redirect('practice')
+        form = SongAddForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.save()
+            return redirect('practice_song_list')
     else:
-        current_practice = Schedule.objects.filter(is_current=False)
-        res = {}
-        choice = []
-        for i in current_practice:
-            temp = {}
-            temp['name'] = i.name
-            temp['date'] = i.date
-            temp['time_list'] = []
-            temp_time = datetime.combine(date.today(), i.starttime)
-            endtime = datetime.combine(date.today(), i.endtime)
-            time_per_song = 60 / i.div
-            div_day = 0
-            while  temp_time + timedelta(minutes=time_per_song) < endtime:
-                if div_day == 0:
-                    choice.append(((i.id, div_day),"%s - %s, (%s)"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"), temp['date'].strftime('%m/%d'))))
-                else:
-                    choice.append(((i.id, div_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
-                temp_time += timedelta(minutes=time_per_song)
-                div_day += 1
+        form = SongAddForm()
+        songs = SongData.objects.all()
+        return render(request, 'practice_song_list.html', {'songs' :songs, 'form' :form})
 
-            choice.append(((i.id, div_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
 
-            res[i.id] = temp
-        form = PracticeApplyForm(choices=choice)
-        
-    return render(request, 'practice_apply.html', {'form' : form})
+def practice_song_delete(request, song_id):
+    song_to_delete = get_object_or_404(SongData, id = song_id)
+    song_to_delete.delete()
+    return redirect('practice_song_list')
