@@ -12,12 +12,18 @@ class Schedule(models.Model):
     is_current = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name + "(" + self.location + ")"
+        return self.name + "(" + self.date.strftime("%m/%d") + ")"
+
+
+class PracticeUser(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=255)
+    phonenumber = models.IntegerField()
 
 
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.CharField(max_length=255)
+    user_id = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     not_available = models.IntegerField()
 

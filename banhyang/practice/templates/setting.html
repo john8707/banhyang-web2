@@ -1,5 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<form method="POST">
+    {% csrf_token %}
+    {% for schedule in schedules %}
+        <input type="checkbox" name="test" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}} <br>
+    {% endfor %}
+
+    <input type="submit" value="변경">
+    <br>
+    {% if message %}
+        {{message}}
+    {% endif %}
+</form>
+
 <a href="{% url 'create' %}">합주 날짜 생성</a>
 <a href="{% url 'song_list' %}">곡 목록/관리</a>
 {% endblock %}
