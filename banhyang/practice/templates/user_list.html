@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<h1>활동 인원 목록</h1>
+<table>
+    <tr>
+        <td>이름</td>
+        <td>기수</td>
+        <td>전화번호</td>
+
+        
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{user.username}}</td>
+        <td>{{user.gisu}}</td>
+        <td>{{user.phonenumber}}</td>
+
+
+        <td><a href="users/{{user.username}}">삭제</a></td>
+
+    </tr>
+    {% endfor %}
+    
+
+</table>
+
+<form method="POST" autocomplete="off">
+    {% csrf_token %}
+    {% for field in form %}
+    {{field}}
+    {% endfor %}
+    <input type="submit" value="추가">
+</form>
+
+
+
+{% endblock %}

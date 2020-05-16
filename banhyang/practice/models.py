@@ -16,14 +16,17 @@ class Schedule(models.Model):
 
 
 class PracticeUser(models.Model):
-    id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=255)
+    username = models.CharField(max_length=255,primary_key=True)
+    gisu = models.IntegerField()
     phonenumber = models.IntegerField()
+
+    def __str__(self):
+        return self.username
 
 
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     not_available = models.IntegerField()
 
@@ -31,11 +34,11 @@ class Apply(models.Model):
 class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
-    vocal1 = models.CharField(max_length=255, null=True, blank=True)
-    vocal2 = models.CharField(max_length=255, null=True, blank=True)
-    guitar1 = models.CharField(max_length=255, null=True, blank=True)
-    guitar2 = models.CharField(max_length=255, null=True, blank=True)
-    bass = models.CharField(max_length=255, null=True, blank=True)
-    keyboard1 = models.CharField(max_length=255, null=True, blank=True)
-    keyboard2 = models.CharField(max_length=255, null=True, blank=True)
-    drum = models.CharField(max_length=255, null=True, blank=True)
+    vocal1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal1")
+    vocal2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal2")
+    guitar1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar1")
+    guitar2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar2")
+    bass = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="bass")
+    keyboard1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard1")
+    keyboard2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard2")
+    drum = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="drum")

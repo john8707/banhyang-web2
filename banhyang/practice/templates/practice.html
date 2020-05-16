@@ -3,14 +3,14 @@
 <form method="POST">
     {% csrf_token %}
     {% if form %}
-        {% for field in form %}
-            {{field.label}}
-            <br>
-            {{field}}
-            {{field.errors}}
-            <br>
-        {% endfor %}
-        <input type="submit" value="제출">
+        <form action="" method="post">
+            {{ form.as_p }}
+            {% for choice in choices %}
+                <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}} <br>
+            {% endfor %}
+            <input type="submit" value="제출">
+        </form>
+
     {% else %}
         예정된 합주가 없습니다. 잠시만 기다려주세요 :)
     {% endif %}

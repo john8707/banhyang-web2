@@ -5,28 +5,24 @@
     <form method="POST" autocomplete="off">
         {% csrf_token %}
         <div class="form-content">
-            Name <br>
+            이름 [ex) 정기합주] <br>
             {{ form.name }}
         </div>
         <div class="form-content">
-            Date <br>
+            날짜 <br>
             <input name="date" type="date">
         </div>
         <div class="form-content">
-            Starting Time <br>
-            {{ form.starttime }}
+            시간 [시간:분 형식 ex) 7:00] <br>
+            {{ form.starttime }} ~ {{ form.endtime }}
         </div>
         <div class="form-content">
-            End Time <br>
-            {{ form.endtime }}
-        </div>
-        <div class="form-content">
-            Location <br>
+            장소 <br>
             {{ form.location }}
         </div>
 
         <div class="form-content">
-            Times per song <br>
+            곡 당 시간 <br>
             {{ form.minutes }}
         </div>
 
