@@ -7,21 +7,21 @@
     <tr>
         <td>제목</td>
         <td>보컬</td>
+        <td>드럼</td>
         <td>기타</td>
         <td>베이스</td>
         <td>키보드</td>
-        <td>드럼</td>
 
         
     </tr>
     {% for song in songs %}
     <tr>
         <td>{{song.songname}}</td>
-        <td>{% if song.vocal1 or song.vocal2 %} {{song.vocal1}}{% if song.vocal2 %},{{song.vocal2}}{% endif %} {% else %}*{% endif %}</td>
-        <td>{% if song.guitar1 or song.guitar2 %} {{song.guitar1}}{% if song.guitar2 %},{{song.guitar2}}{% endif %} {% else %}*{% endif %}</td>
-        <td>{% if song.bass %} {{song.bass}} {% else %}*{% endif %}</td>
-        <td>{% if song.keyboard1 or song.keyboard2 %} {{song.keyboard1}}{% if song.keyboard2 %},{{song.keyboard2}}{% endif %} {% else %}*{% endif %}</td>
-        <td>{% if song.drum %} {{song.drum}} {% else %}*{% endif %}</td>
+        <td>{% if song.vocal1 or song.vocal2 %} {{song.vocal1}}{% if song.vocal2 %},{{song.vocal2}}{% endif %} {% else %}X{% endif %}</td>
+        <td>{% if song.drum %} {{song.drum}} {% else %}X{% endif %}</td>
+        <td>{% if song.guitar1 or song.guitar2 %} {{song.guitar1}}{% if song.guitar2 %},{{song.guitar2}}{% endif %} {% else %}X{% endif %}</td>
+        <td>{% if song.bass %} {{song.bass}} {% else %}X{% endif %}</td>
+        <td>{% if song.keyboard1 or song.keyboard2 %} {{song.keyboard1}}{% if song.keyboard2 %},{{song.keyboard2}}{% endif %} {% else %}X{% endif %}</td>
 
 
         <td><a href="songs/{{song.id}}">삭제</a></td>

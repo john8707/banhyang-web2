@@ -3,7 +3,7 @@ from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddFo
 from .models import Schedule, SongData, PracticeUser, Apply
 from datetime import timedelta, date, datetime, time
 from django.contrib import messages
-
+from .schedule import Create
 # TODO 
 # 1. 관리 화면 첫 화면에서 메인 노출 날짜 선택하기, 삭제하기
 # 2. 유저 등록/수정
@@ -45,13 +45,13 @@ def practice(request):
             res = dict(request.POST)
             username = res['username'][0]
             number = res['number'][0]
-            Apply.objects.filter(user_name=form.cleaned_data['user_instance']).delete()
+            Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
 
             if 'selected' in res:
                 selected = res['selected']
                 for i in selected:
-                    schedule_instance = Schedule.objects.get(id=i.split('_')[0])
-                    a = Apply(user_name=form.cleaned_data['user_instance'], schedule_id=schedule_instance, not_available=i.split('_')[1])
+                    schedule_object = Schedule.objects.get(id=i.split('_')[0])
+                    a = Apply(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, not_available=i.split('_')[1])
                     a.save()
 
             return redirect('practice')
@@ -96,7 +96,7 @@ def song_list(request):
         if form.is_valid():
             f = form.save(commit=False)
             f.save()
-            return redirect('song_list')
+        return redirect('song_list')
     else:
         form = SongAddForm()
         songs = SongData.objects.all().order_by('songname')
@@ -125,3 +125,163 @@ def user_delete(request, username):
     user_to_delete = get_object_or_404(PracticeUser, username = username)
     user_to_delete.delete()
     return redirect('user_list')
+
+
+def schedule_create(request):
+
+    #DB에서 데이터 받아오기
+    songs = SongData.objects.all()
+    users = PracticeUser.objects.all()
+    schedules = Schedule.objects.filter(is_current=True).order_by('date')
+
+    #변수선언
+    song_member_dict = {}
+    song_member_list = {}
+    song_list = []
+    song_value = {}
+    days = 0
+    intervals = {}
+    ########TODO 날짜 별 방 갯수 인풋 받기
+    room = 2
+    ##################################
+    # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
+    song_del_list = []
+    song_multiple_list = []
+    song_mandatory_list = []
+    ##################################
+    member_not_available = {}
+    member_available_value = {}
+
+    
+    for schedule in schedules:
+        #날짜별 [시간당 곡 수, 총 시간, 방 갯수]
+        days += 1
+        time = datetime.combine(date.today(), schedule.endtime) - datetime.combine(date.today(), schedule.starttime)
+        intervals[days] = [schedule.div, int(time.seconds/3600), room]
+
+        #불참 인원 받아와서 [(날짜,타임),...]으로 넘기기
+        apply_objects = schedule.apply.all()
+        for apply_object in apply_objects:
+            if apply_object.user_name.username in member_not_available:
+                member_not_available[apply_object.user_name.username].append((days, apply_object.not_available))
+            else:
+                member_not_available[apply_object.user_name.username] = [(days, apply_object.not_available)]
+    
+    #날짜 당 가능 곡수 중 최대값(방1개 기준)
+    times = []
+    for i in range(days):
+        times.append(intervals[i+1][0] * intervals[i+1][1])
+    max_song_per_day = max(times)
+
+    #세션 별 가능 시간 bool 리스트로[[1,1,1,0,...],[1,1,1,0,...],..]
+    for user in users:
+        member_available_value[user.username] = []
+        for day in range(1, days+1):
+            member_available_value[user.username].append([])
+            for i in range(1, max_song_per_day + 1):
+                if intervals[day][0]*intervals[day][1] < i:
+                    member_available_value[user.username][day-1].append(0)
+                else:
+                    member_available_value[user.username][day-1].append(1)
+
+    #불참 시간 적용하기 (위의 bool 리스트에서 해당 타임 0으로)
+    for user in member_not_available:
+        na_times = member_not_available[user]
+        for na_time in na_times:
+            member_available_value[user][na_time[0]-1][na_time[1]] = 0
+    
+    #곡의 세션 딕셔너리
+    for song in songs:
+        if song not in song_del_list:
+            song_member_dict[song.songname] = {
+                'vocal1' : song.vocal1.username if song.vocal1 else None,
+                'vocal2' : song.vocal2.username if song.vocal2 else None,
+                'drum' : song.drum.username if song.drum else None,
+                'guitar1' : song.guitar1.username if song.guitar1 else None,
+                'guitar2' : song.guitar2.username if song.guitar2 else None,
+                'bass' : song.bass.username if song.bass else None,
+                'keyboard1' : song.keyboard1.username if song.keyboard1 else None,
+                'keyboard2' : song.keyboard2.username if song.keyboard2 else None,
+            }
+            #곡의 세션 리스트(중복 확인용)
+            song_member_list[song.songname] = song_member_dict[song.songname].values()
+            #곡 리스트
+            song_list.append(song.songname)
+
+    #세션이 겹치는 곡 목록 받아오기
+    overlap_member = {}
+    for song1 in song_list:
+        temp_list = set()
+        for song2 in song_list:
+            if song1 != song2:
+                for member1 in song_member_list[song1]:
+                    for member2 in song_member_list[song2]:
+                        if member1 == member2 and member1:
+                            temp_list.add(song2)
+        overlap_member[song1] = temp_list
+
+    overlap_song_list = []
+    for song1 in overlap_member:
+        for song2 in overlap_member[song1]:
+            temp_list=[song1,song2]
+            temp_list.sort()
+            overlap_song_list.append(temp_list)
+
+    overlap_song_list.sort()
+
+    for i in overlap_song_list:
+        if i in overlap_song_list:
+            overlap_song_list.remove(i)
+    
+
+    #곡 별 시간 별 값
+    for song in song_member_list:
+        value_list_temp = []
+        song_member_temp = song_member_list[song]
+        for i in range(days):
+            value_list_temp.append([])
+            for j in range(max_song_per_day):
+                value_total = 0
+                value_temp = 0
+                for e, session in enumerate(song_member_temp):
+                    if session:
+                        if e==0 or e==1:
+                            #보컬
+                            v = 5
+                            value_total += member_available_value[session][i][j]*v
+                            value_temp += v
+                        elif e==2:
+                            #드럼
+                            d = 5
+                            value_total += member_available_value[session][i][j]*d
+                            value_temp += d
+                        else:
+                            value_total += member_available_value[session][i][j]
+                            value_temp += 1
+                if value_temp == value_total:
+                    value_list_temp[i].append(1)
+                else:
+                    value_list_temp[i].append(round(value_total / value_temp, 4))
+        song_value[song] = value_list_temp
+
+    #정보 final dict에 넣고 value array화
+    final = {}
+    for i, song in enumerate(song_list):
+        if song in song_multiple_list:
+            pass
+        else:
+            final[i] = [song,song_value[song], [1]]
+
+    value = []
+    for i in range(days):
+        value.append([])
+        for j in range(max_song_per_day):
+            value[i].append([])
+            for k in range(len(final)):
+                value[i][j].append(final[k][1][i][j])
+
+    my_df, final_result, solver = Create.create(
+        days, max_song_per_day, final, value, intervals, overlap_song_list, song_member_list, member_available_value
+        )
+    print(my_df)
+    return render(request, 'schedule_create.html')

@@ -5,6 +5,7 @@
     {% if form %}
         <form action="" method="post">
             {{ form.as_p }}
+            합주에 참여할 수 없는 시간을 선택해주세요. <br>
             {% for choice in choices %}
                 <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}} <br>
             {% endfor %}

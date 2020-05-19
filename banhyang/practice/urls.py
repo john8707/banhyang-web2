@@ -8,5 +8,6 @@ urlpatterns = [
     path('practice/songs', views.song_list, name='song_list'),
     path('practice/songs/<int:song_id>', views.song_delete, name='song_delete'),
     path('practice/users', views.user_list, name='user_list'),
-    path('practice/users/<username>', views.user_delete, name='user_delete')
+    path('practice/users/<username>', views.user_delete, name='user_delete'),
+    path('practice/schedule/create', views.schedule_create, name='schedule_create')
 ]

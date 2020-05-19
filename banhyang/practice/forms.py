@@ -32,7 +32,7 @@ class PracticeApplyForm(forms.Form):
         if not user:
             self._errors['username'] = ['이름과 전화번호를 다시 확인해주세요.']
         else:
-            form_data['user_instance'] = user
+            form_data['user_object'] = user
         return form_data
 
 
@@ -45,12 +45,12 @@ class SongAddForm(forms.ModelForm):
         super(SongAddForm, self).__init__(*args, **kwargs)
         self.fields['vocal1'].widget = forms.TextInput()
         self.fields['vocal2'].widget = forms.TextInput()
+        self.fields['drum'].widget = forms.TextInput()
         self.fields['guitar1'].widget = forms.TextInput()
         self.fields['guitar2'].widget = forms.TextInput()
         self.fields['bass'].widget = forms.TextInput()
         self.fields['keyboard1'].widget = forms.TextInput()
         self.fields['keyboard2'].widget = forms.TextInput()
-        self.fields['drum'].widget = forms.TextInput()
 
 
 

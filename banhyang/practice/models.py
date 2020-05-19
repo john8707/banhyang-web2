@@ -27,7 +27,7 @@ class PracticeUser(models.Model):
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
-    schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+    schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='apply')
     not_available = models.IntegerField()
 
 
@@ -36,9 +36,12 @@ class SongData(models.Model):
     songname = models.CharField(max_length=255)
     vocal1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal1")
     vocal2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal2")
+    drum = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="drum")
     guitar1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar1")
     guitar2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar2")
     bass = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="bass")
     keyboard1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard1")
     keyboard2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard2")
-    drum = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="drum")
+
+    def __str__(self):
+        return self.songname
