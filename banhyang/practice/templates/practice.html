@@ -8,9 +8,9 @@
         <div><a class="nav_link" href="{% url 'setting' %}">관리</a></div>
         {% endif %}
     </nav>
+    {% if form %}
     <form method="POST" class="practice_form">
         {% csrf_token %}
-        {% if form %}
             {% for field in form %}
                 <div class="practice_field">
                     <div class="practice_label">{{field.label}}</div>
@@ -39,11 +39,11 @@
             <div class="submit-wrapper">
                 <input type="submit" value="제출">
             </div>
-    
-        {% else %}
-            예정된 합주가 없습니다. 잠시만 기다려주세요 :)
-        {% endif %}
     </form>
+    {% else %}
+        예정된 합주가 없습니다. 잠시만 기다려주세요 :)
+    {% endif %}
+
 </div>
 
 
