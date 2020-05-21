@@ -5,21 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BANHYANG</title>
+    <link rel="stylesheet" href="{% static 'css/core.css' %}?after">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>개발용 페이지입니다.</h1>
-    <h6>https://github.com/john8707/banhyang-web2</h6>
-    <section>
-        <ul>
-            <li><a href="{% url 'accounting_main' %}">회계</a></li>
-            <li><a href="{% url 'practice' %}">합주</a></li>
-        </ul>
-    </section>
-    <section>
-        {% block content %}
-        {% endblock %}
 
-    </section>
+<header>
+    <div id='main_logo'>
+        <a href="{% url 'index' %}" id='nav_title'>반향</a>
+        <div id='nav_subtitle'>
+            연세대학교 락밴드
+        </div>
+    </div>
 
-</body>
-</html>
+
+</header>
+<div class=main_section>
+    {% block content %}
+    {% endblock %}
+
+</div>

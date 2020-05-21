@@ -1,5 +1,25 @@
-{% extends 'base.html' %}
-{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANHYANG</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}?after">
+</head>
+<div>
+    <img src="{% static 'image/logo.png' %}" id=logo_index>
+</div>
+
+<div id=index>
+    COMING SOON
+</div>
 
 
-{% endblock %}
+<div class="section">
+    <div class="section__item">
+        <a href="{% url 'practice' %}" class="sm-link sm-link_padding-bottom sm-link3">
+            <span class="sm-link__label">합주 불참 신청하러 가기</span>
+        </a>
+    </div>
+</div>

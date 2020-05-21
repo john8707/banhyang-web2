@@ -1,0 +1,12 @@
+<table>
+
+<tr><td>1일</td> <td>2일</td></tr> <br>
+{% for b in df.itertuples %}
+    <tr><td>{{ b.1 }}</td><td> {{ b.2 }}</td></tr> <br>
+{% endfor %} 
+
+</table>
+<br><br><br><br><br><br><br>
+{% for i in NA %}
+{{i}} <br>
+{% endfor %}

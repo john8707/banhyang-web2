@@ -92,6 +92,34 @@ class Create:
             name1 = i[2]
             my_df[a][b] = name1
 
+        who_is_not_comming = []
 
+        for i in finallist:
+            for j in final:
+                if type(i[2]) == tuple:
+                    for k in i[2]:
+                        if k == final[j][0]:
+                            member = songlist[k]
+                            member_av = []
+                            member_un = []
+                            for mem in member:
+                                if mem:
+                                    if member_date[mem][i[0]-1][i[1]-1] == 1:
+                                        member_av.append(mem)
+                                    else:
+                                        member_un.append(mem)
+                            who_is_not_comming.append((k, member_av, "/", member_un))
+                else:
+                    if i[2] == final[j][0]:
+                        member = songlist[i[2]]
+                        member_av = []
+                        member_un = []
+                        for mem in member:
+                            if member_date[mem][i[0]-1][i[1]-1] == 1:
+                                member_av.append(mem)
+                            else:
+                                member_un.append(mem)
+                        who_is_not_comming.append((i[2], member_av, "/", member_un))
         
-        return pd.DataFrame(my_df), finallist, solver
+        
+        return pd.DataFrame(my_df), finallist, solver, who_is_not_comming

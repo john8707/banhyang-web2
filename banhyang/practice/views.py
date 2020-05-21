@@ -4,10 +4,9 @@ from .models import Schedule, SongData, PracticeUser, Apply
 from datetime import timedelta, date, datetime, time
 from django.contrib import messages
 from .schedule import Create
+from django.contrib.auth.decorators import login_required
 # TODO 
 # 1. 관리 화면 첫 화면에서 메인 노출 날짜 선택하기, 삭제하기
-# 2. 유저 등록/수정
-# 3. 유저 제출시 db에 업데이트
 # 4. 시간 선택 디자인 변경
 
 def practice(request):
@@ -26,7 +25,8 @@ def practice(request):
             div_for_day = 0
             while  temp_time + timedelta(minutes=time_per_song) < endtime:
                 if div_for_day == 0:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s, (%s)"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"), temp['date'].strftime('%m/%d'))))
+                    choice.append((0, "%s"%(temp['date'].strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'))))
+                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
                 else:
                     choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
                 temp_time += timedelta(minutes=time_per_song)
@@ -59,6 +59,7 @@ def practice(request):
     return render(request, 'practice.html', {'form' : form, 'choices' : choice})
 
 
+@login_required
 def setting(request):
     message = None
     if request.method == "POST":
@@ -72,6 +73,7 @@ def setting(request):
     return render(request, 'setting.html', {'schedules' : schedules, 'message': message})
 
 
+@login_required
 def create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것)
     if request.method == "POST":
@@ -90,6 +92,7 @@ def create(request):
     return render(request, 'create.html', {'form' : form})
 
 
+@login_required
 def song_list(request):
     if request.method == "POST":
         form = SongAddForm(request.POST)
@@ -103,11 +106,14 @@ def song_list(request):
         return render(request, 'song_list.html', {'songs' :songs, 'form' :form})
 
 
+@login_required
 def song_delete(request, song_id):
     song_to_delete = get_object_or_404(SongData, id = song_id)
     song_to_delete.delete()
     return redirect('song_list')
 
+
+@login_required
 def user_list(request):
     if request.method == "POST":
         form = UserAddForm(request.POST)
@@ -121,12 +127,13 @@ def user_list(request):
         return render(request, 'user_list.html', {'users' :users, 'form' :form})
 
 
+@login_required
 def user_delete(request, username):
     user_to_delete = get_object_or_404(PracticeUser, username = username)
     user_to_delete.delete()
     return redirect('user_list')
 
-
+@login_required
 def schedule_create(request):
 
     #DB에서 데이터 받아오기
@@ -280,8 +287,10 @@ def schedule_create(request):
             for k in range(len(final)):
                 value[i][j].append(final[k][1][i][j])
 
-    my_df, final_result, solver = Create.create(
+    my_df, finallist, solver, who_is_not_coming = Create.create(
         days, max_song_per_day, final, value, intervals, overlap_song_list, song_member_list, member_available_value
         )
+
+
     print(my_df)
-    return render(request, 'schedule_create.html')
+    return render(request, 'schedule_create.html', {'df' : my_df, 'NA' : who_is_not_coming})

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .forms import AccountingCreateForm, AccountingAddForm
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from .models import AccountingTitle, AccountingDetails
 from django.db.models import Sum
 # Create your views here.
@@ -11,6 +12,7 @@ def index(request):
     return render(request, 'index.html')
 
 
+@login_required
 def accounting_main(request):
     accounting_list = AccountingTitle.objects.all()
 
@@ -19,6 +21,7 @@ def accounting_main(request):
 
 #deactivating csrf token
 @csrf_exempt
+@login_required
 def accounting_create(request):
     
     if request.method == "POST":
@@ -33,6 +36,8 @@ def accounting_create(request):
         return render(request, 'accounting_create.html', {'form' : form,})
 
 
+
+@login_required
 def accounting_details(request, id):
     info = get_object_or_404(AccountingTitle, id=id)
     accounting_list = AccountingDetails.objects.filter(accounting_id=id).order_by('date')
@@ -51,6 +56,8 @@ def accounting_details(request, id):
     })
 
 
+
+@login_required
 def accounting_details_delete(request, accounting_id, detail_id):
     detail_to_delete = get_object_or_404(AccountingDetails, id = detail_id)
     detail_to_delete.delete()
