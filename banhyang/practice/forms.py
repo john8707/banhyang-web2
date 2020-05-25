@@ -28,11 +28,12 @@ class PracticeApplyForm(forms.Form):
 
     def clean(self):
         form_data = self.cleaned_data
-        user = PracticeUser.objects.get(username=form_data['username'], phonenumber=form_data['number'])
-        if not user:
-            self._errors['number'] = ['이름과 전화번호를 다시 확인해주세요.']
-        else:
+        try:
+            user = PracticeUser.objects.get(username=form_data['username'], phonenumber=form_data['number'])
             form_data['user_object'] = user
+        except PracticeUser.DoesNotExist:
+            self._errors['number'] = ['이름과 전화번호를 다시 확인해주세요.']
+
         return form_data
 
 
