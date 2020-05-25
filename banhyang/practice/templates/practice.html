@@ -15,6 +15,9 @@
                 <div class="practice_field">
                     <div class="practice_label">{{field.label}}</div>
                     <div class="practice_input">{{field}}</div>
+                    {% for error in field.errors %}
+                    <div class="practice_error"><b style="color: red;">{{error}}</b></div>
+                    {% endfor %}
                 </div>
             {% endfor %}
             

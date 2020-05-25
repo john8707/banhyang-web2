@@ -6,7 +6,7 @@ from django.contrib import messages
 from .schedule import Create
 from django.contrib.auth.decorators import login_required
 # TODO 
-# 1. 관리 화면 첫 화면에서 메인 노출 날짜 선택하기, 삭제하기
+# 1. 관리 화면 첫 화면에서 메인 노출 날짜 삭제하기
 # 4. 시간 선택 디자인 변경
 
 def practice(request):

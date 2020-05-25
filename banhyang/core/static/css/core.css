@@ -137,7 +137,9 @@ a, a:visited{
     font-weight: bold;
     margin-top: 40px;
 }
-
+.practice_error{
+    text-align: center;
+}
 #practice_info{
     color: gray;
     text-align: center;
