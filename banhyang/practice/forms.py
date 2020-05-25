@@ -28,7 +28,7 @@ class PracticeApplyForm(forms.Form):
 
     def clean(self):
         form_data = self.cleaned_data
-        user = PracticeUser.objects.filter(username=form_data['username'], phonenumber=form_data['number'])
+        user = PracticeUser.objects.get(username=form_data['username'], phonenumber=form_data['number'])
         if not user:
             self._errors['number'] = ['이름과 전화번호를 다시 확인해주세요.']
         else:

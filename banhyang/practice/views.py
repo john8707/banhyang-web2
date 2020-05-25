@@ -45,10 +45,8 @@ def practice(request):
             res = dict(request.POST)
             username = res['username'][0]
             number = res['number'][0]
-            delete = Apply.objects.filter(user_name=form.cleaned_data['user_object'])
-            if delete:
-                for i in delete:
-                    i.delete()
+            Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
+
             if 'selected' in res:
                 selected = res['selected']
                 for i in selected:
