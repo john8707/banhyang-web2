@@ -158,7 +158,8 @@ a, a:visited{
         }
     .practice_form{
         max-width: 90%;
-        margin-left: 0px;
+        margin: 0 auto;
+        border-left: none;
     }
 
     .practice_input{
