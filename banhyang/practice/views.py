@@ -53,10 +53,12 @@ def practice(request):
                     schedule_object = Schedule.objects.get(id=i.split('_')[0])
                     a = Apply(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, not_available=i.split('_')[1])
                     a.save()
+                
+                messages.success(request, "제출되었습니다")
 
             return redirect('practice')
 
-    return render(request, 'practice.html', {'form' : form, 'choices' : choice})
+    return render(request, 'practice.html', {'form' : form, 'choices' : choice,})
 
 
 @login_required

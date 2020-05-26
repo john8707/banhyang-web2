@@ -40,9 +40,16 @@
             </div>
 
             <div class="submit-wrapper">
-                <input type="submit" value="제출">
+                {% if messages %}
+                    {% for message in messages %}
+                        <b style="color: red; font-size: 15px;">{{ message }}</b><br>
+                    {% endfor %}
+                {% endif %}
+                <input type="submit" value="제출"><br>
             </div>
+        
     </form>
+    
     {% else %}
         예정된 합주가 없습니다. 잠시만 기다려주세요 :)
     {% endif %}
