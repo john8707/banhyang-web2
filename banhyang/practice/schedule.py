@@ -31,11 +31,13 @@ class Create:
         for k in final:
             solver.Add(solver.Sum([x[i, j, k] for i in range(days) for j in range(times)]) <= final[k][2][0])
         """
+        
         #하루에 한번만
+        """
         for k in final:
             for i in range(days):
                 solver.Add(solver.Sum([x[i, j, k] for j in range(times)]) <= 1)
-
+        """
         #한 타임에 곡 수는 방 수 만큼
         for i in range(days):
             for j in range(times):
