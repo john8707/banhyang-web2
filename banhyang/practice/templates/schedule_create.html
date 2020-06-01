@@ -1,8 +1,7 @@
 <table>
 
-<tr><td>1일</td> <td>2일</td></tr> <br>
-{% for b in df.itertuples %}
-    <tr><td>{{ b.1 }}</td><td> {{ b.2 }}</td></tr> <br>
+{% for i in df.itertuples %}
+    <tr><td>{{ i.1 }}</td><td> {{ i.2 }}</td><td> {{ i.3 }}</td></tr> <br>
 {% endfor %} 
 
 </table>
