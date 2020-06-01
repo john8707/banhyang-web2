@@ -115,10 +115,11 @@ class Create:
                         member_av = []
                         member_un = []
                         for mem in member:
-                            if member_date[mem][i[0]-1][i[1]-1] == 1:
-                                member_av.append(mem)
-                            else:
-                                member_un.append(mem)
+                            if mem:
+                                if member_date[mem][i[0]-1][i[1]-1] == 1:
+                                    member_av.append(mem)
+                                else:
+                                    member_un.append(mem)
                         who_is_not_comming.append((i[2], member_av, "/", member_un))
         
         
