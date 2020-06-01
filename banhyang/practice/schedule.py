@@ -18,19 +18,22 @@ class Create:
         solver.Maximize(solver.Sum([value[i][j][k] * x[i, j, k] for i in range(days) for j in range(times) for k in range(len(final))]))
 
         #곡당 2번 이하
+        """
         for k in final:
             solver.Add(solver.Sum([x[i, j, k] for i in range(days) for j in range(times)]) <= 2)
-
+        """
 
         #곡당 1번 이상
+        """
         for k in final:
             solver.Add(solver.Sum([x[i, j, k] for i in range(days) for j in range(times)]) >= 1)
+        """
 
         #곡당 정해진 수 만큼
-        """
+        
         for k in final:
             solver.Add(solver.Sum([x[i, j, k] for i in range(days) for j in range(times)]) <= final[k][2][0])
-        """
+        
         
         #하루에 한번만
         """

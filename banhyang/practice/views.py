@@ -155,7 +155,7 @@ def schedule_create(request):
     ##################################
     # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
     song_del_list = []
-    song_multiple_list = []
+    song_multiple_dict = {'Congratulations' : 2}
     song_mandatory_list = []
     ##################################
     member_not_available = {}
@@ -276,8 +276,8 @@ def schedule_create(request):
     #정보 final dict에 넣고 value array화
     final = {}
     for i, song in enumerate(song_list):
-        if song in song_multiple_list:
-            pass
+        if song in song_multiple_dict:
+            final[i] = [song,song_value[song], [song_multiple_dict[song]]]
         else:
             final[i] = [song,song_value[song], [1]]
 
