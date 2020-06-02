@@ -25,8 +25,7 @@
         <td>{{user.gisu}}</td>
         <td>{{user.phonenumber}}</td>
 
-
-        <td><a href="users/{{user.username}}">삭제</a></td>
+        <td><a href="javascript:deleteFunction('{{user.username}}')" style="color: red;">(삭제)</a></td>
 
     </tr>
     {% endfor %}
@@ -34,6 +33,14 @@
 
 </table>
 
+<script type="text/javascript">
+    function deleteFunction(username) {
+        var message = confirm("삭제하시겠습니까?")
+        if (message) {
+            window.location="users/" + username ; 
+        }
+    }
+</script>
 
 
 

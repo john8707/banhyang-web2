@@ -24,7 +24,7 @@
         <td>{% if song.keyboard1 or song.keyboard2 %} {{song.keyboard1}}{% if song.keyboard2 %},{{song.keyboard2}}{% endif %} {% else %}X{% endif %}</td>
 
 
-        <td><a href="songs/{{song.id}}">삭제</a></td>
+        <td><a href="javascript:deleteFunction({{song.id}})" style="color: red;">(삭제)</a></td>
 
     </tr>
     {% endfor %}
@@ -40,6 +40,13 @@
     <input type="submit" value="추가">
 </form>
 
-
+<script type="text/javascript">
+    function deleteFunction(id) {
+        var message = confirm("삭제하시겠습니까?")
+        if (message) {
+            window.location="songs/"+ id ; 
+        }
+    }
+</script>
 
 {% endblock %}
