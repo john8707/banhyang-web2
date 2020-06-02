@@ -2,23 +2,34 @@
 {% block content %}
 
 <form method="POST">
+    <h2>메인에 노출 될 합주를 선택해주세요</h2>
     {% csrf_token %}
     {% for schedule in schedules %}
         <input type="checkbox" name="test" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}}
-        <a href="schedule/{{schedule.id}}" style="color: red;">(삭제)</a>
+        <a href="javascript:deleteFunction({{schedule.id}})" style="color: red;">(삭제)</a>
         <br>
     {% endfor %}
 
     <input type="submit" value="변경">
-    <br>
+    <br><br>
     {% if message %}
         {{message}}
     {% endif %}
 </form>
 
-<a href="{% url 'create' %}">합주 날짜 생성</a><br>
-<a href="{% url 'song_list' %}">곡 목록/관리</a><br>
-<a href="{% url 'user_list' %}">활동인원 목록/관리</a><br>
-<a href="{% url 'schedule_create' %}">시간표 짜기</a>
+<a href="{% url 'create' %}">합주 날짜 생성</a><br><br>
+<a href="{% url 'song_list' %}">곡 목록/관리</a><br><br>
+<a href="{% url 'user_list' %}">활동인원 목록/관리</a><br><br>
+<a href="{% url 'schedule_create' %}">시간표 짜기</a><br><br>
+<a href="{% url 'who_is_not_coming' %}">누가 누가 안오나</a>
 
+
+<script type="text/javascript">
+    function deleteFunction(id) {
+        var message = confirm("삭제하시겠습니까?")
+        if (message) {
+            window.location="/practice/schedule/" + id ; 
+        }
+    }
+</script>
 {% endblock %}
