@@ -76,6 +76,13 @@ def setting(request):
 
 
 @login_required
+def practice_delete(request, schedule_id):
+    practice_to_delete = get_object_or_404(Schedule, id = schedule_id)
+    practice_to_delete.delete()
+    return redirect('setting')
+
+
+@login_required
 def create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것)
     if request.method == "POST":

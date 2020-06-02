@@ -4,7 +4,9 @@
 <form method="POST">
     {% csrf_token %}
     {% for schedule in schedules %}
-        <input type="checkbox" name="test" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}} <br>
+        <input type="checkbox" name="test" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}}
+        <a href="schedule/{{schedule.id}}" style="color: red;">(삭제)</a>
+        <br>
     {% endfor %}
 
     <input type="submit" value="변경">
