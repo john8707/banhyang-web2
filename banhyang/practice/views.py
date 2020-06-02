@@ -5,6 +5,8 @@ from datetime import timedelta, date, datetime, time
 from django.contrib import messages
 from .schedule import Create
 from django.contrib.auth.decorators import login_required
+from collections import defaultdict
+
 # TODO 
 # 1. 관리 화면 첫 화면에서 메인 노출 날짜 삭제하기
 # 4. 시간 선택 디자인 변경
@@ -76,13 +78,6 @@ def setting(request):
 
 
 @login_required
-def practice_delete(request, schedule_id):
-    practice_to_delete = get_object_or_404(Schedule, id = schedule_id)
-    practice_to_delete.delete()
-    return redirect('setting')
-
-
-@login_required
 def create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것)
     if request.method == "POST":
@@ -99,6 +94,13 @@ def create(request):
         form = PracticeCreateForm()
 
     return render(request, 'create.html', {'form' : form})
+
+
+@login_required
+def practice_delete(request, schedule_id):
+    practice_to_delete = get_object_or_404(Schedule, id = schedule_id)
+    practice_to_delete.delete()
+    return redirect('setting')
 
 
 @login_required
@@ -142,9 +144,9 @@ def user_delete(request, username):
     user_to_delete.delete()
     return redirect('user_list')
 
+
 @login_required
 def schedule_create(request):
-
     #DB에서 데이터 받아오기
     songs = SongData.objects.all()
     users = PracticeUser.objects.all()
@@ -303,3 +305,22 @@ def schedule_create(request):
 
     print(my_df)
     return render(request, 'schedule_create.html', {'df' : my_df, 'NA' : who_is_not_coming})
+
+
+@login_required
+def who_is_not_coming(request):
+    current_schedule = Schedule.objects.filter(is_current=True)
+    if current_schedule:
+        not_available = {}
+        for schedule in current_schedule:
+            na = schedule.apply.all()
+            schedule_date = schedule.date.strftime("%m/%d - " + str(schedule.id))
+            not_available[schedule_date] = defaultdict(list)
+            for i in na:
+                name = i.user_name.username
+                time = i.not_available
+                not_available[schedule_date][name].append(time)
+        
+    else:
+        not_available = None
+    return render(request, 'who_is_not_coming.html', {'NA' : not_available})

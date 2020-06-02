@@ -11,4 +11,5 @@ urlpatterns = [
     path('practice/users/<username>', views.user_delete, name='user_delete'),
     path('practice/schedule/create', views.schedule_create, name='schedule_create'),
     path('practice/schedule/<int:schedule_id>', views.practice_delete, name='practice_delete'),
+    path('practice/schedule/NA', views.who_is_not_coming, name='who_is_not_coming')
 ]
