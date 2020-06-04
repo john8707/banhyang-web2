@@ -287,6 +287,8 @@ def schedule_create(request):
     for i, song in enumerate(song_list):
         if song in song_multiple_dict:
             final[i] = [song,song_value[song], [song_multiple_dict[song]]]
+        elif song in song_del_list:
+            continue
         else:
             final[i] = [song,song_value[song], [1]]
 
