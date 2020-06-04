@@ -163,7 +163,7 @@ def schedule_create(request):
     room = 2
     ##################################
     # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
-    song_del_list = []
+    song_del_list = ['Blueming']
     song_multiple_dict = {'Congratulations' : 2}
     song_mandatory_list = []
     ##################################
