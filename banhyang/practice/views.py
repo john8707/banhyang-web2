@@ -210,7 +210,7 @@ def schedule_create(request):
     
     #곡의 세션 딕셔너리
     for song in songs:
-        if song not in song_del_list:
+        if song.songname not in song_del_list:
             song_member_dict[song.songname] = {
                 'vocal1' : song.vocal1.username if song.vocal1 else None,
                 'vocal2' : song.vocal2.username if song.vocal2 else None,
