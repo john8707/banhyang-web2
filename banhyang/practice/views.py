@@ -164,15 +164,9 @@ def schedule_create(request):
     ########TODO 날짜 별 방 갯수 인풋 받기
     room = 2
     ##################################
-<<<<<<< HEAD
     # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중, 기타 설정들 웹 상에서 설정 가능하도록
     song_del_list = []
     song_multiple_dict = {}
-=======
-    # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
-    song_del_list = ['Blueming', '홍연']
-    song_multiple_dict = {'Congratulations' : 2}
->>>>>>> master
     song_mandatory_list = []
     ##################################
     member_not_available = {}
