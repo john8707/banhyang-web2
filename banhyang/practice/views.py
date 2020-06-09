@@ -13,6 +13,7 @@ from collections import defaultdict
 
 def practice(request):
     current_practice = Schedule.objects.filter(is_current=True)
+    message = None
     if len(current_practice):
         res = {}
         choice = []
@@ -56,11 +57,12 @@ def practice(request):
                     a = Apply(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, not_available=i.split('_')[1])
                     a.save()
                 
-                messages.success(request, "제출되었습니다")
+            message = "제출되었습니다."
+            form = PracticeApplyForm()
 
-            return redirect('practice')
 
-    return render(request, 'practice.html', {'form' : form, 'choices' : choice,})
+
+    return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
 @login_required
@@ -162,9 +164,9 @@ def schedule_create(request):
     ########TODO 날짜 별 방 갯수 인풋 받기
     room = 2
     ##################################
-    # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
+    # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중, 기타 설정들 웹 상에서 설정 가능하도록
     song_del_list = []
-    song_multiple_dict = {'Congratulations' : 2}
+    song_multiple_dict = {}
     song_mandatory_list = []
     ##################################
     member_not_available = {}
