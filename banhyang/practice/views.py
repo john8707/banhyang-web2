@@ -164,9 +164,15 @@ def schedule_create(request):
     ########TODO 날짜 별 방 갯수 인풋 받기
     room = 2
     ##################################
+<<<<<<< HEAD
     # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중, 기타 설정들 웹 상에서 설정 가능하도록
     song_del_list = []
     song_multiple_dict = {}
+=======
+    # TODO 뺄 곡, 여러번 할 곡, 필수 곡 목록, 세션 별 비중
+    song_del_list = ['Blueming', '홍연']
+    song_multiple_dict = {'Congratulations' : 2}
+>>>>>>> master
     song_mandatory_list = []
     ##################################
     member_not_available = {}
@@ -212,7 +218,7 @@ def schedule_create(request):
     
     #곡의 세션 딕셔너리
     for song in songs:
-        if song not in song_del_list:
+        if song.songname not in song_del_list:
             song_member_dict[song.songname] = {
                 'vocal1' : song.vocal1.username if song.vocal1 else None,
                 'vocal2' : song.vocal2.username if song.vocal2 else None,
@@ -289,6 +295,8 @@ def schedule_create(request):
     for i, song in enumerate(song_list):
         if song in song_multiple_dict:
             final[i] = [song,song_value[song], [song_multiple_dict[song]]]
+        elif song in song_del_list:
+            continue
         else:
             final[i] = [song,song_value[song], [1]]
 
