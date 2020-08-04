@@ -24,15 +24,14 @@ class PracticeCreateForm(forms.ModelForm):
 
 class PracticeApplyForm(forms.Form):
     username = forms.CharField(label="이름")
-    number = forms.IntegerField(label="전화번호 뒷자리 4개")
 
     def clean(self):
         form_data = self.cleaned_data
         try:
-            user = PracticeUser.objects.get(username=form_data['username'], phonenumber=form_data['number'])
+            user = PracticeUser.objects.get(username=form_data['username'])
             form_data['user_object'] = user
         except PracticeUser.DoesNotExist:
-            self._errors['number'] = ['이름과 전화번호를 다시 확인해주세요.']
+            self._errors['number'] = ['이름을 다시 확인해주세요.']
 
         return form_data
 
