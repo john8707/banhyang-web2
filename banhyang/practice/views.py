@@ -58,6 +58,9 @@ def practice(request):
                 
             message = "제출되었습니다."
             form = PracticeApplyForm()
+        
+        else:
+            message = "이름을 다시 확인해주세요."
 
 
 
