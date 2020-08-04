@@ -47,7 +47,6 @@ def practice(request):
         if form.is_valid():
             res = dict(request.POST)
             username = res['username'][0]
-            number = res['number'][0]
             Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
 
             if 'selected' in res:
