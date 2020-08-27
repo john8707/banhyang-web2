@@ -17,7 +17,7 @@ def test(request):
 
 
 def youtube_test(request):
-    return render(request, 'youtube_slider.html')
+    return render(request, 'youtube_carousel.html')
 
 
 @login_required
