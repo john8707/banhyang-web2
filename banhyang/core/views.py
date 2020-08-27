@@ -12,6 +12,14 @@ def index(request):
     return render(request, 'index.html')
 
 
+def test(request):
+    return render(request, 'test.html')
+
+
+def youtube_test(request):
+    return render(request, 'youtube_slider.html')
+
+
 @login_required
 def accounting_main(request):
     accounting_list = AccountingTitle.objects.all()

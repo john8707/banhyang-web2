@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANHYANG</title>
+    <link rel="stylesheet" href="{% static 'css/test.css' %}?after100">
+
+</head>
+<body>
+    <div class="header">
+        <div class="nav-links">
+            <a id="nav-banhyang" href="">BANHYANG</a>
+
+            <ul>
+                <li class="nav-right"><a href="">ABOUT</a></li>
+                <li class="nav-right"><a href="">TICKET</a></li>
+                <li class="nav-right"><a href="">GALLERY</a></li>
+                <li class="nav-right"><a href="">APPLY</a></li>
+                <li class="nav-right"><a href="">PRACTICE</a></li>
+            </ul>
+        </div>    
+
+        <img src="{% static 'image/concert1.png' %}" alt="concert image" id="main-image" width="1200">
+        <img src="{% static 'image/logo2.png' %}" alt="logo2" id="logo-image">    
+
+    </div>
+
+    <div class="footer">
+        <p>Copyright 2020. YONSEI UNIVERSITY ROCKBAND BANHYANG 34 Jaewon LIM. ALL RIGHTS RESERVED</p>
+    </div>
+</body>
+</html>

@@ -3,3 +3,4 @@ myvenv/
 __pycache__/
 *.sqlite3
 secrets.json
+ngrok.exe
