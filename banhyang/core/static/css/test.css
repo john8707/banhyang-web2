@@ -510,6 +510,7 @@ html{
   font-size: 10px;
   text-align: center;
   margin-top: 200px;
+  margin-bottom: 20px;
 }
 
 /*
@@ -526,3 +527,51 @@ html{
   }
 }
 */
+
+
+.carousel-wrapper{
+  width: 80vw;
+  border: 1px solid black;
+  margin: 0 auto;
+  position: relative;
+  box-sizing: border-box;
+  max-width: 600px;
+  height: 45vw;
+  max-height: 337.5px;
+  margin-top: 100px;
+}
+
+.carousel-container{
+  overflow: hidden;
+}
+.carousel-slide{
+  display: flex;
+}
+
+#btnPrev, #btnNext{
+  position: absolute;
+  top: 50%;
+  transform: translate(0%, -50%);
+  z-index: 1;
+  border: none;
+  outline: none;
+  background-color: rgb(40, 40, 40);
+  width: 15px;
+  height: 30px;
+}
+
+#btnPrev{
+  left: -50px;
+  visibility: hidden;
+}
+
+#btnNext{
+  right: -50px;
+}
+
+iframe{
+  width: 80vw;
+  max-width: 600px;
+  height: 45vw;
+  max-height: 337.5px;
+}

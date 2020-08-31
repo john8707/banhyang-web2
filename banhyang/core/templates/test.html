@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BANHYANG</title>
-    <link rel="stylesheet" href="{% static 'css/test.css' %}?after100">
+    <link rel="stylesheet" href="{% static 'css/test.css' %}">
+    <script src="{% static 'js/youtube_carousel.js' %}" type="text/javascript"></script>
+
 
 </head>
 <body>
@@ -24,6 +26,16 @@
 
         <img src="{% static 'image/concert1.png' %}" alt="concert image" id="main-image" width="1200">
         <img src="{% static 'image/logo2.png' %}" alt="logo2" id="logo-image">    
+
+    </div>
+
+    <div class="carousel-wrapper">
+        <div class="carousel-container">
+            <div class="carousel-slide">
+            </div>
+        </div>
+        <img src="{% static 'image/button-left.png' %}" alt="arrow-left" id="btnPrev" width="30">
+        <img src="{% static 'image/button-right.png' %}" alt="arrow-right" id="btnNext" width="30">
 
     </div>
 
