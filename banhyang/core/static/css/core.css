@@ -33,7 +33,7 @@ body{
 }
 
 header {
-    background-color: rgb(33, 122, 151);
+    background-color: black;
     height: 130px;
     position: fixed;
     width: 100%;

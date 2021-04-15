@@ -442,6 +442,7 @@ html{
 
 .header{
   position: relative;
+  margin-bottom: 30px ;
 }
 
 #nav-banhyang{
@@ -452,14 +453,19 @@ html{
   display: block;
 
   float: left;
-  margin: 40px 0 20px 25px;
+  margin: 40px 0 0 25px;
 
+}
+
+#nav-toggle{
+  display: none;
 }
 
 .nav-links{
   position: relative;
   margin: 0 auto;
   max-width: 1200px;
+  overflow: hidden;
 }
 
 .nav-links .nav-right a{
@@ -467,6 +473,7 @@ html{
   font-size: 14px;
   letter-spacing: 5px;
   display: block;
+  font-weight: 700;
 }
 
 .nav-links .nav-right a:hover{
@@ -479,7 +486,7 @@ html{
 
 .nav-links li{
   float: left;
-  margin: 50px 12px 20px;
+  margin: 50px 12px 0;
 }
 
 
@@ -513,20 +520,66 @@ html{
   margin-bottom: 20px;
 }
 
-/*
-@media (max-width: 1200px){
-  #logo-image{
-    top: 170px;
-    max-width: 30%;
+
+@media (max-width: 800px) {
+  #nav-banhyang{
+    color: white;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    display: block;
+  
+    float: none;
+    margin: 40px 0 0 25px;
+  
+  }
+
+  #nav-toggle{
+    display: block;
+    position: absolute;
+    top: 40px;
+    right: 25px;
+  }
+  
+  .nav-links{
+    position: relative;
+    margin: 0 auto;
+    max-width: 1200px;
+    overflow: hidden;
+  }
+  
+  .nav-links .nav-right a{
+    color: rgb(180, 180, 180);
+    font-size: 16px;
+    letter-spacing: 5px;
+    display: block;
+    font-weight: 700;
+  }
+  
+  .nav-links .nav-right a:hover{
+    color: white;
+  }
+
+  .active{
+    display: block !important;
+  }
+  
+  .nav-links ul{
+    clear: both;
+    float: none;
+    margin-top: 50px;
+    display: none;
+  }
+
+
+
+  .nav-links li{
+    float: none;
+    text-align: center;
+    margin-top: 30px;
   }
 }
 
-@media (max-width: 768px) {
-  #logo-image{
-    top: 70px;
-  }
-}
-*/
 
 
 .carousel-wrapper{
@@ -538,7 +591,6 @@ html{
   max-width: 600px;
   height: 45vw;
   max-height: 337.5px;
-  margin-top: 100px;
 }
 
 .carousel-container{
@@ -575,3 +627,11 @@ iframe{
   height: 45vw;
   max-height: 337.5px;
 }
+
+#olv{
+  color: rgb(180, 180, 180);
+  letter-spacing: 5px;
+  text-align: center;
+  margin-bottom: 50px;
+}
+
