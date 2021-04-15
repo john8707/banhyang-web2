@@ -440,6 +440,7 @@ html{
 
 }
 
+
 .header{
   position: relative;
   margin-bottom: 30px ;
@@ -527,7 +528,7 @@ html{
     font-size: 25px;
     font-weight: 700;
     letter-spacing: 8px;
-    display: block;
+    display: inline-block;
   
     float: none;
     margin: 40px 0 0 25px;
@@ -605,20 +606,17 @@ html{
   top: 50%;
   transform: translate(0%, -50%);
   z-index: 1;
-  border: none;
-  outline: none;
-  background-color: rgb(40, 40, 40);
-  width: 15px;
-  height: 30px;
+  cursor: pointer;
+  color: white;
 }
 
 #btnPrev{
-  left: -50px;
+  left: -30px;
   visibility: hidden;
 }
 
 #btnNext{
-  right: -50px;
+  right: -30px;
 }
 
 iframe{
