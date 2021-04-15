@@ -4,7 +4,6 @@
     {% if form %}
     <nav class="practice_nav">
         <div><a class="nav_link_selected" href="{% url 'practice' %}">합주 불참 신청</a></div>
-        <div><a class="nav_link" href="">합주 일정 조회</a></div>
         {% if user.is_authenticated %}
         <div><a class="nav_link" href="{% url 'setting' %}">관리</a></div>
         {% endif %}
