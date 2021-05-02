@@ -17,7 +17,7 @@ class PracticeCreateForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(PracticeCreateForm, self).__init__(*args, **kwargs)
-        self.fields['minutes'] = forms.ChoiceField(choices=[(6, "10분"), (3, "20분"), (2, "30분")])
+        self.fields['minutes'] = forms.ChoiceField(choices=[(6, "10분"), (3, "20분"), (2, "30분"), (1, "60분")])
         self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'])
         self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
 
