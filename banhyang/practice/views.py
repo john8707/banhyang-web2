@@ -12,36 +12,50 @@ from collections import defaultdict
 # 4. 시간 선택 디자인 변경
 
 def practice(request):
+    # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
     current_practice = Schedule.objects.filter(is_current=True)
     message = None
+    # 활성화 된 합주 날짜가 존재할 경우
     if len(current_practice):
         res = {}
         choice = []
         for i in current_practice:
+            # temp 안쓰는 Dummy vaiabler,, 왜 있지?
             temp = {}
             temp['name'] = i.name
             temp['date'] = i.date
             temp['time_list'] = []
+
+            # 시작 시간
             temp_time = datetime.combine(date.today(), i.starttime)
+            # 끝나는 시간
             endtime = datetime.combine(date.today(), i.endtime)
+
+            # 곡 당 시간은 1시간을 Schedule의 div으로 나눈다
             time_per_song = 60 / i.div
+
+            # 각 날짜별 division counter, (ex 합주 시간이 3시~4시 / 곡 당 시간이 30분일 경우 3시 = 0, 3시 30분 = 1)
             div_for_day = 0
+            
+            # temp time이 endtime을 넘지 않을 때 까지 곡 당 시간을 temp time에 더하면서 반복
             while  temp_time + timedelta(minutes=time_per_song) < endtime:
+
+                # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필수
                 if div_for_day == 0:
                     choice.append((0, "%s"%(temp['date'].strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'))))
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
-                else:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
+                choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
                 temp_time += timedelta(minutes=time_per_song)
                 div_for_day += 1
 
             choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
             res[i.id] = temp
         form = PracticeApplyForm()
+    # 활성화 된 합주가 없을 경우 Return Nothing
     else:
         form = None
         choice = None
 
+    # SUBMIT 했을 시
     if request.method == "POST":
         form = PracticeApplyForm(request.POST)
         if form.is_valid():
@@ -60,7 +74,7 @@ def practice(request):
             form = PracticeApplyForm()
         
         else:
-            message = "이름을 다시 확인해주세요."
+            message = form._errors['message']
 
 
 

@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+# 합주 날짜
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -14,7 +14,7 @@ class Schedule(models.Model):
     def __str__(self):
         return self.name + "(" + self.date.strftime("%m/%d") + ")"
 
-
+# 바냥이들의 정보
 class PracticeUser(models.Model):
     username = models.CharField(max_length=255,primary_key=True)
     gisu = models.IntegerField()
@@ -24,6 +24,7 @@ class PracticeUser(models.Model):
         return self.username
 
 
+# 개개인들의 불참 데이터
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
@@ -31,6 +32,7 @@ class Apply(models.Model):
     not_available = models.IntegerField()
 
 
+# 곡의 정보
 class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
