@@ -17,15 +17,8 @@ def practice(request):
     message = None
     # 활성화 된 합주 날짜가 존재할 경우
     if len(current_practice):
-        res = {}
         choice = []
         for i in current_practice:
-            # temp 안쓰는 Dummy vaiabler,, 왜 있지?
-            temp = {}
-            temp['name'] = i.name
-            temp['date'] = i.date
-            temp['time_list'] = []
-
             # 시작 시간
             temp_time = datetime.combine(date.today(), i.starttime)
             # 끝나는 시간
@@ -38,17 +31,16 @@ def practice(request):
             div_for_day = 0
             
             # temp time이 endtime을 넘지 않을 때 까지 곡 당 시간을 temp time에 더하면서 반복
-            while  temp_time + timedelta(minutes=time_per_song) < endtime:
+            while temp_time + timedelta(minutes=time_per_song) < endtime:
 
-                # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필수
+                # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
-                    choice.append((0, "%s"%(temp['date'].strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'))))
+                    choice.append((0, "%s"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'))))
                 choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
                 temp_time += timedelta(minutes=time_per_song)
                 div_for_day += 1
 
-            choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
-            res[i.id] = temp
+            choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), endtime.strftime("%H:%M"))))
         form = PracticeApplyForm()
     # 활성화 된 합주가 없을 경우 Return Nothing
     else:
