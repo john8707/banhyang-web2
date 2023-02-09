@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 # Check user validation from PracticeUser model
 def validate_user_exist(name, phonenumber):
-    user = PracticeUser.objects.filter(username=name, phonenumber=phonenumber)
+    user = PracticeUser.objects.filter(username=name)
     if not user:
         return False
     else:

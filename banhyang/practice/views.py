@@ -144,7 +144,7 @@ def user_list(request):
             return redirect('user_list')
     else:
         form = UserAddForm()
-        users = PracticeUser.objects.all().order_by('gisu', 'username')
+        users = PracticeUser.objects.all().order_by('username')
         return render(request, 'user_list.html', {'users' :users, 'form' :form})
 
 

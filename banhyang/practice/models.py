@@ -18,8 +18,6 @@ class Schedule(models.Model):
 # 바냥이들의 정보
 class PracticeUser(models.Model):
     username = models.CharField(max_length=255,primary_key=True)
-    gisu = models.IntegerField()
-    phonenumber = models.IntegerField()
 
     def __str__(self):
         return self.username
