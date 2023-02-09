@@ -15,7 +15,7 @@ class PracticeCreateForm(forms.ModelForm):
     # Schedule 모델 베이스 폼, field들 가져옴
     class Meta:
         model = Schedule
-        fields = ['name', 'date', 'location']
+        fields = ['name', 'date', 'location', 'rooms']
     
     # 위에서 가져오지 않은 field들을 보기 편하게 만들어서 보여줌
     def __init__(self, *args, **kwargs):

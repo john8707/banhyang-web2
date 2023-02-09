@@ -10,9 +10,10 @@ class Schedule(models.Model):
     location = models.CharField(max_length=255,  null=True)
     div = models.IntegerField()
     is_current = models.BooleanField(default=True)
+    rooms = models.IntegerField()
 
     def __str__(self):
-        return self.name + "(" + self.date.strftime("%m/%d") + ")"
+        return self.name + " (" + self.date.strftime("%Y/%m/%d") + ")"
 
 # 바냥이들의 정보
 class PracticeUser(models.Model):

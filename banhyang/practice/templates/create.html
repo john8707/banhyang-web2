@@ -12,6 +12,7 @@
             날짜 <br>
             <input name="date" type="date">
         </div>
+
         <div class="form-content">
             시간 [시간:분 형식 ex) 7:00] <br>
             {{ form.starttime }} ~ {{ form.endtime }}
@@ -25,7 +26,10 @@
             곡 당 시간 <br>
             {{ form.minutes }}
         </div>
-
+        <div>
+            방 갯수 <br>
+            {{ form.rooms}}
+        </div>
 
         <input type="submit" value="submit">
     </form>
