@@ -115,16 +115,46 @@ def practice_delete(request, schedule_id):
 
 @login_required
 def song_list(request):
+    context = {}
+    form = SongAddForm
+    message = None
+    #preprocessing()
     if request.method == "POST":
+        # 곡 추가하는 경우
         form = SongAddForm(request.POST)
+        # forms에서 validation 진행
         if form.is_valid():
-            f = form.save(commit=False)
-            f.save()
-        return redirect('song_list')
-    else:
-        form = SongAddForm()
-        songs = SongData.objects.all().order_by('songname')
-        return render(request, 'song_list.html', {'songs' :songs, 'form' :form})
+            f = form.cleaned_data
+            # 곡의 제목부터 저장
+            s = SongData(songname=f['song_name'])
+            s.save()
+            session_index = {'vocals':'v','drums':'d','guitars':'g','bass':'b','keyboards':'k','etc':'etc'}
+            # 곡의 세션들 저장
+            for key,values in f.items():
+                if key != 'song_name':
+                    for user in values:
+                        se = Session(song_id=s,user_name=user,instrument=session_index[key])
+                        se.save()
+            #form = SongAddForm()
+            message = "등록되었습니다"
+        # validation error
+        else:
+            message = form.non_field_errors()[0]
+    # 곡 목록 보여주기
+    songs = SongData.objects.all().order_by('songname')
+    song_dict = {}
+    for song in songs:
+        session_dict = defaultdict(list)
+        sessions = song.session.all()
+        for s in sessions:
+            session_dict[s.instrument].append(s.user_name.username)
+        session_dict = {key:", ".join(val) for key, val in session_dict.items()}
+        song_dict[song] = dict(session_dict)
+
+    context['songs'] = song_dict
+    context['form'] = form
+    context['message'] = message
+    return render(request, 'song_list.html', context=context)
 
 
 @login_required

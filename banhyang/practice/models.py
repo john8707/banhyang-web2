@@ -35,14 +35,15 @@ class Apply(models.Model):
 class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
-    vocal1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal1")
-    vocal2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="vocal2")
-    drum = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="drum")
-    guitar1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar1")
-    guitar2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="guitar2")
-    bass = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="bass")
-    keyboard1 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard1")
-    keyboard2 = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, null=True, blank=True, related_name="keyboard2")
-
     def __str__(self):
         return self.songname
+
+
+# 곡의 세션이 누구인지 곡id(fk),이름(fk),세션 정보(v,d,g,k,b 등으로 표기하자)
+class Session(models.Model):
+    id = models.AutoField(primary_key=True)
+    song_id = models.ForeignKey(SongData, on_delete=models.CASCADE, related_name='session')
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
+    instrument = models.CharField(max_length=255)
+    def __str__(self) -> str:
+        return ",".join([self.song_id.songname, self.user_name.username, self.instrument])

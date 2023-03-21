@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load custom_filters %}
+
 
 
 <h1>공연 곡 목록</h1>
-<table>
+<table style="border-spacing: 10px 5px;">
     <tr>
         <td>제목</td>
         <td>보컬</td>
@@ -14,31 +16,40 @@
 
         
     </tr>
-    {% for song in songs %}
+    {% for song,sessions in songs.items %}
     <tr>
         <td>{{song.songname}}</td>
-        <td>{% if song.vocal1 or song.vocal2 %} {{song.vocal1}}{% if song.vocal2 %},{{song.vocal2}}{% endif %} {% else %}X{% endif %}</td>
-        <td>{% if song.drum %} {{song.drum}} {% else %}X{% endif %}</td>
-        <td>{% if song.guitar1 or song.guitar2 %} {{song.guitar1}}{% if song.guitar2 %},{{song.guitar2}}{% endif %} {% else %}X{% endif %}</td>
-        <td>{% if song.bass %} {{song.bass}} {% else %}X{% endif %}</td>
-        <td>{% if song.keyboard1 or song.keyboard2 %} {{song.keyboard1}}{% if song.keyboard2 %},{{song.keyboard2}}{% endif %} {% else %}X{% endif %}</td>
-
-
+        <td>{{sessions | get_from_key:"v"}}</td>
+        <td>{{sessions | get_from_key:"d"}}</td>
+        <td>{{sessions | get_from_key:"g"}}</td>
+        <td>{{sessions | get_from_key:"b"}}</td>
+        <td>{{sessions | get_from_key:"k"}}</td>
+        <td>{{sessions | get_from_key:"etc"}}</td>
         <td><a href="javascript:deleteFunction({{song.id}})" style="color: red;">(삭제)</a></td>
-
     </tr>
+
     {% endfor %}
-    
 
 </table>
+<br><br>
+<span>곡 추가하기</span>
+<br>
+<span style="color: crimson;">하나의 세션에 여러명이 존재하는 경우, 콤마(,)를 통해 이름을 구분하여 입력해주세요.</span>
 
-<form method="POST" autocomplete="off">
+<form method="post" autocomplete="off" class="song_form">
     {% csrf_token %}
     {% for field in form %}
     {{field}}
     {% endfor %}
-    <input type="submit" value="추가">
+    <input type="submit" value="저장">
 </form>
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}
+
 
 <script type="text/javascript">
     function deleteFunction(id) {

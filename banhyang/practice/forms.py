@@ -1,5 +1,5 @@
 from django import forms
-from .models import Schedule, SongData, PracticeUser
+from .models import Schedule, SongData, PracticeUser, Session
 from django.core.exceptions import ValidationError
 
 # Check user validation from PracticeUser model
@@ -42,27 +42,40 @@ class PracticeApplyForm(forms.Form):
 
         return form_data
 
-# 곡 정보 추가 폼
-class SongAddForm(forms.ModelForm):
-    # SongData의 모델 베이스 폼. 모든 필드들 가져옴.
-    class Meta:
-        model = SongData
-        fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super(SongAddForm, self).__init__(*args, **kwargs)
-        # 아래의 필드들은 실제 저장될 때는 PracticeUser의 외래키로 저장되므로, TextInput으로 바꿔줌
-        # View에서 save할때는 자동으로 외래키로 저장되는데, invalid 한 경우 특별한 메세지 없이 그냥 저장이 안됨.
-        self.fields['vocal1'].widget = forms.TextInput()
-        self.fields['vocal2'].widget = forms.TextInput()
-        self.fields['drum'].widget = forms.TextInput()
-        self.fields['guitar1'].widget = forms.TextInput()
-        self.fields['guitar2'].widget = forms.TextInput()
-        self.fields['bass'].widget = forms.TextInput()
-        self.fields['keyboard1'].widget = forms.TextInput()
-        self.fields['keyboard2'].widget = forms.TextInput()
+# 곡 세션 추가 전용 커스텀 필드
+class SongSessionField(forms.CharField):
+    def to_python(self, value):
+        if not value:
+            return []
+        return value.split(',')
 
 
+# 곡 제목 추가 폼
+class SongAddForm(forms.Form):
+    song_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder' : '곡 제목'}))
+    vocals = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '보컬'}))
+    drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '드럼'}))
+    guitars = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '기타'}))
+    bass = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '베이스'}))
+    keyboards = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '키보드'}))
+    etc = SongSessionField(required=False ,widget=forms.TextInput(attrs={'placeholder' : 'etc'}))
+
+    def clean(self):
+        form_data = self.cleaned_data
+        try:
+            song_exist = SongData.objects.filter(songname=form_data['song_name'])
+            if song_exist:
+                raise ValidationError('해당 곡이 이미 존재합니다.')
+            
+            for key,values in form_data.items():
+                if key != "song_name" and values:
+                    user_objects = [PracticeUser.objects.get(username=x) for x in values if x]
+                    form_data[key] = user_objects
+
+        except PracticeUser.DoesNotExist:
+                raise ValidationError('세션들의 이름을 다시 확인해주세요.')
+        return form_data
 
 
 # 바냥이들 정보 추가 폼
