@@ -24,23 +24,20 @@ def practice(request):
             # 끝나는 시간
             endtime = datetime.combine(date.today(), i.endtime)
 
-            # 곡 당 시간은 1시간을 Schedule의 div으로 나눈다
-            time_per_song = 60 / i.div
 
             # 각 날짜별 division counter, (ex 합주 시간이 3시~4시 / 곡 당 시간이 30분일 경우 3시 = 0, 3시 30분 = 1)
             div_for_day = 0
             
-            # temp time이 endtime을 넘지 않을 때 까지 곡 당 시간을 temp time에 더하면서 반복
-            while temp_time + timedelta(minutes=time_per_song) < endtime:
+            # temp time이 endtime을 넘지 않을 때 까지 10분을 temp time에 더하면서 반복
+            while temp_time + timedelta(minutes=10) <= endtime:
 
                 # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
-                    choice.append((0, "%s"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'))))
-                choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=time_per_song)).strftime("%H:%M"))))
-                temp_time += timedelta(minutes=time_per_song)
+                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'), i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
+                choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=10)).strftime("%H:%M"))))
+                temp_time += timedelta(minutes=10)
                 div_for_day += 1
 
-            choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), endtime.strftime("%H:%M"))))
         form = PracticeApplyForm()
     # 활성화 된 합주가 없을 경우 Return Nothing
     else:
@@ -83,7 +80,7 @@ def setting(request):
             Schedule.objects.filter(id__in=res['test']).update(is_current=True)
         message = "변경되었습니다."
             
-    schedules = Schedule.objects.all().order_by('-date')
+    schedules = Schedule.objects.all().order_by('date')
     return render(request, 'setting.html', {'schedules' : schedules, 'message': message})
 
 
@@ -95,7 +92,7 @@ def create(request):
         if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
             f = form.save(commit=False)
             f.date = form.cleaned_data['date'] + timedelta(hours=9)
-            f.div = form.cleaned_data['minutes']
+            f.min_per_song = form.cleaned_data['minutes']
             f.starttime = form.cleaned_data['starttime']
             f.endtime = form.cleaned_data['endtime']
             f.save()
