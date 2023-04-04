@@ -132,7 +132,7 @@ def song_list(request):
                     for user in values:
                         se = Session(song_id=s,user_name=user,instrument=session_index[key])
                         se.save()
-            #form = SongAddForm()
+            form = SongAddForm()
             message = "등록되었습니다"
         # validation error
         else:
