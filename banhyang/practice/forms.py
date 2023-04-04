@@ -20,7 +20,7 @@ class PracticeCreateForm(forms.ModelForm):
     # 위에서 가져오지 않은 field들을 보기 편하게 만들어서 보여줌
     def __init__(self, *args, **kwargs):
         super(PracticeCreateForm, self).__init__(*args, **kwargs)
-        self.fields['minutes'] = forms.ChoiceField(choices=[(10, "10분"), (20, "20분"), (30, "30분"), (40, "40분"), (50, "50분") (60, "60분")])
+        self.fields['minutes'] = forms.ChoiceField(choices=[(10, "10분"), (20, "20분"), (30, "30분"), (40, "40분"), (50, "50분"), (60, "60분")])
         self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'])
         self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
 
