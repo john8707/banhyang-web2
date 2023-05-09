@@ -70,7 +70,7 @@ class SongAddForm(forms.Form):
             
             for key,values in form_data.items():
                 if key != "song_name" and values:
-                    user_objects = [PracticeUser.objects.get(username=x) for x in values if x]
+                    user_objects = [PracticeUser.objects.get(username=x.strip()) for x in values if x]
                     form_data[key] = user_objects
 
         except PracticeUser.DoesNotExist:

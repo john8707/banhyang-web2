@@ -1,11 +1,29 @@
+{% for k, v in df.items %}
+{{k}}
+<br><br>
 <table>
+    <tr>
+        <td></td>
+    {% for j in v.columns %}
+        <td>{{j}}</td>
+    {% endfor %}
+    </tr>
+    {% for j in v.itertuples %}
+        <tr>
 
-{% for i in df.itertuples %}
-    <tr><td>{{ i.1 }}</td><td> {{ i.2 }}</td><td> {{ i.3 }}</td></tr> <br>
-{% endfor %} 
-
+            {% for i in j %}
+            <td>{{i}}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %} 
 </table>
-<br><br><br><br><br><br><br>
-{% for i in NA %}
-{{i}} <br>
+<br><br><br><br>
+{% endfor %}
+
+
+불참 명단<br>
+{% for key, value in NA.items %}
+{% if value %}
+{{key}} : {{value}} <br>
+{% endif %}
 {% endfor %}
