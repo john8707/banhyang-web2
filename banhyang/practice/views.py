@@ -115,9 +115,8 @@ def song_list(request):
     context = {}
     form = SongAddForm
     message = None
-    #preprocessing()
-    if request.method == "POST":
-        # 곡 추가하는 경우
+    # 곡 추가하는 경우
+    if request.method == "POST" and 'add' in request.POST:
         form = SongAddForm(request.POST)
         # forms에서 validation 진행
         if form.is_valid():
@@ -133,10 +132,24 @@ def song_list(request):
                         se = Session(song_id=s,user_name=user,instrument=session_index[key])
                         se.save()
             form = SongAddForm()
-            message = "등록되었습니다"
+            message = "등록되었습니다."
         # validation error
         else:
             message = form.non_field_errors()[0]
+    
+    # 곡 삭제하는 경우
+    if request.method == "POST" and 'delete' in request.POST:
+        # 체크된 곡들 삭제하기
+        delete_ids = request.POST.getlist('song_id')
+        if delete_ids:
+            d = SongData.objects.filter(id__in=delete_ids)
+            if d:
+                d.delete()
+                message = "삭제되었습니다."
+            else:
+                message = "삭제에 실패하였습니다. 다시 시도해주세요."
+        else:
+            message = "하나 이상의 곡을 선택해주세요."
     # 곡 목록 보여주기
     songs = SongData.objects.all().order_by('songname')
     song_dict = {}
@@ -153,12 +166,6 @@ def song_list(request):
     context['message'] = message
     return render(request, 'song_list.html', context=context)
 
-
-@login_required
-def song_delete(request, song_id):
-    song_to_delete = get_object_or_404(SongData, id = song_id)
-    song_to_delete.delete()
-    return redirect('song_list')
 
 
 @login_required
