@@ -246,7 +246,7 @@ class ScheduleOptimizer:
                     if self.x[p,t,s].solution_value() > 0:
                         my_df.iloc[t, room_count] = self.songId_to_name[s]
                         room_count += 1
-                        not_coming_dict[self.songId_to_name[s]] = [x for x in self.song_session_set[s] if not self.available_dict[x][p][t]]
+                        not_coming_dict[self.songId_to_name[s]+"("+self.practiceId_to_date[p][-5:]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if not self.available_dict[x][p][t]]
             my_df.header = "day" + str(day_count)
             day_count += 1
             print(my_df)
@@ -258,7 +258,6 @@ class ScheduleOptimizer:
         # my_df = pd.DataFrame(data=[], index=range(1,times+1), columns=range(1,days+1))
         #TODO -> 현재 시간표의 점수(참석률)  / 기타 통계 등 / 마감시간 설정하기 / 곡 별 요일 고정 / 대쉬보드 / 로그달기 / 못오는 사람이 있을 경우 해당 사람이 겹치는 곡 동시에 하기 허용
         #TODO -> 누가 언제 안오는지 깔끔하게 보여줬으면 좋겠다.
-        #TODO 현재 not coming dict의 문제점 -> 같은 곡을 두번 할 경우,,?
         #TODO 불참 사유도 받았으면 좋겠어용
         #TODO 에러 났을 때, 건의사항 등을 남길 수 있는 어드민 전용 페이지가 있음 좋겠다 -> 결국 게시판 기능이 필요하긴할듯 여기에 실행방법도 남기면 될듯
         #TODO 전체 삭제(곡,합주 등등등등)
