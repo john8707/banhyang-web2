@@ -170,23 +170,48 @@ def song_list(request):
 
 @login_required
 def user_list(request):
-    if request.method == "POST":
+    form = UserAddForm()
+    context={}
+    message = None
+
+    #인원 추가하는 경우
+    if request.method == "POST" and 'add' in request.POST:
         form = UserAddForm(request.POST)
         if form.is_valid():
-            f = form.save(commit=False)
-            f.save()
-            return redirect('user_list')
-    else:
-        form = UserAddForm()
-        users = PracticeUser.objects.all().order_by('username')
-        return render(request, 'user_list.html', {'users' :users, 'form' :form})
+            f = form.cleaned_data
+            s = PracticeUser(username = f['username'])
+            s.save()
+            message = "추가되었습니다."
+            form = UserAddForm()
 
+        else:
+            message = form.non_field_errors()[0]
 
-@login_required
-def user_delete(request, username):
-    user_to_delete = get_object_or_404(PracticeUser, username = username)
-    user_to_delete.delete()
-    return redirect('user_list')
+    #인원 삭제하는 경우
+    if request.method == "POST" and 'delete' in request.POST:
+        # 체크된 인원들 삭제하기
+        delete_names = request.POST.getlist('user_name')
+        if delete_names:
+            d = PracticeUser.objects.filter(username__in=delete_names)
+            if d:
+                d.delete()
+                message = "삭제되었습니다."
+            else:
+                # 선택된 유저가 존재하지 않는 경우
+                message = "삭제에 실패하였습니다. 다시 시도해주세요."
+        else:
+            # 웹 상에서 체크를 하지 않은 경우
+            message = "하나 이상의 인원을 선택해주세요."
+
+    #전체 인원 목록 가져와 보여주기
+    users = PracticeUser.objects.all().order_by('username')
+    
+    #html 전달 context
+    context['form'] = form
+    context['message'] = message
+    context['users'] = users
+    return render(request, 'user_list.html', context=context)
+
 
 
 @login_required

@@ -79,7 +79,16 @@ class SongAddForm(forms.Form):
 
 
 # 바냥이들 정보 추가 폼
-class UserAddForm(forms.ModelForm):
-    class Meta:
-        model= PracticeUser
-        fields = '__all__'
+class UserAddForm(forms.Form):
+    
+    username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder' : '이름'}))
+    
+    def clean(self):
+        form_data = self.cleaned_data
+        try:
+            user_exist = PracticeUser.objects.filter(username=form_data['username'])
+            if user_exist:
+                raise ValidationError("해당 인원이 이미 존재합니다. 동명이인의 경우 숫자, 세션등을 이용해 구분하여 주세요.")
+        except PracticeUser.DoesNotExist:
+            return form_data
+        
