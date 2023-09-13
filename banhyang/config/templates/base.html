@@ -5,12 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BANHYANG</title>
+    <link rel="icon" href="{% static 'image/favicon.png' %}"/>
     <link rel="stylesheet" href="{% static 'css/core.css' %}?afterr">
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<div class="wrapper">
 <header>
+
+
     <div id='main_logo'>
         <a href="{% url 'index' %}" id='nav_title'>반향</a>
         <div id='nav_subtitle'>
@@ -23,5 +27,6 @@
 <div class=main_section>
     {% block content %}
     {% endblock %}
+</div>
 
 </div>

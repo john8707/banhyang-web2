@@ -1,38 +1,55 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="formwrapper">
+<div class="practice_container">
+    <nav class="practice_nav">
+        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+        <div><a href="{% url 'create' %}" class="nav_link_selected">합주 날짜 생성</a></div>
+        <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
+        <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
+        <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나</a></div>
+    </nav>
+<div class="setting_form tal">
+    <div class="setting_description">합주 정보를 입력하세요</div>
+
     <form method="POST" autocomplete="off">
         {% csrf_token %}
-        <div class="form-content">
-            이름 [ex) 정기합주] <br>
-            {{ form.name }}
-        </div>
-        <div class="form-content">
-            날짜 <br>
-            <input name="date" type="date">
+        <div class="practice_field">
+            <div class="practice_label mt0">이름 <span style="color:gray">[ex) 정기합주]</span></div>
+            <div class="practice_input">{{ form.name }}</div>    
         </div>
 
-        <div class="form-content">
-            시간 [시간:분 형식 ex) 7:00] <br>
-            {{ form.starttime }} ~ {{ form.endtime }}
+        <div class="practice_field">
+            <div class="practice_label mt0">날짜</div>
+            <div class="practice_input"><input name="date" type="date"></div>
         </div>
-        <div class="form-content">
-            장소 <br>
-            {{ form.location }}
-        </div>
-
-        <div class="form-content">
-            곡 당 시간 <br>
-            {{ form.minutes }}
-        </div>
-        <div>
-            방 갯수 <br>
-            {{ form.rooms}}
+        <div class="practice_field">
+            <div class="practice_label mt0">시간 <span style="color:gray">[시간:분 형식 ex) 7:00]</span></div>
+            <div class="practice_input">{{ form.starttime }} ~ {{ form.endtime }}</div>
         </div>
 
-        <input type="submit" value="submit">
+        <div class="practice_field">
+            <div class="practice_label mt0">장소</div>
+            <div class="practice_input">{{ form.location }}</div>
+        </div>
+
+        <div class="practice_field">
+            <div class="practice_label mt0">곡 당 시간</div>
+            <div class="practice_input">{{ form.minutes }}</div>
+        </div>
+
+        <div class="practice_field">
+            <div class="practice_label mt0">방 갯수</div>
+            <div class="practice_input">{{ form.rooms }}</div>
+        </div>
+
+        <div class="submit-wrapper">
+            <input type="submit" value="추가">
+        </div>
     </form>
+</div>
+
 </div>
 
 

@@ -85,7 +85,8 @@ def preprocessing():
                 if i not in unavailable_dict[user][practiceId]:
                     div_sum += 1
                 if song_count == min_per_song or i == ceil(len_per_day/10):
-                    temp.append(round(div_sum/song_count,2))
+                    #temp.append(round(div_sum/song_count,2)) #30분 합주의 일부만 못오는 것 반영하기
+                    temp.append(1 if div_sum==song_count else 0) #일부만 못오면 불참으로 간주하기 <중요> 위와 아래 중 하나만 적용할 것!
                     div_sum = 0
                     song_count = 0
 
@@ -246,12 +247,10 @@ class ScheduleOptimizer:
                     if self.x[p,t,s].solution_value() > 0:
                         my_df.iloc[t, room_count] = self.songId_to_name[s]
                         room_count += 1
-                        not_coming_dict[self.songId_to_name[s]+"("+self.practiceId_to_date[p][-5:]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if not self.available_dict[x][p][t]]
+                        not_coming_dict[self.songId_to_name[s]+" ("+self.practiceId_to_date[p][-5:]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if self.available_dict[x][p][t] < 1] #전체 불참만 보이기 ==0, 일부 불참도 보이기 <1
             my_df.header = "day" + str(day_count)
             day_count += 1
-            print(my_df)
             schedule_df_dict[self.practiceId_to_date[p]] = my_df
-        print(not_coming_dict)
 
         return schedule_df_dict, not_coming_dict
         
@@ -260,7 +259,6 @@ class ScheduleOptimizer:
         #TODO -> 누가 언제 안오는지 깔끔하게 보여줬으면 좋겠다.
         #TODO 불참 사유도 받았으면 좋겠어용
         #TODO 에러 났을 때, 건의사항 등을 남길 수 있는 어드민 전용 페이지가 있음 좋겠다 -> 결국 게시판 기능이 필요하긴할듯 여기에 실행방법도 남기면 될듯
-        #TODO 전체 삭제(곡,합주 등등등등)
         #TODO 곡 세션 수정하기 기능
         #TODO 곡 당 갯수, 방 갯수 수정 기능
 

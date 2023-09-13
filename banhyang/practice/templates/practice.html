@@ -30,10 +30,12 @@
                 <div class="practice_choice">
                     <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}} <br>
                 </div>
+                
                 {% else %}
-                    <div class="practice_choice_date">
-                        {{choice.1}}
-                    </div>
+                <div class="practice_choice_date">
+                    {{choice.1}}
+                </div>
+                <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체선택) THIS 범위 선택 해줄 것!!!!
                 {% endif %}
                 {% endfor %}
             </div>
@@ -49,7 +51,17 @@
         예정된 합주가 없습니다. 잠시만 기다려주세요 :)
     {% endif %}
 
+
+
 </div>
+<script type="text/javascript">
+    function selectAll(selectAll) {
+        const checkboxes = document.getElementsByName("selected");
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = selectAll.checked
+        })
+    }
+</script>
 
 {% if message %}
     <script>

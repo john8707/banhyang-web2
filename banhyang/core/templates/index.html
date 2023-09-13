@@ -15,9 +15,11 @@
     </script>
 </head>
 <body>
-    <div class="header">
-        <div class="nav-links">
-            <a id="nav-banhyang" href="">BANHYANG</a>
+    <div class="wrapper">
+
+        <div class="header">
+            <div class="nav-links">
+                <a id="nav-banhyang" href="">BANHYANG</a>
             <button id="nav-toggle" style="display:none">toggle</button>
             <ul style="display:none">
                 <li class="nav-right"><a onclick="notReady()" href="#">ABOUT</a></li>
@@ -27,34 +29,45 @@
                 <li class="nav-right"><a href="/practice">PRACTICE</a></li>
             </ul>
         </div>    
-
+        
         <div style="position: relative;">
             <img src="{% static 'image/concert1.png' %}" alt="concert image" id="main-image" width="1200">
             <img src="{% static 'image/logo2.png' %}" alt="logo2" id="logo-image">    
         </div>
-
+        
 
     </div>
 
-    <p id="olv">OFFICIAL LIVE VIDEOS</p>
-
-    <div class="carousel-wrapper">
-        <div class="carousel-container">
-            <div class="carousel-slide">
-            </div>
+    <div class="section">
+        <div class="section__item">
+            <a href="{% url 'practice' %}">
+                <span>합주 불참 신청하러 가기</span>
+            </a>
         </div>
-        <div id="btnPrev">&#60</div>
-        <div id="btnNext">&#62</div>
-        <!--
-
-            <img src="{% static 'image/button-left.png' %}" alt="arrow-left" id="btnPrev" width="30">
-            <img src="{% static 'image/button-right.png' %}" alt="arrow-right" id="btnNext" width="30">
-        -->
-
     </div>
+    <!--
 
-    <div class="footer">
-        <p>Copyright 2020. YONSEI UNIVERSITY ROCKBAND BANHYANG 34th Jaewon LIM. ALL RIGHTS RESERVED.</p>
-    </div>
+        <p id="olv">OFFICIAL LIVE VIDEOS</p>
+        
+        <div class="carousel-wrapper">
+            <div class="carousel-container">
+                <div class="carousel-slide">
+                </div>
+            </div>
+            <div id="btnPrev">&#60</div>
+            <div id="btnNext">&#62</div>
+    -->
+    <!--
+        
+        <img src="{% static 'image/button-left.png' %}" alt="arrow-left" id="btnPrev" width="30">
+        <img src="{% static 'image/button-right.png' %}" alt="arrow-right" id="btnNext" width="30">
+    -->
+    
+</div>
+
+</div>
+<div class="footer">
+    <p>Copyright 2020. YONSEI UNIVERSITY ROCKBAND BANHYANG 34th Jaewon LIM. ALL RIGHTS RESERVED.</p>
+</div>
 </body>
 </html>

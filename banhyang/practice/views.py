@@ -221,6 +221,7 @@ def schedule_create(request):
     s = ScheduleOptimizer()
     s.create_schedule()
     df_list, who_is_not_coming = s.post_processing()
+    df_list = {i:v.fillna("X") for i,v in df_list.items()}
     context['df'] = df_list
     context['NA'] = who_is_not_coming
     return render(request, 'schedule_create.html', context=context)
@@ -233,13 +234,14 @@ def who_is_not_coming(request):
         not_available = {}
         for schedule in current_schedule:
             na = schedule.apply.all()
-            schedule_date = schedule.date.strftime("%m/%d - " + str(schedule.id))
+            schedule_date = schedule.date.strftime("%y/%m/%d - " + str(schedule.id))
             not_available[schedule_date] = defaultdict(list)
             for i in na:
                 name = i.user_name.username
                 time = i.not_available
                 not_available[schedule_date][name].append(time)
-        
+        print(not_available)
+
     else:
         not_available = None
     return render(request, 'who_is_not_coming.html', {'NA' : not_available})

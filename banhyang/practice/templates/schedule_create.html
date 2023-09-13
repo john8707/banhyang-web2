@@ -1,29 +1,59 @@
-{% for k, v in df.items %}
-{{k}}
-<br><br>
-<table>
+{% extends 'base.html' %}
+{% block content %}
+
+
+<div class="practice_container">
+    <nav class="practice_nav">
+        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+        <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
+        <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
+        <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
+        <div><a href="{% url 'schedule_create' %}" class="nav_link_selected">시간표 짜기</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나</a></div>
+    </nav>
+<div class="setting_form">
+
+    {% for k, v in df.items %}
+    <table style="border-spacing: 15px 12px; margin: 0 auto;" class="tal">
+    <div class="setting_description">
+        {{k}}
+    </div>
     <tr>
         <td></td>
     {% for j in v.columns %}
-        <td>{{j}}</td>
+        <td style="font-weight: bold;">{{j}}</td>
     {% endfor %}
     </tr>
     {% for j in v.itertuples %}
         <tr>
 
             {% for i in j %}
-            <td>{{i}}</td>
+                {% if i  %}
+                    <td>{{i}}</td>
+                {% else %}
+                    <td>X</td>
+                {% endif %}
             {% endfor %}
         </tr>
     {% endfor %} 
+    {% endfor %}
 </table>
-<br><br><br><br>
-{% endfor %}
+
+<div class="setting_description">
+    불참 명단
+</div>
+
+<div style="margin-bottom: 20px; line-height: 1.6;">
+
+    {% for key, value in NA.items %}
+    {% if value %}
+    {{key}} : {{value}} <br>
+    {% endif %}
+    {% endfor %}
+</div>
 
 
-불참 명단<br>
-{% for key, value in NA.items %}
-{% if value %}
-{{key}} : {{value}} <br>
-{% endif %}
-{% endfor %}
+</div>
+</div>
+
+{% endblock %}

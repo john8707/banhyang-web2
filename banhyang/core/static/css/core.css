@@ -52,7 +52,7 @@ a, a:visited{
 }
 
 .main_section{
-    width: 850px;
+    width: 950px;
     max-width: 100%;
     margin: 50px auto;
     z-index: 2;
@@ -130,9 +130,9 @@ a, a:visited{
 
 .practice_choice, .practice_choice_date, .submit-wrapper{
     text-align: center;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
 }
-.practice_choice_date, .submit-wrapper{
+.practice_choice_date, .submit-wrapper, .setting_description{
     font-size: 20pt;
     font-weight: bold;
     margin-top: 40px;
@@ -152,11 +152,39 @@ a, a:visited{
     border-radius: 3px;
 }
 
+
+.setting_form{
+    margin-left: 160px;
+    border-left: 1px solid rgb(206, 206, 206);
+    padding-top: 1px;
+    min-height: 360px;
+    text-align: center;
+}
+
+.setting_description{
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.setting_form input{
+    height: 20px;
+}
+
+
+.tal{
+    text-align: left;
+    padding-left:15px;
+}
+
+.mt0{
+    margin-top:0px
+}
+
 @media (max-width: 768px) { 
     .practice_nav{
         display: none;
         }
-    .practice_form{
+    .practice_form, .setting_form{
         max-width: 90%;
         margin: 0 auto;
         border-left: none;

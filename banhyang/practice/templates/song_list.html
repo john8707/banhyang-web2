@@ -3,14 +3,27 @@
 {% load custom_filters %}
 
 
+<div class="practice_container">
+    <nav class="practice_nav">
+        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+        <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
+        <div><a href="{% url 'song_list' %}" class="nav_link_selected">곡 목록/관리</a></div>
+        <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
+        <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나</a></div>
+    </nav>
 
-<h1>공연 곡 목록</h1>
-<form action="" method="post">
+<div class="setting_form">
+
+<div class="setting_description">
+    공연 곡 목록
+</div>
+<form action="" method="post" onsubmit="return confirm('선택된 곡을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
 {% csrf_token %}
-<table style="border-spacing: 10px 5px;">
-    <tr>
+<table style="border-spacing: 10px 5px; margin: 0 auto;" class="tal">
+    <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54);">
         <td><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
-        <td>제목</td>
+        <td>곡 제목</td>
         <td>보컬</td>
         <td>드럼</td>
         <td>기타</td>
@@ -33,21 +46,31 @@
 
     {% endfor %}
 </table>
-<input type="button" value="삭제" name="delete" onclick="confirm('선택된 곡을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
+<br>
+<input type="submit" value="삭제" name="delete">
 </form>
 
-<br><br>
-<span>곡 추가하기</span>
-<br>
-<span style="color: crimson;">하나의 세션에 여러명이 존재하는 경우, 콤마(,)를 통해 이름을 구분하여 입력해주세요.</span>
+<div class="setting_description">
+    곡 추가하기
+</div>
+<div id="practice_info">
+    <span style="color: crimson;">하나의 세션에 여러명이 존재하는 경우, 콤마(,)를 통해 이름을 구분하여 입력해주세요.</span>
+</div>
 
 <form method="post" autocomplete="off" class="song_form">
     {% csrf_token %}
+    <div class="practice_field">
     {% for field in form %}
-    {{field}}
-    {% endfor %}
-    <input type="submit" value="저장" name="add">
+        {{field}}
+        {% endfor %}
+    </div>
+    <div class="submit-wrapper">
+        <input type="submit" value="저장" name="add">
+    </div>
 </form>
+
+</div>
+</div>
 
 {% if message %}
     <script>

@@ -1,8 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<div class="practice_container">
+    <nav class="practice_nav">
+        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+        <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
+        <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
+        <div><a href="{% url 'user_list' %}" class="nav_link_selected">활동 인원 목록/관리</a></div>
+        <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나</a></div>
+    </nav>
 
-<h1>활동 인원 목록</h1>
+<div class="setting_form">
+
+<div class="setting_description">
+    활동 인원 목록
+</div>
+
 <form method="POST" autocomplete="off">
     {% csrf_token %}
     {% for field in form %}
@@ -12,14 +26,15 @@
 </form>
 
 
-<form action="" method="post">
+<form action="" method="post" onsubmit="return confirm('선택된 인원을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
     {% csrf_token %}
 
-    <table>
+    <table style="margin: 0 auto">
         <tr>
             <td><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
             <td style="color:crimson">(전체선택)</td>
         </tr>
+        <br>
         {% for user in users %}
         <tr>
             <td><input type="checkbox" value={{user.username}} name="user_name"></td>
@@ -27,9 +42,13 @@
         </tr>
         {% endfor %}
     </table>
-    <input type="button" value="삭제" name="delete" onclick="confirm('선택된 인원을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
+    <div class="submit-wrapper">
+        <input type="submit" value="삭제" name="delete">
+    </div>
 </form>
 
+</div>
+</div>
 
 <script type="text/javascript">
     function selectAll(selectAll) {
