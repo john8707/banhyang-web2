@@ -24,18 +24,22 @@
                 합주에 참여할 수 <b style="color: red;">없는</b> 시간을 모두 선택해주세요. <br>
                 수정이 필요한 경우 다시 제출해주세요.
             </div>
-            <div class="choice_wrapper">
+            <div>
                 {% for choice in choices %}
                 {% if choice.0 %}
-                <div class="practice_choice">
-                    <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}} <br>
-                </div>
+                    <div class="practice_choice">
+                        <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}}
+                    </div>
                 
                 {% else %}
-                <div class="practice_choice_date">
-                    {{choice.1}}
-                </div>
-                <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체선택) THIS 범위 선택 해줄 것!!!!
+                    </div>
+                    <div class="choice_wrapper">
+                    <div class="practice_choice_date">
+                        {{choice.1}}
+                    </div>
+                    <div class="practice_choice">
+                        <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체선택)
+                    </div>
                 {% endif %}
                 {% endfor %}
             </div>
@@ -56,7 +60,7 @@
 </div>
 <script type="text/javascript">
     function selectAll(selectAll) {
-        const checkboxes = document.getElementsByName("selected");
+        const checkboxes = selectAll.parentElement.parentElement.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = selectAll.checked
         })
