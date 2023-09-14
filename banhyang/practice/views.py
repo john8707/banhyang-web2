@@ -12,6 +12,16 @@ from collections import defaultdict
 # 4. 시간 선택 디자인 변경
 
 def practice(request):
+    weekday_dict = {
+        0: ' (월)',
+        1: ' (화)',
+        2: ' (수)',
+        3: ' (목)',
+        4: ' (금)',
+        5: ' (토)',
+        6: ' (일)'
+    }
+
     # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
     current_practice = Schedule.objects.filter(is_current=True)
     message = None
@@ -33,7 +43,7 @@ def practice(request):
 
                 # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
-                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape'), i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
+                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict[i.date.weekday()], i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
                 choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=10)).strftime("%H:%M"))))
                 temp_time += timedelta(minutes=10)
                 div_for_day += 1
