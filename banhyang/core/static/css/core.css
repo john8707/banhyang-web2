@@ -182,6 +182,31 @@ a, a:visited{
 }
 
 @media (max-width: 768px) { 
+    header{
+        height: 80px;
+    }
+
+    #main_logo{
+        margin: 17px auto;
+    }
+
+    #nav_title{
+        font-size: 30px;
+    }
+
+    #nav_subtitle{
+        font-size: 13px;
+    }
+    
+    .main_section{
+        margin: -50px auto;
+    }
+
+    .practice_container{
+        border: none;
+    }
+
+
     .practice_nav{
         display: none;
         }
@@ -189,6 +214,14 @@ a, a:visited{
         max-width: 90%;
         margin: 0 auto;
         border-left: none;
+    }
+
+    .practice_choice_date{
+        font-size: 15pt;
+    }
+
+    .practice_choice{
+        font-size: 12pt;
     }
 
     .practice_input{
