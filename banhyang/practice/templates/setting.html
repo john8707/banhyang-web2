@@ -8,11 +8,12 @@
         <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
         <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
         <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
-        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link">누가 누가 안오나(미완성)</a></div>
     </nav>
-
-<form method="POST" class="setting_form">
-    <div class="setting_description">메인에 노출 될 합주를 선택해주세요</div>
+<div class="setting_form">
+    
+<form method="POST">
+    <div class="setting_description">메인에 노출될 합주를 선택해주세요</div>
     {% csrf_token %}
     {% for schedule in schedules %}
         <div class="setting_choice">
@@ -29,6 +30,20 @@
         {{message}}
     {% endif %}
 </form>
+
+<div>
+    <div class="setting_description">
+        불참 여부 미제출 인원
+    </div>
+
+    {% for i in not_submitted %}
+    <div class="setting_choice" style="line-height: 1.5;">
+        {{i}}
+    </div>
+    {% endfor %}
+</div>
+</div>
+
 
 </div>
 <script type="text/javascript">

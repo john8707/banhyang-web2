@@ -120,7 +120,19 @@ def setting(request):
         message = "변경되었습니다."
             
     schedules = Schedule.objects.all().order_by('date')
-    return render(request, 'setting.html', {'schedules' : schedules, 'message': message})
+
+
+    user_objects = PracticeUser.objects.all()
+    practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
+    not_submitted_list = []
+    for i in user_objects:
+        for j in practice_objects:
+            submitted = Apply.objects.filter(user_name=i, schedule_id=j)
+            if not submitted and i.username not in not_submitted_list:
+                not_submitted_list.append(i.username)
+    print(not_submitted_list)            
+
+    return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': not_submitted_list, 'message': message})
 
 
 @login_required
