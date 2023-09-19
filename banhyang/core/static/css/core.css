@@ -109,6 +109,7 @@ a, a:visited{
     margin-left: 160px;
     border-left: 1px solid rgb(206, 206, 206);
     padding-top: 40px;
+    min-height: 360px;
 }
 
 .practice_input{

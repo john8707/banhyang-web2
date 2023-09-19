@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="practice_container">
-    {% if form %}
     <nav class="practice_nav">
         <div><a class="nav_link_selected" href="{% url 'practice' %}">합주 불참 신청</a></div>
         {% if user.is_authenticated %}
         <div><a class="nav_link" href="{% url 'setting' %}">관리</a></div>
         {% endif %}
     </nav>
+    {% if form %}
     <form method="POST" class="practice_form">
         {% csrf_token %}
             {% for field in form %}
@@ -52,7 +52,9 @@
     </form>
     
     {% else %}
+    <div class="practice_form" style="text-align: center;">
         예정된 합주가 없습니다. 잠시만 기다려주세요 :)
+    </div>
     {% endif %}
 
 

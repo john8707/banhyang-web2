@@ -239,6 +239,7 @@ def schedule_create(request):
 
 @login_required
 def who_is_not_coming(request):
+    context = {}
     current_schedule = Schedule.objects.filter(is_current=True)
     if current_schedule:
         not_available = {}
@@ -250,8 +251,9 @@ def who_is_not_coming(request):
                 name = i.user_name.username
                 time = i.not_available
                 not_available[schedule_date][name].append(time)
-        print(not_available)
 
     else:
         not_available = None
-    return render(request, 'who_is_not_coming.html', {'NA' : not_available})
+    
+    context['NA'] = not_available
+    return render(request, 'who_is_not_coming.html', context=context)

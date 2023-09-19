@@ -55,10 +55,11 @@ class SongSessionField(forms.CharField):
 class SongAddForm(forms.Form):
     song_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder' : '곡 제목'}))
     vocals = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '보컬'}))
-    drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '드럼'}))
     guitars = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '기타'}))
     bass = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '베이스'}))
     keyboards = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '키보드'}))
+    drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '드럼'}))
+
     etc = SongSessionField(required=False ,widget=forms.TextInput(attrs={'placeholder' : 'etc'}))
 
     def clean(self):
