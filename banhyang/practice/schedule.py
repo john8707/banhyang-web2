@@ -35,7 +35,8 @@ def preprocessing():
     user_list = [x.username for x in users_objects]
 
     # 활성화된 합주들 불참 데이터들의 쿼리셋
-    unavailable_objects = Apply.objects.filter(schedule_id__in=practiceId_list)
+    unavailable_objects = Apply.objects.filter(schedule_id__in=practiceId_list).exclude(not_available=-1)
+
 
     # 합주 id : 합주 날짜 dict
     practiceId_to_date = {x.id: x.date.strftime('%Y/%m/%d') for x in practice_objects}
@@ -115,10 +116,10 @@ def preprocessing():
     weight_parameters = {
         'v' : 1,
         'd' : 2,
-        'g' : 1,
+        'g' : 1.5,
         'b' : 1,
-        'k' : 1,
-        'etc' : 1
+        'k' : 0.8,
+        'etc' : 0.6
     }
 
     

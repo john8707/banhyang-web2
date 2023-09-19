@@ -21,25 +21,31 @@
             {% endfor %}
             
             <div id="practice_info">
-                합주에 참여할 수 <b style="color: red;">없는</b> 시간을 모두 선택해주세요. <br>
-                수정이 필요한 경우 다시 제출해주세요.
+                합주에 참여할 수 <b style="color: red; text-decoration: underline;">"없는"</b> 시간을 모두 선택해주세요. <br>
+                수정이 필요한 경우 다시 제출해주세요. <br>
             </div>
             <div>
                 {% for choice in choices %}
-                {% if choice.0 %}
-                    <div class="practice_choice">
-                        <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}}
-                    </div>
-                
-                {% else %}
+                {% if choice.0 == 0 %}
                     </div>
                     <div class="choice_wrapper">
                     <div class="practice_choice_date">
                         {{choice.1}}
                     </div>
-                    <div class="practice_choice" style="color: crimson;">
-                        <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체선택)
+                    
+                    {% elif choice.0 == -1 %}
+                    <div class="practice_choice" style="color: blue;">
+                        <input type="checkbox" name="selected" value="{{choice.1}}">!전체 참여 가능!
                     </div>
+                    <div class="practice_choice"  style="color: crimson;">
+                        <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체 불참 선택)
+                    </div>
+                    
+                {% else %}
+                    <div class="practice_choice selectall">
+                        <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}}
+                    </div>
+
                 {% endif %}
                 {% endfor %}
             </div>
@@ -62,7 +68,7 @@
 </div>
 <script type="text/javascript">
     function selectAll(selectAll) {
-        const checkboxes = selectAll.parentElement.parentElement.querySelectorAll('input[type="checkbox"]');
+        const checkboxes = selectAll.parentElement.parentElement.querySelectorAll('.selectall input[type="checkbox"]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = selectAll.checked
         })

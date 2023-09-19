@@ -43,7 +43,12 @@ def practice(request):
 
                 # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
+                    # HTML 상 날짜 추가 용
                     choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict[i.date.weekday()], i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
+                    
+                    # 전체 참가 선택지 추가
+                    choice.append((-1, str(i.id) + "_" + "-1"))
+                
                 choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=10)).strftime("%H:%M"))))
                 temp_time += timedelta(minutes=10)
                 div_for_day += 1
@@ -60,17 +65,41 @@ def practice(request):
         if form.is_valid():
             res = dict(request.POST)
             username = res['username'][0]
-            Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
+            practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
 
+            # validation
+            selected = []
             if 'selected' in res:
                 selected = res['selected']
+            selected_dict = {}
+            practiceId_list = [x.id for x in practice_objects]
+
+            is_validate = True
+            for i in practiceId_list:
+                selected_dict[i] = [int(x.split('_')[1]) for x in selected if int(x.split('_')[0]) == i]
+                # 최소 한 개 선택
+                if selected_dict[i] == []:
+                    is_validate = False
+                    message = "불참 시간 혹은 전체 참여를 각 날짜별로 선택해주세요."
+                # 참여 혹은 불참 
+                elif -1 in selected_dict[i] and len(selected_dict[i]) > 1:
+                    is_validate = False
+                    message = "불참 혹은 전체 참여 중 1가지만 선택하여주세요."
+
+            if is_validate:
+                Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
+                # validation 이후 제출
                 for i in selected:
                     schedule_object = Schedule.objects.get(id=i.split('_')[0])
                     a = Apply(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, not_available=i.split('_')[1])
                     a.save()
                 
-            message = "제출되었습니다."
-            form = PracticeApplyForm()
+            
+                message = "제출되었습니다."
+                form = PracticeApplyForm()
+            
+            else:
+                form = PracticeApplyForm(request.POST)
         
         else:
             message = form._errors['message']
