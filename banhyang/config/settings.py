@@ -21,29 +21,14 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-secret_file = os.path.join(BASE_DIR, 'secrets.json') # secrets.json 파일 위치를 명시
+    
+from django.core.management.utils import get_random_secret_key
 
-with open(secret_file) as f:
-    secrets = json.loads(f.read())
-
-def get_secret(setting, secrets=secrets):
-    """비밀 변수를 가져오거나 명시적 예외를 반환한다."""
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = "Set the {} environment variable".format(setting)
-        raise ImproperlyConfigured(error_msg)
-
-SECRET_KEY = get_secret("SECRET_KEY")
+SECRET_KEY = SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '.ap-northeast-2.compute.amazonaws.com',
-    '127.0.0.1',
-    '.banhyang.com',
-]
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition
@@ -94,6 +79,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+
+"""
 if get_secret("DATABASE") == "sqlite3":
     DATABASES = {
         'default': {
@@ -112,6 +99,26 @@ else:
                         'PASSWORD': get_secret("DATABASE"),
                     }
             }
+"""
+
+from dotenv import load_dotenv
+load_dotenv()
+import dj_database_url
+if os.getenv("DJANGO_DATABASE_URL", None) is None:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+    DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL"))
+    DB_PARAMS["ENGINE"] = "custom_db_backends.vitess"
+    DATABASES = {
+        "default": DB_PARAMS,
+    }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -153,6 +160,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     'banhyang/core/static',
+    'banhyang/practice/static'
     
 ]
 

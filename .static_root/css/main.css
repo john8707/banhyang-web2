@@ -515,9 +515,9 @@ html{
 .footer{
   color: rgb(180, 180, 180);
   letter-spacing: 3px;
-  font-size: 10px;
+  font-size: 11px;
   text-align: center;
-  margin-top: 200px;
+  margin-top: 170px;
   margin-bottom: 20px;
 }
 
@@ -631,5 +631,18 @@ iframe{
   letter-spacing: 5px;
   text-align: center;
   margin-bottom: 50px;
+}
+
+
+
+.section__item{
+  text-align: center;
+}
+.section__item>a{
+  color: beige;
+}
+
+.section__item>a:hover{
+  text-decoration: underline;
 }
 

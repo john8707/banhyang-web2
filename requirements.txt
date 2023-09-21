@@ -8,6 +8,7 @@ gunicorn==20.0.4
 isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
+mysqlclient==1.4.4
 numpy==1.18.4
 ortools==7.6.7691
 pandas==1.0.3
@@ -16,6 +17,7 @@ pycodestyle==2.5.0
 pyflakes==2.1.1
 pylint==2.4.4
 python-dateutil==2.8.1
+python-dotenv==0.21.1
 pytz==2019.3
 six==1.14.0
 sqlparse==0.3.1
