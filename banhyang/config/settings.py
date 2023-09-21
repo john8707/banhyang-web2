@@ -26,7 +26,7 @@ from django.core.management.utils import get_random_secret_key
 
 SECRET_KEY = SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -40,9 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core.apps.CoreConfig',
+    'banhyang.core',
     'django.contrib.humanize',
-    'practice.apps.PracticeConfig'
+    'banhyang.practice'
 ]
 
 MIDDLEWARE = [
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = 'banhyang.config.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'banhyang.wsgi.application'
 
 
 # Database
@@ -113,7 +113,7 @@ if os.getenv("DJANGO_DATABASE_URL", None) is None:
     }
 else:
     DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL"))
-    DB_PARAMS["ENGINE"] = "custom_db_backends.vitess"
+    DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
     DATABASES = {
         "default": DB_PARAMS,
     }

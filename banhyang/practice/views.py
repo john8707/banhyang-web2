@@ -133,7 +133,6 @@ def setting(request):
             submitted = Apply.objects.filter(user_name=i, schedule_id=j)
             if not submitted and i.username not in not_submitted_list:
                 not_submitted_list.append(i.username)
-    print(not_submitted_list)            
 
     return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': not_submitted_list, 'message': message})
 
