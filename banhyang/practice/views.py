@@ -23,7 +23,7 @@ def practice(request):
     }
 
     # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
-    current_practice = Schedule.objects.filter(is_current=True)
+    current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     message = None
     # 활성화 된 합주 날짜가 존재할 경우
     if len(current_practice):
@@ -79,11 +79,8 @@ def practice(request):
                 selected_dict[i] = [int(x.split('_')[1]) for x in selected if int(x.split('_')[0]) == i]
                 # 최소 한 개 선택
                 if selected_dict[i] == []:
-                    """
                     is_validate = False
                     message = "불참 시간 혹은 전체 참여를 각 날짜별로 선택해주세요."
-                    """
-                    pass
                 # 참여 혹은 불참 
                 elif -1 in selected_dict[i] and len(selected_dict[i]) > 1:
                     is_validate = False
