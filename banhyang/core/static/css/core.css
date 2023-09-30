@@ -29,6 +29,7 @@ body{
     background-color: rgb(255, 255, 255);
     padding-top: 130px;
     font-family: 'Nanum Gothic', sans-serif;
+    font-size: 13px;
 
 }
 
@@ -94,7 +95,7 @@ a, a:visited{
 
 .nav_link, .nav_link_selected{
     padding: 18px 16px 18px 30px;
-    font-size: 16px;
+    font-size: 14px;
     display: block;
 }
 
@@ -123,6 +124,7 @@ a, a:visited{
     text-align: right;
     font-weight: bold;
     margin-top: 6px;
+    font-size: 13px;
 }
 
 .practice_field{
@@ -133,8 +135,12 @@ a, a:visited{
     text-align: center;
     padding-bottom: 10px;
 }
+
+.practice_choice{
+    font-size: 13px;
+}
 .practice_choice_date, .submit-wrapper, .setting_description{
-    font-size: 20pt;
+    font-size: 20px;
     font-weight: bold;
     margin-top: 40px;
 }
@@ -144,7 +150,7 @@ a, a:visited{
 #practice_info{
     color: gray;
     text-align: center;
-    font-size: 10pt;
+    font-size: 12px;
     margin-bottom: 20px;
 }
 #id_number, #id_username{
@@ -153,7 +159,9 @@ a, a:visited{
     border-radius: 3px;
 }
 
-
+.setting_choice{
+    font-size: 13px;
+}
 .setting_form{
     margin-left: 160px;
     border-left: 1px solid rgb(206, 206, 206);
