@@ -113,7 +113,7 @@ if os.getenv("DJANGO_DATABASE_URL", None) is None:
         }
     }
 else:
-    DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL"))
+    DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
     DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
     DATABASES = {
         "default": DB_PARAMS,
