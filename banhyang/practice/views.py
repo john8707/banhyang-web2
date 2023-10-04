@@ -114,9 +114,13 @@ def setting(request):
     message = None
     if request.method == "POST":
         res = dict(request.POST)
-        Schedule.objects.all().update(is_current=False)
-        if 'test' in res:
-            Schedule.objects.filter(id__in=res['test']).update(is_current=True)
+        schedule_object = Schedule.objects.all()
+        schedule_object.update(is_current=False)
+        if 'schedule_checkbox' in res:
+            Schedule.objects.filter(id__in=res['schedule_checkbox']).update(is_current=True)
+        for obj in schedule_object:
+            idx = obj.id
+            Schedule.objects.filter(id=idx).update(min_per_song=int(res['minute_'+str(idx)][0]), rooms=int(res['rooms_'+str(idx)][0]))
         message = "변경되었습니다."
             
     schedules = Schedule.objects.all().order_by('date')

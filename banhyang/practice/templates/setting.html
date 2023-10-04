@@ -18,7 +18,27 @@
     {% for schedule in schedules %}
         <div class="setting_choice">
             
-            <input type="checkbox" name="test" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}}
+            <input type="checkbox" name="schedule_checkbox" value="{{schedule.id}}" {% if schedule.is_current %}checked{% endif %}> {{schedule}} / 곡 당
+            <select name="minute_{{schedule.id}}" id="">
+                <option value="10" {% if schedule.min_per_song == 10 %} selected {% endif %}>10</option>
+                <option value="20" {% if schedule.min_per_song == 20 %} selected {% endif %}>20</option>
+                <option value="30" {% if schedule.min_per_song == 30 %} selected {% endif %}>30</option>
+                <option value="40" {% if schedule.min_per_song == 40 %} selected {% endif %}>40</option>
+                <option value="50" {% if schedule.min_per_song == 50 %} selected {% endif %}>50</option>
+                <option value="60" {% if schedule.min_per_song == 60 %} selected {% endif %}>60</option>
+            </select>
+            분 / 방 
+            <select name="rooms_{{schedule.id}}" id="">
+                <option value="1" {% if schedule.rooms == 1 %} selected {% endif %}>1</option>
+                <option value="2" {% if schedule.rooms == 2 %} selected {% endif %}>2</option>
+                <option value="3" {% if schedule.rooms == 3 %} selected {% endif %}>3</option>
+                <option value="4" {% if schedule.rooms == 4 %} selected {% endif %}>4</option>
+                <option value="5" {% if schedule.rooms == 5 %} selected {% endif %}>5</option>
+                <option value="6" {% if schedule.rooms == 6 %} selected {% endif %}>6</option>
+                <option value="7" {% if schedule.rooms == 7 %} selected {% endif %}>7</option>
+                <option value="8" {% if schedule.rooms == 8 %} selected {% endif %}>8</option>
+            </select>
+             개
             <a href="javascript:deleteFunction({{schedule.id}})" style="color: red;">(삭제)</a>
         </div>
         <br>

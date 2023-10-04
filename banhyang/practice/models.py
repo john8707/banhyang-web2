@@ -13,7 +13,7 @@ class Schedule(models.Model):
     rooms = models.IntegerField()
 
     def __str__(self):
-        return f"{self.date.strftime('%y/%m/%d(%a)')} - {self.starttime.strftime('%H:%M')}~{self.endtime.strftime('%H:%M')} - 곡 당 {self.min_per_song}분"
+        return f"{self.date.strftime('%y/%m/%d(%a)')}/{self.starttime.strftime('%H:%M')}~{self.endtime.strftime('%H:%M')}/"
 
 
 # 바냥이들의 정보
