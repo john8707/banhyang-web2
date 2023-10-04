@@ -10,6 +10,7 @@ from collections import defaultdict
 # TODO 
 # 1. 관리 화면 첫 화면에서 메인 노출 날짜 삭제하기
 # 4. 시간 선택 디자인 변경
+URL_LOGIN = '/admin/'
 
 def practice(request):
     weekday_dict = {
@@ -109,7 +110,7 @@ def practice(request):
     return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def setting(request):
     message = None
     if request.method == "POST":
@@ -138,7 +139,7 @@ def setting(request):
     return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': not_submitted_list, 'message': message})
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def create(request):
     #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것)
     if request.method == "POST":
@@ -157,14 +158,14 @@ def create(request):
     return render(request, 'create.html', {'form' : form})
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def practice_delete(request, schedule_id):
     practice_to_delete = get_object_or_404(Schedule, id = schedule_id)
     practice_to_delete.delete()
     return redirect('setting')
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def song_list(request):
     context = {}
     form = SongAddForm
@@ -222,7 +223,7 @@ def song_list(request):
 
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def user_list(request):
     form = UserAddForm()
     context={}
@@ -268,7 +269,7 @@ def user_list(request):
 
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def schedule_create(request):
     context = {}
     message = None
@@ -281,7 +282,7 @@ def schedule_create(request):
     return render(request, 'schedule_create.html', context=context)
 
 
-@login_required
+@login_required(login_url=URL_LOGIN)
 def who_is_not_coming(request):
     context = {}
     current_schedule = Schedule.objects.filter(is_current=True)
