@@ -34,6 +34,12 @@
                     </div>
                     
                     {% elif choice.0 == -1 %}
+                    <div style="margin-bottom: 15px; margin-top: 15px;">
+                        <div class="practice_label">불참 사유</div>
+                        <div class="practice_input">
+                            <input type="text" name="why_not_coming_{{choice.1}}" style="width: 300px; height: 25px; border-radius: 3px;" maxlength="255">
+                        </div>
+                    </div>
                     <div class="practice_choice" style="color: blue;">
                         <input type="checkbox" name="selected" value="{{choice.1}}">!전체 참여 가능!
                     </div>

@@ -1,5 +1,37 @@
-{% if NA %}
-    {% for key, value in NA.items %}
-        {{key}} : {{value}} <br>
-    {% endfor %}
-{% endif %}
+{% extends 'base.html' %}
+{% block content %}
+<div class="practice_container">
+    <nav class="practice_nav">
+        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+        <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
+        <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
+        <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
+        <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
+        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link_selected">불참 시간대/사유 확인</a></div>
+    </nav>
+    
+    <div class="setting_form">
+        <div class="setting_description">인원 별 불참 시간대(미완성)</div>
+        
+        <div>
+            
+            {% if NA %}
+            {% for key, value in NA.items %}
+            {{key}} : {{value}} <br>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="setting_description">불참 사유</div>
+        <div>
+
+            {% if why %}
+            {% for key, value in why.items %}
+            {{key}} : {{value}} <br>
+            {% endfor %}
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

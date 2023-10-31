@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist
-from .models import Schedule, SongData, PracticeUser, Apply, Session
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing
 from datetime import timedelta, date, datetime, time
 from django.contrib import messages
 from .schedule import ScheduleOptimizer
@@ -71,22 +71,43 @@ def practice(request):
             if 'selected' in res:
                 selected = res['selected']
             selected_dict = {}
+            reason_dict = {}
             practiceId_list = [x.id for x in practice_objects]
 
             is_validate = True
             for i in practiceId_list:
                 selected_dict[i] = [int(x.split('_')[1]) for x in selected if int(x.split('_')[0]) == i]
+                reason_dict[i] = res['why_not_coming_' + str(i) + '_-1'][0]
+
                 # 최소 한 개 선택
                 if selected_dict[i] == []:
+                    message = "불참 시간 혹은 전체 참여를 각 날짜별로 선택해 주세요."
                     is_validate = False
-                    message = "불참 시간 혹은 전체 참여를 각 날짜별로 선택해주세요."
+                
+                # 불참인데 사유를 입력하지 않은 경우
+                elif reason_dict[i] == '' and len(selected_dict[i]) > 1:
+                    message = "불참 사유를 입력해 주세요"
+                    is_validate = False
+                
                 # 참여 혹은 불참 
                 elif -1 in selected_dict[i] and len(selected_dict[i]) > 1:
+                    message = "불참 혹은 전체 참여 중 1가지만 선택해 주세요."
                     is_validate = False
-                    message = "불참 혹은 전체 참여 중 1가지만 선택하여주세요."
 
+                # 전체 참여인데 불참 사유가 존재하는 경우 -> 사유 지우기
+                if -1 in selected_dict[i]:
+                    reason_dict[i] = ""
+
+            # 모든 Validation 통과하고 DB 업데이트
             if is_validate:
                 Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
+                WhyNotComing.objects.filter(user_name=form.cleaned_data['user_object']).delete()
+
+                for k,v in reason_dict.items():
+                    if v:
+                        schedule_object = Schedule.objects.get(id=k)
+                        w = WhyNotComing(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, reason=v)
+                        w.save()
                 # validation 이후 제출
                 for i in selected:
                     schedule_object = Schedule.objects.get(id=i.split('_')[0])
@@ -284,19 +305,48 @@ def schedule_create(request):
 def who_is_not_coming(request):
     context = {}
     current_schedule = Schedule.objects.filter(is_current=True)
+    schedule_info = {}
     if current_schedule:
+        reason_why = {}
         not_available = {}
         for schedule in current_schedule:
+            schedule_info[schedule.id] = {
+                'id' : schedule.id,
+                'date' : schedule.date.strftime("%y/%m/%d"),
+                'starttime' : schedule.starttime,
+                'endtime' : schedule.endtime
+            }
             na = schedule.apply.all()
-            schedule_date = schedule.date.strftime("%y/%m/%d - " + str(schedule.id))
-            not_available[schedule_date] = defaultdict(list)
+            schedule_id = schedule.id
+            not_available[schedule_id] = defaultdict(list)
             for i in na:
                 name = i.user_name.username
                 time = i.not_available
-                not_available[schedule_date][name].append(time)
+                not_available[schedule_id][name].append(time)
+                
+            reason_why[schedule.date.strftime("%y/%m/%d")] = {}
+            reason_object = WhyNotComing.objects.filter(schedule_id=schedule)
+            for i in reason_object:
+                reason_why[schedule.date.strftime("%y/%m/%d")][i.user_name.username] = i.reason
+                
+        """
+        output = {}
+        for idx, d in not_available.items():
+            print(idx)
+            for n, i in d.items():
+                print(n)
+                print(i)
+        """
+
 
     else:
         not_available = None
+        reason_why = None
     
+
+
+
     context['NA'] = not_available
+    context['why'] = reason_why
+
     return render(request, 'who_is_not_coming.html', context=context)
