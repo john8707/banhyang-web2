@@ -48,3 +48,11 @@ class Session(models.Model):
     instrument = models.CharField(max_length=255)
     def __str__(self) -> str:
         return ",".join([self.song_id.songname, self.user_name.username, self.instrument])
+    
+
+# 불참 사유!
+class WhyNotComing(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
+    schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='whynotcoming')
+    reason = models.CharField(max_length=255)
