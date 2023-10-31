@@ -195,6 +195,8 @@ def song_list(request):
         # forms에서 validation 진행
         if form.is_valid():
             f = form.cleaned_data
+            SongData.objects.filter(songname=f['song_name']).delete()
+
             # 곡의 제목부터 저장
             s = SongData(songname=f['song_name'])
             s.save()

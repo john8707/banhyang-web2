@@ -55,20 +55,16 @@ class SongSessionField(forms.CharField):
 class SongAddForm(forms.Form):
     song_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder' : '곡 제목'}))
     vocals = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '보컬'}))
+    drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '드럼'}))
     guitars = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '기타'}))
     bass = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '베이스'}))
     keyboards = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '키보드'}))
-    drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder' : '드럼'}))
 
     etc = SongSessionField(required=False ,widget=forms.TextInput(attrs={'placeholder' : 'etc'}))
 
     def clean(self):
         form_data = self.cleaned_data
         try:
-            song_exist = SongData.objects.filter(songname=form_data['song_name'])
-            if song_exist:
-                raise ValidationError('해당 곡이 이미 존재합니다.')
-            
             for key,values in form_data.items():
                 if key != "song_name" and values:
                     user_objects = [PracticeUser.objects.get(username=x.strip()) for x in values if x]
