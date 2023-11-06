@@ -113,7 +113,7 @@ def preprocessing():
 
 
     # 세션별 가중치의 값
-    weight_parameters = {
+    session_weight_parameters = {
         'v' : 1,
         'd' : 2,
         'g' : 1.5,
@@ -121,6 +121,21 @@ def preprocessing():
         'k' : 0.8,
         'etc' : 0.6
     }
+
+
+    # Song List Model의 우선 순위 별 가중치의 값
+    priority_weight_parameters = {
+        0 : 100,
+        1 : 1.6,
+        2 : 1.3,
+        3 : 1,
+        4 : 0.7,
+        5 : 0.4,
+        6: 0
+    }
+
+    # song_priority_dict : 각 곡 별 우선순위를 담은 dictionray
+    song_priority_dict = {x.id : x.priority for x in songs_objects}
 
     
 
@@ -133,15 +148,15 @@ def preprocessing():
                 n = 0
                 count = 0
                 for session_abbrev, session_name_list in session.items():
-                    n += sum([available_dict[name][practiceId][i] for name in session_name_list]) * weight_parameters[session_abbrev]
-                    count += weight_parameters[session_abbrev] * len(session_name_list)
+                    n += sum([available_dict[name][practiceId][i] for name in session_name_list]) * session_weight_parameters[session_abbrev]
+                    count += session_weight_parameters[session_abbrev] * len(session_name_list)
 
-                temp_list.append(round(n/count,2))
+                temp_list.append(round(n/count,2)*priority_weight_parameters[song_priority_dict[songId]])
             
             temp_dict[practiceId] = temp_list
         
         song_available_dict[songId] = temp_dict
-    
+        
 
     # song_session_set = {'곡id' : {'홍길동', '김철수'}, ...'}
     # 뒤에 나올 중복 곡들 확인을 위한 변수, dict의 item은 set
