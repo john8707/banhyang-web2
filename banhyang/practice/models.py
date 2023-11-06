@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # 합주 날짜
 class Schedule(models.Model):
@@ -36,6 +37,7 @@ class Apply(models.Model):
 class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
+    priority = models.IntegerField(default=3, validators=[MinValueValidator(0), MaxValueValidator(6)])
     def __str__(self):
         return self.songname
 

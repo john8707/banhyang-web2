@@ -30,6 +30,7 @@
         <td>베이스</td>
         <td>키보드</td>
         <td>ETC</td>
+        <td>합주 우선순위</td>
 
         
     </tr>
@@ -43,11 +44,23 @@
         <td>{{sessions | get_from_key:"b"}}</td>
         <td>{{sessions | get_from_key:"k"}}</td>
         <td>{{sessions | get_from_key:"etc"}}</td>
+        <td style="text-align: center;">
+            <select name="{{song.id}}" onchange="getChangedId('{{song.id}}', this)" id="">
+                <option value="0" {% if song.priority == 0 %} selected {% endif %}>긴급</option>
+                <option value="1" {% if song.priority == 1 %} selected {% endif %}>1</option>
+                <option value="2" {% if song.priority == 2 %} selected {% endif %}>2</option>
+                <option value="3" {% if song.priority == 3 %} selected {% endif %}>3</option>
+                <option value="4" {% if song.priority == 4 %} selected {% endif %}>4</option>
+                <option value="5" {% if song.priority == 5 %} selected {% endif %}>5</option>
+                <option value="6" {% if song.priority == 6 %} selected {% endif %}>고려X</option>
+            </select>
+        </td>
     </tr>
 
     {% endfor %}
 </table>
 <br>
+<input type="text" name="updateId" style="display:none;">
 <input type="submit" value="삭제" name="delete">
 </form>
 
@@ -92,4 +105,12 @@
     }
 </script>
 
+<script>
+    function getChangedId(songId,t) {
+      t.form.updateId.value = songId;
+      t.form.submit()
+    }
+</script>
+
 {% endblock %}
+

@@ -226,6 +226,15 @@ def song_list(request):
                 message = "삭제에 실패하였습니다. 다시 시도해주세요."
         else:
             message = "하나 이상의 곡을 선택해주세요."
+    
+    # 곡의 합주 우선순위 업데이트
+    if request.method == "POST" and 'updateId' in request.POST and request.POST['updateId']:
+        res = dict(request.POST)
+        update_Id = res['updateId'][0]
+        update_value = res[update_Id][0]
+        u = SongData.objects.filter(id=update_Id).update(priority=update_value)
+
+
     # 곡 목록 보여주기
     songs = SongData.objects.all().order_by('songname')
     song_dict = {}
@@ -235,8 +244,8 @@ def song_list(request):
         for s in sessions:
             session_dict[s.instrument].append(s.user_name.username)
         session_dict = {key:", ".join(val) for key, val in session_dict.items()}
+        # 각 곡별 세션 데이터를 딕셔너리로 정리
         song_dict[song] = dict(session_dict)
-
     context['songs'] = song_dict
     context['form'] = form
     context['message'] = message
