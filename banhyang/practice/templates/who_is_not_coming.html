@@ -10,27 +10,35 @@
         <div><a href="{% url 'who_is_not_coming' %}" class="nav_link_selected">불참 시간대/사유 확인</a></div>
     </nav>
     
-    <div class="setting_form">
-        <div class="setting_description">인원 별 불참 시간대(미완성)</div>
-        
-        <div>
+    <div class="setting_form" style="padding-bottom: 50px;">
+        <div class="setting_description">날짜 별 불참 시간 및 사유</div>
+        {% if when_and_why %}
+        {% for d, dict in when_and_why.items %}
+        <div class="setting_description" style="font-size: 18px;">
+            {{d}}
+        </div>
+        {% for name, value in dict.items %}
+        <div class="" style="margin-bottom: 5px;">
+
+            <div class="setting_label mt0" style="float: left; width: 43%;">
+                {{name}}            
+            </div>
             
-            {% if NA %}
-            {% for key, value in NA.items %}
-            {{key}} : {{value}} <br>
-            {% endfor %}
-            {% endif %}
+            <div class="setting_input">
+                {{value}}
+            </div>
         </div>
 
-        <div class="setting_description">불참 사유</div>
-        <div>
+        {% endfor %}
+        {% endfor %}
 
-            {% if why %}
-            {% for key, value in why.items %}
-            {{key}} : {{value}} <br>
-            {% endfor %}
-            {% endif %}
-        </div>
+
+        {% else %}
+        <div class="">예정된 합주가 없거나 아직 아무도 제출하지 않았습니다. :)</div>
+            
+        {% endif %}
+        
+
         
     </div>
 </div>

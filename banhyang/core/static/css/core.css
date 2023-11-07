@@ -127,6 +127,25 @@ a, a:visited{
     font-size: 13px;
 }
 
+    
+.setting_label{
+    width: auto;
+    font-weight: bold;
+    margin-top: 6px;
+    float: left;
+    width: 45%;
+    text-align: right;
+}
+
+.setting_input{
+    padding: 0 15px;
+    margin-left: 48%;
+    margin-bottom: 7px;
+    text-align: left;
+    max-width: 48%;
+}
+
+
 .practice_field{
     margin-bottom: 40px;
 }
@@ -241,7 +260,8 @@ a, a:visited{
         text-align: center;
     }
 
-}
+
+    }
 
  
 @media (min-width: 769) { /* 데스크탑 환경 */ }

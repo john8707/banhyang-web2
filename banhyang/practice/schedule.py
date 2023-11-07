@@ -38,8 +38,9 @@ def preprocessing():
     unavailable_objects = Apply.objects.filter(schedule_id__in=practiceId_list).exclude(not_available=-1)
 
 
-    # 합주 id : 합주 날짜 dict
-    practiceId_to_date = {x.id: x.date.strftime('%Y/%m/%d') for x in practice_objects}
+    # 합주 id : 합주 날짜 dict -> 09월 21일(목) 형식
+    from .views import weekday_dict
+    practiceId_to_date = {x.id: x.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape')  + weekday_dict(x.date.weekday()) for x in practice_objects}
 
     # 곡 id : 곡 이름 dict
     songId_to_name = {x.id : x.songname for x in songs_objects}
