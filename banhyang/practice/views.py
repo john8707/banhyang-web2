@@ -313,7 +313,7 @@ def schedule_create(request):
     return render(request, 'schedule_create.html', context=context)
 
 
-#@login_required(login_url=URL_LOGIN)
+@login_required(login_url=URL_LOGIN)
 def who_is_not_coming(request):
     # 불참 시간과 사유
     context = {}
@@ -363,7 +363,7 @@ def who_is_not_coming(request):
                         end_time = start_time + timedelta(minutes=10)
 
                     j = i
-                not_available[schedule_id][name] = ','.join(postprocessed_list)
+                not_available[schedule_id][name] = ', '.join(postprocessed_list)
 
 
             
@@ -379,14 +379,11 @@ def who_is_not_coming(request):
             when_and_why[date_to_string] = {}
             for name, t in not_available[schedule_id].items():
                 if name in reason_why[schedule_id]:
-                    concatenated = t + "(" + reason_why[schedule_id][name] + ")"
+                    concatenated = t + " (" + reason_why[schedule_id][name] + ")"
                 else:
                     concatenated = t
                 
                 when_and_why[date_to_string][name] = concatenated
-
-            
-            print(when_and_why)
     else:
         when_and_why = None
     
