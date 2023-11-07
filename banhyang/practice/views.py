@@ -8,10 +8,8 @@ from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 
 URL_LOGIN = '/admin/'
-
-
-def practice(request):
-    weekday_dict = {
+def weekday_dict(idx):
+    weekday_to_korean = {
         0: ' (월)',
         1: ' (화)',
         2: ' (수)',
@@ -20,7 +18,10 @@ def practice(request):
         5: ' (토)',
         6: ' (일)'
     }
+    return weekday_to_korean[idx]
 
+
+def practice(request):
     # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
     current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     message = None
@@ -43,7 +44,7 @@ def practice(request):
                 # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
                     # HTML 상 날짜 추가 용
-                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict[i.date.weekday()], i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
+                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict(i.date.weekday()), i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
                     
                     # 전체 참가 선택지 추가
                     choice.append((-1, str(i.id) + "_" + "-1"))
@@ -312,11 +313,13 @@ def schedule_create(request):
     return render(request, 'schedule_create.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+#@login_required(login_url=URL_LOGIN)
 def who_is_not_coming(request):
+    # 불참 시간과 사유
     context = {}
     current_schedule = Schedule.objects.filter(is_current=True)
     schedule_info = {}
+    when_and_why = {}
     if current_schedule:
         reason_why = {}
         not_available = {}
@@ -330,34 +333,66 @@ def who_is_not_coming(request):
             na = schedule.apply.all()
             schedule_id = schedule.id
             not_available[schedule_id] = defaultdict(list)
+            # 불참 시간 정리(가공 전)
             for i in na:
                 name = i.user_name.username
                 time = i.not_available
                 not_available[schedule_id][name].append(time)
-                
-            reason_why[schedule.date.strftime("%y/%m/%d")] = {}
+            schedule_start_time =  datetime.combine(date.today(),schedule.starttime)
+            
+            # 날짜 별 불참 시간 dictionary
+            for name, not_available_list in not_available[schedule_id].items():
+                not_available_list.sort()
+                postprocessed_list = []
+                j = None
+                while not_available_list:
+                    i = not_available_list.pop(0)
+                    if i == -1:
+                        postprocessed_list = ["전참"]
+                        break
+                    if j == None:
+                        start_time = schedule_start_time + timedelta(minutes=10 * i)
+                        end_time = start_time + timedelta(minutes=10)
+                    elif i == j + 1:
+                        end_time += timedelta(minutes=10)
+                        if not not_available_list:
+                            postprocessed_list.append(start_time.strftime("%H:%M") + "~" + end_time.strftime("%H:%M"))
+                    else:
+                        postprocessed_list.append(start_time.strftime("%H:%M") + "~" + end_time.strftime("%H:%M"))
+                        start_time = schedule_start_time + timedelta(minutes=10 * i)
+                        end_time = start_time + timedelta(minutes=10)
+
+                    j = i
+                not_available[schedule_id][name] = ','.join(postprocessed_list)
+
+
+            
+            # 날짜 별 불참 사유 dictionary
+            reason_why[schedule_id] = {}
             reason_object = WhyNotComing.objects.filter(schedule_id=schedule)
             for i in reason_object:
-                reason_why[schedule.date.strftime("%y/%m/%d")][i.user_name.username] = i.reason
+                reason_why[schedule_id][i.user_name.username] = i.reason
+
+
+            # 웹에 표시 위한 최종 정제 -> 불참시간(사유) 형식
+            date_to_string = schedule.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule.date.weekday())
+            when_and_why[date_to_string] = {}
+            for name, t in not_available[schedule_id].items():
+                if name in reason_why[schedule_id]:
+                    concatenated = t + "(" + reason_why[schedule_id][name] + ")"
+                else:
+                    concatenated = t
                 
-        """
-        output = {}
-        for idx, d in not_available.items():
-            print(idx)
-            for n, i in d.items():
-                print(n)
-                print(i)
-        """
+                when_and_why[date_to_string][name] = concatenated
 
-
+            
+            print(when_and_why)
     else:
-        not_available = None
-        reason_why = None
+        when_and_why = None
     
 
 
 
-    context['NA'] = not_available
-    context['why'] = reason_why
+    context['when_and_why'] = when_and_why
 
     return render(request, 'who_is_not_coming.html', context=context)
