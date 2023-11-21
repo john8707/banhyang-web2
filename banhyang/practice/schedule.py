@@ -40,7 +40,7 @@ def preprocessing():
 
     # 합주 id : 합주 날짜 dict -> 09월 21일(목) 형식
     from .views import weekday_dict
-    practiceId_to_date = {x.id: x.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape')  + weekday_dict(x.date.weekday()) for x in practice_objects}
+    practiceId_to_date = {x.id: x.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape')  + weekday_dict(x.date.weekday()) for x in practice_objects}
 
     # 곡 id : 곡 이름 dict
     songId_to_name = {x.id : x.songname for x in songs_objects}
@@ -264,7 +264,7 @@ class ScheduleOptimizer:
                     if self.x[p,t,s].solution_value() > 0:
                         my_df.iloc[t, room_count] = self.songId_to_name[s]
                         room_count += 1
-                        not_coming_dict[self.songId_to_name[s]+" ("+self.practiceId_to_date[p][-5:]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if self.available_dict[x][p][t] < 1] #전체 불참만 보이기 ==0, 일부 불참도 보이기 <1
+                        not_coming_dict[self.songId_to_name[s]+" ("+self.practiceId_to_date[p]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if self.available_dict[x][p][t] < 1] #전체 불참만 보이기 ==0, 일부 불참도 보이기 <1
             my_df.header = "day" + str(day_count)
             day_count += 1
             schedule_df_dict[self.practiceId_to_date[p]] = my_df
