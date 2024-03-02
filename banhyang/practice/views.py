@@ -384,6 +384,9 @@ def who_is_not_coming(request):
                     concatenated = t
                 
                 when_and_why[date_to_string][name] = concatenated
+            sorted_dict = sorted(when_and_why[date_to_string].items(), key = lambda item: item[1])
+            when_and_why[date_to_string] = sorted_dict
+            
     else:
         when_and_why = None
     
