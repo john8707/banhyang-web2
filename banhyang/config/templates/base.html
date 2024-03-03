@@ -21,6 +21,7 @@
             연세대학교 락밴드
         </div>
     </div>
+    {% if user.is_authenticated %}
     <nav role="navigation" id="mobilenav">
         <div id="menuToggle">
             <input type="checkbox" />
@@ -28,6 +29,7 @@
             <span></span>
             <span></span>
             <ul id="menu">
+                <li><a href="{% url 'practice' %}">합주 불참 신청</a></li>
                 <li><a href="{% url 'setting' %}">관리</a></li>
                 <li><a href="{% url 'create' %}">합주 날짜 생성</a></li>
                 <li><a href="{% url 'song_list' %}">곡 목록/관리</a></li>
@@ -37,7 +39,7 @@
             </ul>
        </div>
     </nav>
-
+    {% endif %}
 </header>
 <div class=main_section>
     {% block content %}

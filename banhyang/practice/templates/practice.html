@@ -1,12 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="practice_container">
-    <nav class="practice_nav">
-        <div><a class="nav_link_selected" href="{% url 'practice' %}">합주 불참 신청</a></div>
-        {% if user.is_authenticated %}
-        <div><a class="nav_link" href="{% url 'setting' %}">관리</a></div>
-        {% endif %}
-    </nav>
+    {% include 'nav.html' %}
+
     {% if form %}
     <form method="POST" class="practice_form">
         {% csrf_token %}
