@@ -7,7 +7,7 @@
 <div class="setting_form">
     
 <form method="POST">
-    <div class="setting_description">메인에 노출될 합주를 선택해주세요</div>
+    <div class="setting_description">불참 신청 받을 합주 선택</div>
     {% csrf_token %}
     {% for schedule in schedules %}
         <div class="setting_choice">
