@@ -1,15 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="practice_container">
-    <nav class="practice_nav">
-        <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
-        <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
-        <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
-        <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
-        <div><a href="{% url 'schedule_create' %}" class="nav_link">시간표 짜기</a></div>
-        <div><a href="{% url 'who_is_not_coming' %}" class="nav_link_selected">불참 시간대/사유 확인</a></div>
-    </nav>
-    
+    {% include 'nav.html' %}
     <div class="setting_form" style="padding-bottom: 50px;">
 
         
@@ -17,14 +9,14 @@
         {% if when_and_why %}
 
         {% for d, dict in when_and_why.items %}
-        <table style="margin: 0 auto; margin-left: 30%; width: 70%; border-spacing: 0 7px;">
+        <table style="margin: 0 auto; margin-left: 25%; width: 75%; border-spacing: 0 7px;">
             <div class="setting_description" style="font-size: 18px;">
                 {{d}}
             </div>
             {% for i in dict %}
             <tr style="line-height: 1.4;">
-                <td style="text-align: right; font-weight: bold; width: 10%;">{{i.0}}</td>
-                <td style="text-align: left; width: 70%; padding-left: 5%;">{{i.1}}</td>
+                <td style="text-align: right; font-weight: bold; width: 20%;">{{i.0}}</td>
+                <td style="text-align: left; width: 75%; padding-left: 5%;">{{i.1}}</td>
             </tr>
             {% endfor %}
         </table>
