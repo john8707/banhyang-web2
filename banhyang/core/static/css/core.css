@@ -163,14 +163,25 @@ a, a:visited{
 .practice_choice{
     font-size: 13px;
 }
-.practice_choice_date, .submit-wrapper, .setting_description{
+.submit-wrapper, .setting_description{
     font-size: 21px;
     font-weight: bold;
     margin-top: 40px;
 }
+.practice_choice_date{
+    font-size: 21px;
+    font-weight: bold;
+    margin-top: 0px;
+}
+
 .practice_error{
     text-align: center;
 }
+
+.choice_wrapper{
+    margin-bottom: 40px;
+}
+
 #practice_info{
     color: gray;
     text-align: center;
@@ -182,6 +193,7 @@ a, a:visited{
     height: 25px;
     border-radius: 3px;
 }
+
 
 .setting_choice{
     font-size: 13px;
@@ -373,7 +385,18 @@ a, a:visited{
         font-weight: bold;
         margin-top: 6px;
         text-align: center;
+        margin-bottom: 10px;
     }
+    
+    #id_username_label{
+        font-size: 20px;
+        
+    }
+    
+    #id_username{
+        width: 150px;
+    }
+    
     #mobilenav{
         display: block;
     }

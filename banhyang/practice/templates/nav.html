@@ -2,7 +2,7 @@
     
     <div><a class="nav_link" href="{% url 'practice' %}">합주 불참 신청</a></div>
     {% if user.is_authenticated %}
-    <div><a href="{% url 'setting' %}" class="nav_link">관리</a></div>
+    <div><a href="{% url 'setting' %}" class="nav_link">합주 선택/미제출 인원 확인</a></div>
     <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
     <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록/관리</a></div>
     <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록/관리</a></div>
