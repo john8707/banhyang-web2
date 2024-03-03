@@ -301,7 +301,7 @@ def user_list(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def schedule_create(request):
+def timetable(request):
     context = {}
     message = None
     s = ScheduleOptimizer()
@@ -310,7 +310,7 @@ def schedule_create(request):
     df_list = {i:v.fillna("X") for i,v in df_list.items()}
     context['df'] = df_list
     context['NA'] = who_is_not_coming
-    return render(request, 'schedule_create.html', context=context)
+    return render(request, 'timetable.html', context=context)
 
 
 @login_required(login_url=URL_LOGIN)
