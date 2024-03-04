@@ -58,3 +58,12 @@ class WhyNotComing(models.Model):
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='whynotcoming')
     reason = models.CharField(max_length=255)
+
+
+# 지각 및 노쇼 체크용 도착시간 DB
+class ArrivalTime(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='arrivaltime')
+    date = models.DateField(auto_now_add=True)
+    arrival_time = models.TimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
