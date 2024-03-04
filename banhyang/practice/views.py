@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing
+from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist, ArrivalAddForm
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, ArrivalTime
 from datetime import timedelta, date, datetime, time
 from django.contrib import messages
 from .schedule import ScheduleOptimizer
@@ -128,6 +128,25 @@ def practice(request):
 
 
     return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
+
+
+def check_arrival_time(request):
+    form = ArrivalAddForm()
+    message = ''
+    if request.method == "POST":
+        form = ArrivalAddForm(request.POST)
+        if form.is_valid():
+            # Validation 과정 -> forms.ArrivalAddForm에서 진행
+            user_object = form.cleaned_data
+            s = ArrivalTime(user_name=user_object)
+            s.save()
+            message = '확인되었습니다.'
+            form = ArrivalAddForm()
+        else:
+            message = form.non_field_errors()[0]
+
+    return render(request, 'check_arrival_time.html', {'form':form, 'message' : message})
+
 
 
 @login_required(login_url=URL_LOGIN)

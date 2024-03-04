@@ -1,6 +1,7 @@
 from django import forms
-from .models import Schedule, SongData, PracticeUser, Session
+from .models import Schedule, SongData, PracticeUser, Session, ArrivalTime
 from django.core.exceptions import ValidationError
+import datetime
 
 # Check user validation from PracticeUser model
 def validate_user_exist(name, phonenumber):
@@ -82,10 +83,44 @@ class UserAddForm(forms.Form):
     
     def clean(self):
         form_data = self.cleaned_data
+        #input한 이름의 유저가 존재하는지 validate
         try:
             user_exist = PracticeUser.objects.filter(username=form_data['username'])
             if user_exist:
                 raise ValidationError("해당 인원이 이미 존재합니다. 동명이인의 경우 숫자, 세션등을 이용해 구분하여 주세요.")
         except PracticeUser.DoesNotExist:
             return form_data
+        
+
+class ArrivalAddForm(forms.Form):
+    username = forms.CharField(required=True)
+
+    def clean(self):
+        form_data = self.cleaned_data
+
+        #input한 이름의 유저가 존재하는지 validate
+        try:
+            user_exist = PracticeUser.objects.get(username=form_data['username'])
+        except PracticeUser.DoesNotExist:
+            raise ValidationError("해당 인원이 존재하지 않습니다. 오탈자를 다시 확인하거나 관리자에게 문의하세요.")
+        
+        #오늘 날짜 date + 0시0분0초 -> datetime 형식으로
+        arrived_day_datetime = datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0,0,datetime.timezone.utc))
+
+        #이미 인증을 했는지 validate
+        arrival_exist = ArrivalTime.objects.filter(date=datetime.date.today(), user_name=user_exist)
+        if arrival_exist:
+            raise ValidationError("이미 도착 인증을 하였습니다. 도착시간 " + arrival_exist[0].arrival_time.strftime("%H:%M") )
+
+        #오늘 합주가 존재하는지 validate
+        schedule_exist = Schedule.objects.filter(date=arrived_day_datetime)
+        if not schedule_exist:
+            raise ValidationError("금일 예정된 합주가 없습니다. 날짜를 다시 확인하거나 관리자에게 문의하세요.")
+
+        #합주 시작시간 30분 전이 됐는지 validate
+        if schedule_exist.filter(starttime__lte = (datetime.datetime.now() + datetime.timedelta(minutes=30)).time()):
+            #모든 validation 통과시 user object return
+            return user_exist
+        else:
+            raise ValidationError("합주 시작 30분 전부터 도착 인증을 할 수 있습니다.")
         
