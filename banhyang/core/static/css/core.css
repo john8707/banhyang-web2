@@ -225,7 +225,8 @@ a, a:visited{
 /*Header NAV bar*/
 #mobilenav{
     position: fixed;
-    top: 10px;
+    top: 25px;
+    right: 25px;
     display: none;
 }
 
@@ -233,8 +234,8 @@ a, a:visited{
     display: flex;
     flex-direction: column;
     position: relative;
-    top: 25px;
-    left: 25px;
+    top: 8px;
+    right: 0px;
     z-index: 1;
     -webkit-user-select: none;
     user-select: none;
@@ -242,6 +243,9 @@ a, a:visited{
   
 #menuToggle input
   {
+    position: fixed;
+    top: 21px;
+    right: 17px;
     display: flex;
     width: 40px;
     height: 32px;
@@ -300,14 +304,15 @@ a, a:visited{
     width: 180px;
     height: 800px;
     box-shadow: 0 0 10px #85888C;
-    margin: -50px 0 0 -50px;
+    margin: -50px 0 0 -200px;
     padding: 50px;
     padding-top: 125px;
     background-color: #F5F6FA;
     -webkit-font-smoothing: antialiased;
     transform-origin: 0% 0%;
-    transform: translate(-100%, 0);
+    transform: translate(100%, 0);
     transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+    text-align: right;
   }
   
 #menu li
@@ -331,6 +336,12 @@ a, a:visited{
     opacity: 0.5;
 }
 
+#login-img{
+    position: fixed;
+    right: 50px;
+    top: 50px;
+}
+
 @media (max-width: 768px) { 
     header{
         height: 80px;
@@ -348,6 +359,12 @@ a, a:visited{
         font-size: 13px;
     }
     
+    #login-img{
+        position: fixed;
+        left: 25px;
+        top: 25px;
+    }
+
     .main_section{
         margin: -50px auto;
     }

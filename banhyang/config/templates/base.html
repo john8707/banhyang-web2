@@ -23,7 +23,7 @@
     </div>
     <nav role="navigation" id="mobilenav">
         <div id="menuToggle">
-            <input type="checkbox" />
+            <input type="checkbox"  style="position: fixed;"/>
             <span></span>
             <span></span>
             <span></span>
@@ -31,19 +31,28 @@
                 <li><a href="{% url 'practice' %}">합주 불참 신청</a></li>
                 <li><a href="{% url 'check_arrival_time' %}">도착 인증하기</a></li>
                 {% if user.is_authenticated %}
+                <hr style="border:1px color= silver; margin: 0 auto; width:180px;">
                 <li><a href="{% url 'setting' %}">합주 선택/미제출 인원 확인</a></li>
                 <li><a href="{% url 'create' %}">합주 날짜 생성</a></li>
-                <li><a href="{% url 'song_list' %}">곡 목록/관리</a></li>
-                <li><a href="{% url 'user_list' %}">활동 인원 목록/관리</a></li>
+                <li><a href="{% url 'song_list' %}">곡 목록</a></li>
+                <li><a href="{% url 'user_list' %}">활동 인원 목록</a></li>
                 <li><a href="{% url 'timetable' %}">시간표 짜기</a></li>
-                <li><a href="{% url 'who_is_not_coming' %}">불참 시간대/사유 확인</a></li>
-                {% else %}
-                <li><a href="/admin/login/?next=/practice/setting">관리자 로그인</a></li>
+                <li><a href="{% url 'who_is_not_coming' %}">불참 시간대 및 사유</a></li>
                 {% endif %}
             </ul>
        </div>
     </nav>
-</header>
+    {% if user.is_authenticated %}
+    <a href="/admin/logout/?next=/practice">
+        <img src="{% static 'image/account-logout-32.png' %}" alt="login" id="login-img">    
+    </a>
+
+    {% else %}
+    <a href="/admin/login/?next=/practice/setting">
+        <img src="{% static 'image/account-login-32.png' %}" alt="login" id="login-img">    
+    </a>
+    {% endif %}
+    </header>
 <div class=main_section>
     {% block content %}
     {% endblock %}
