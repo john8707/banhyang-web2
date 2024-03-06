@@ -81,19 +81,17 @@ def preprocessing():
             temp  = []
             div_sum = 0
             song_count = 0
-
             for i in range(ceil(len_per_day/10)):
                 song_count += 1
                 if i not in unavailable_dict[user][practiceId]:
                     div_sum += 1
-                if song_count == min_per_song or i == ceil(len_per_day/10):
+                if song_count == min_per_song or i+1 == ceil(len_per_day/10):
                     #temp.append(round(div_sum/song_count,2)) #30분 합주의 일부만 못오는 것 반영하기
                     temp.append(1 if div_sum==song_count else 0) #일부만 못오면 불참으로 간주하기 <중요> 위와 아래 중 하나만 적용할 것!
                     div_sum = 0
                     song_count = 0
 
             available_dict[user][practiceId] = temp
-
 
     # song_session_dict = {'곡id' : {'v': [홍길동,김철수], 'g':[임재원] ...}}
     song_session_dict = {}
