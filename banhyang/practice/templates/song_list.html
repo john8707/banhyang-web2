@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load custom_filters %}
+{% load static %}
+
 
 
 <div class="practice_container">
@@ -13,15 +15,18 @@
 </div>
 <form action="" method="post" onsubmit="return confirm('선택된 곡을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
 {% csrf_token %}
-<table style="border-spacing: 10px 5px; margin: 0 auto;" class="tal">
-    <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54);">
-        <td><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
-        <td>곡 제목</td>
-        <td>보컬</td>
-        <td>드럼</td>
-        <td>기타</td>
-        <td>베이스</td>
-        <td>키보드</td>
+
+<!-- 구버젼
+
+    <table style="border-spacing: 10px 5px; margin: 0 auto;" class="tal">
+        <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54);">
+            <td><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
+            <td>곡 제목</td>
+            <td>보컬</td>
+            <td>드럼</td>
+            <td>기타</td>
+            <td>베이스</td>
+            <td>키보드</td>
         <td>ETC</td>
         <td>합주 우선순위</td>
 
@@ -49,9 +54,76 @@
             </select>
         </td>
     </tr>
-
+    
     {% endfor %}
 </table>
+-->
+
+<table style="border-spacing: 10px 5px; margin: 0 auto; text-align: center; border-collapse: collapse; width: 95%;">
+    <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54); height: 50px;">
+        <td style="width: 50px;"><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
+        <td style="width: 141px;">곡 제목</td>
+        <td style="width: 136px;">합주 우선순위</td>
+        <td style="width: 50px;"></td>
+    </tr>
+    {% for song,sessions in songs.items %}
+    <tr style="border-top: 1px solid rgb(216, 216, 216); height: 45px;">
+        <td><input type="checkbox" value={{song.id}} name="song_id"></td>
+        <td style="font-weight: 600; font-size: 14px;">{{song.songname}}</td>
+        <td style="text-align: center;">
+            <select name="{{song.id}}" onchange="getChangedId('{{song.id}}', this)" id="">
+                <option value="0" {% if song.priority == 0 %} selected {% endif %}>긴급</option>
+                <option value="1" {% if song.priority == 1 %} selected {% endif %}>1</option>
+                <option value="2" {% if song.priority == 2 %} selected {% endif %}>2</option>
+                <option value="3" {% if song.priority == 3 %} selected {% endif %}>3</option>
+                <option value="4" {% if song.priority == 4 %} selected {% endif %}>4</option>
+                <option value="5" {% if song.priority == 5 %} selected {% endif %}>5</option>
+                <option value="6" {% if song.priority == 6 %} selected {% endif %}>고려X</option>
+            </select>
+        </td>
+        <td><img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;"></td>
+    </tr>
+    <tr style="display: none; height: 35px;">
+        <td colspan="4">
+            <table style="width: 100%; padding: 10px 5px;">
+                <tr>
+                    <th style="width: 45px; color: gray;">보컬</th>
+                    <th style="width: 45px; color: gray;">드럼</th>
+                    <th style="width: 45px; color: gray;">기타</th>
+                    <th style="width: 45px; color: gray;">베이스</th>
+                    <th style="width: 45px; color: gray;">건반</th>
+                    <th style="width: 45px; color: gray;">ETC</th>
+                </tr>
+                <tr>
+                    {% autoescape off %}
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"v"}}</td>
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"d"}}</td>
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"g"}}</td>
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"b"}}</td>
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"k"}}</td>
+                    <td style="width: 45px;">{{sessions | get_from_key_mobile:"etc"}}</td>
+                    {% endautoescape %}
+                </tr>
+            </table>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+    function collapse(element){
+        var content = element.parentElement.parentElement.nextElementSibling;
+        ;
+        if (content.style.display != "none"){
+            element.style.transform = 'none'
+            content.style.display = "none";
+        } else {
+            content.style.display = "table-row"
+            element.style.transform = 'rotate(180deg)'
+        }
+    }
+</script>
+
 <br>
 <input type="text" name="updateId" style="display:none;">
 <input type="submit" value="삭제" name="delete">
