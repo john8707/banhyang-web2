@@ -123,12 +123,12 @@ a, a:visited{
 
 .practice_input{
     padding: 0 55px;
-    margin-left: 220px;
+    margin-left: 30%;
 }
 
 .practice_label{
     float: left;
-    width: 220px;
+    width: 30%;
     text-align: right;
     font-weight: bold;
     margin-top: 6px;
