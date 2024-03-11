@@ -386,8 +386,10 @@ a, a:visited{
     
     #login-img{
         position: fixed;
-        left: 25px;
-        top: 25px;
+        left: 28px;
+        top: 28px;
+        width: 26px;
+        height: 26px;
     }
 
     .main_section{
