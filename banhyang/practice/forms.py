@@ -22,8 +22,8 @@ class PracticeCreateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(PracticeCreateForm, self).__init__(*args, **kwargs)
         self.fields['minutes'] = forms.ChoiceField(choices=[(10, "10분"), (20, "20분"), (30, "30분"), (40, "40분"), (50, "50분"), (60, "60분")])
-        self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'])
-        self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'])
+        self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type':'time'}))
+        self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type':'time'}))
 
 
 # 합주 신청 폼
