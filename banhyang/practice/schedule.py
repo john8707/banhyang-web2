@@ -243,19 +243,35 @@ class ScheduleOptimizer:
                         print(self.x[p,t,s])
         """
 
+        # 웹 표시용 스트링 형식의 시간표 저장
         schedule_df_dict = {}
+        # 곡 별 불참 인원을 리스트로 보여주기
         not_coming_dict = {}
+        # Timetable DB 저장용 DB Object 딕셔너리 -> {합주 object : {곡 object : (시작시간, 끝시간, 방 번호), }}
+        timetable_object_dict = {}
 
         # 결과값을 data frame으로! / 합주 불참자까지 나오도록
         day_count = 0
         for p in self.practiceId_list:
+
             idx = []
             song_per_day = self.practice_info[p]['song_per_day']
             time_count = datetime.combine(date(1,1,1),self.practice_info[p]['start_time'])
+            
+            timetable_object_dict[p] = {}
+
+            # Dataframe의 시간 index 생성
             for _ in range(song_per_day):
                 idx.append(time_count.strftime('%H:%M'))
                 time_count += timedelta(minutes=self.practice_info[p]['minute_per_song']*10)
+            
+            # Dataframe 틀 생성
             my_df = pd.DataFrame(data=[], index=idx, columns=['room ' + str(room) for room in range(1, self.practice_info[p]['room_count'] + 1)])
+
+            # 의사 결정 변수의 값 > 0 -> 해당 타임에 해당 곡 합주가 존재한다는 뜻
+            # 시간표 Dataframe에 string으로 저장
+            # object로 timetable_object_dict에 넣기
+            # 불참 인원을 not_coming_dict에 넣기
             for t in self.time_iter(p):
                 room_count = 0
                 for s in self.songId_list:
@@ -263,11 +279,14 @@ class ScheduleOptimizer:
                         my_df.iloc[t, room_count] = self.songId_to_name[s]
                         room_count += 1
                         not_coming_dict[self.songId_to_name[s]+" ("+self.practiceId_to_date[p]+" "+idx[t]+")"] = [x for x in self.song_session_set[s] if self.available_dict[x][p][t] < 1] #전체 불참만 보이기 ==0, 일부 불참도 보이기 <1
+                        
+                        start_time = datetime.combine(date(1,1,1),self.practice_info[p]['start_time']) + timedelta(minutes=self.practice_info[p]['minute_per_song']*10*t)
+                        end_time = min(start_time + timedelta(minutes=self.practice_info[p]['minute_per_song']*10), datetime.combine(date(1,1,1),self.practice_info[p]['end_time']))
+                        timetable_object_dict[p][s] = (start_time.time(), end_time.time(), room_count)
             my_df.header = "day" + str(day_count)
             day_count += 1
             schedule_df_dict[self.practiceId_to_date[p]] = my_df
-
-        return schedule_df_dict, not_coming_dict
+        return schedule_df_dict, not_coming_dict, timetable_object_dict
         
         # my_df = pd.DataFrame(data=[], index=range(1,times+1), columns=range(1,days+1))
         #TODO -> 현재 시간표의 점수(참석률)  / 기타 통계 등 / 마감시간 설정하기 / 곡 별 요일 고정 / 대쉬보드 / 로그달기 / 못오는 사람이 있을 경우 해당 사람이 겹치는 곡 동시에 하기 허용

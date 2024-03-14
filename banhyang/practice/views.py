@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist, ArrivalAddForm
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, ArrivalTime
+from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist, AttendanceCheckForm
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck
 from datetime import timedelta, date, datetime, time
 from django.contrib import messages
+from django.db.models import Exists, OuterRef
 from .schedule import ScheduleOptimizer
 from django.contrib.auth.decorators import login_required
 from collections import defaultdict
@@ -132,23 +133,68 @@ def practice(request):
     return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
-def check_arrival_time(request):
-    form = ArrivalAddForm()
+def attendance_check(request):
+    form = AttendanceCheckForm()
     message = ''
+    context = {}
+
+    attendance_dict ={}
+    # 춣석/지각 여부 dict -> {schedule id : {timetable id : {출석:[],지각:[],불참/미인증:[]}}}
+
+    schedule_objects = Schedule.objects.all().order_by('-date')
+    for schedule_object in schedule_objects:
+        attendance_per_tt_dict = {}
+        timetable_objects = schedule_object.timetable.all().order_by('start_time')
+        for timetable_object in timetable_objects:
+            session_objects = Session.objects.filter(song_id=timetable_object.song_id).distinct().values_list('user_name')
+
+            user_list= [x[0] for x in session_objects]
+
+            attendance_per_tt_dict[timetable_object] = {'출석':[],'지각':[],'미인증/불참':[]}
+            attendance_objects = AttendanceCheck.objects.filter(timetable_id=timetable_object)
+            for user_name in user_list:
+                user_object = PracticeUser.objects.get(username=user_name)
+                try:
+                    attendance_object = attendance_objects.get(user_name=user_object)
+                    arrival = datetime.combine(date.today(), attendance_object.arrival_time)
+                    # 5분까지 지각 허용
+                    due = datetime.combine(date.today(), timetable_object.start_time) + timedelta(minutes=6)
+                    if  arrival > due:
+                        late = arrival - due
+                        late_minute = int(late.seconds/60) + 1
+                        attendance_per_tt_dict[timetable_object]['지각'].append(user_object.username + " ("+ str(late_minute) + "분)")
+                    else:
+                        attendance_per_tt_dict[timetable_object]['출석'].append(user_object.username)
+
+                except AttendanceCheck.DoesNotExist:
+                    attendance_per_tt_dict[timetable_object]['미인증/불참'].append(user_object.username)
+            
+        
+
+        date_to_string = schedule_object.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule_object.date.weekday())
+        attendance_dict[date_to_string] = attendance_per_tt_dict
+
+
+    
+    
     if request.method == "POST":
-        form = ArrivalAddForm(request.POST)
+        form = AttendanceCheckForm(request.POST)
         if form.is_valid():
             # Validation 과정 -> forms.ArrivalAddForm에서 진행
-            user_object = form.cleaned_data
-            s = ArrivalTime(user_name=user_object)
-            s.save()
-            message = '확인되었습니다.'
-            form = ArrivalAddForm()
+            user_object, timetable_objects, now = form.cleaned_data
+
+            attendance_object_list = [AttendanceCheck(user_name = user_object, timetable_id=x) for x in timetable_objects]
+            AttendanceCheck.objects.bulk_create(attendance_object_list)
+            message = '출석 확인 되었습니다.'
+
+            form = AttendanceCheckForm()
         else:
             message = form.non_field_errors()[0]
+    context['form'] = form
+    context['message'] = message
+    context['res'] = attendance_dict
 
-    return render(request, 'check_arrival_time.html', {'form':form, 'message' : message})
-
+    return render(request, 'attendance_check.html',context=context)
 
 
 @login_required(login_url=URL_LOGIN)
@@ -168,21 +214,20 @@ def setting(request):
     schedules = Schedule.objects.all().order_by('date')
 
 
-    user_objects = PracticeUser.objects.all()
     practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
     not_submitted_list = []
-    for i in user_objects:
-        for j in practice_objects:
-            submitted = Apply.objects.filter(user_name=i, schedule_id=j)
-            if not submitted and i.username not in not_submitted_list:
-                not_submitted_list.append(i.username)
+    for practice_object in practice_objects:
+        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=practice_object)))
+        not_submitted_list.extend([i.username for i in not_submitted])
 
-    return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': not_submitted_list, 'message': message})
+    u_not_submitted_list = list(set(not_submitted_list))
+    u_not_submitted_list.sort()
+
+    return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': u_not_submitted_list, 'message': message})
 
 
 @login_required(login_url=URL_LOGIN)
 def create(request):
-    #TODO 어떻게 추가하는지 써놓기(시간은 가능한 한 시간 or 삼십분 단위로 할 것)
     if request.method == "POST":
         form = PracticeCreateForm(request.POST)
         if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
@@ -327,10 +372,36 @@ def timetable(request):
     message = None
     s = ScheduleOptimizer()
     s.create_schedule()
-    df_list, who_is_not_coming = s.post_processing()
+    df_list, who_is_not_coming, timetable_object_dict = s.post_processing()
     df_list = {i:v.fillna("X") for i,v in df_list.items()}
     context['df'] = df_list
     context['NA'] = who_is_not_coming
+
+    # 불참 여부 미제출 인원 체크하기
+    practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
+    for practice_object in practice_objects:
+        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=practice_object)))
+        if not_submitted : message = "아직 불참 여부를 제출하지 않은 인원이 존재합니다!"
+
+
+    if request.method == "POST":
+        for schedule_id, v in timetable_object_dict.items():
+            schedule_id = Schedule.objects.get(id=schedule_id)
+            existing_timetable_object = Timetable.objects.filter(schedule_id=schedule_id)
+            # DB에 존재하는 해당 합주 시간표 조회 후 삭제
+            if existing_timetable_object:
+                existing_timetable_object.delete()
+
+
+            # Bulk 저장
+            timetable_object_list = [Timetable(schedule_id = schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_number=info_tuple[2]) for song_id, info_tuple in v.items()]
+            try:
+                Timetable.objects.bulk_create(timetable_object_list)
+                message = "저장되었습니다."
+            except Exception as E:
+                message = "저장에 실패하였습니다. 관리자에게 문의하세요." + E
+
+    context['message'] = message
     return render(request, 'timetable.html', context=context)
 
 
