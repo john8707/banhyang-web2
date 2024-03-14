@@ -16,49 +16,6 @@
 <form action="" method="post" onsubmit="return confirm('선택된 곡을 삭제하시겠습니까? 삭제 시 다시 되돌릴 수 없습니다.')">
 {% csrf_token %}
 
-<!-- 구버젼
-
-    <table style="border-spacing: 10px 5px; margin: 0 auto;" class="tal">
-        <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54);">
-            <td><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
-            <td>곡 제목</td>
-            <td>보컬</td>
-            <td>드럼</td>
-            <td>기타</td>
-            <td>베이스</td>
-            <td>키보드</td>
-        <td>ETC</td>
-        <td>합주 우선순위</td>
-
-        
-    </tr>
-    {% for song,sessions in songs.items %}
-    <tr>
-        <td><input type="checkbox" value={{song.id}} name="song_id"></td>
-        <td>{{song.songname}}</td>
-        <td>{{sessions | get_from_key:"v"}}</td>
-        <td>{{sessions | get_from_key:"d"}}</td>
-        <td>{{sessions | get_from_key:"g"}}</td>
-        <td>{{sessions | get_from_key:"b"}}</td>
-        <td>{{sessions | get_from_key:"k"}}</td>
-        <td>{{sessions | get_from_key:"etc"}}</td>
-        <td style="text-align: center;">
-            <select name="{{song.id}}" onchange="getChangedId('{{song.id}}', this)" id="">
-                <option value="0" {% if song.priority == 0 %} selected {% endif %}>긴급</option>
-                <option value="1" {% if song.priority == 1 %} selected {% endif %}>1</option>
-                <option value="2" {% if song.priority == 2 %} selected {% endif %}>2</option>
-                <option value="3" {% if song.priority == 3 %} selected {% endif %}>3</option>
-                <option value="4" {% if song.priority == 4 %} selected {% endif %}>4</option>
-                <option value="5" {% if song.priority == 5 %} selected {% endif %}>5</option>
-                <option value="6" {% if song.priority == 6 %} selected {% endif %}>고려X</option>
-            </select>
-        </td>
-    </tr>
-    
-    {% endfor %}
-</table>
--->
-
 <table style="border-spacing: 10px 5px; margin: 0 auto; text-align: center; border-collapse: collapse; width: 95%;">
     <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54); height: 50px;">
         <td style="width: 50px;"><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
