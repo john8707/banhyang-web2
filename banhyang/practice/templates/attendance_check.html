@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load custom_filters %}
+
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+
+<div class="setting_form">
+    <!--
+
+        <div class="setting_description">
+            도착 인증하기
+        </div>
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="practice_field" style="margin-top: 20px;">
+                <div class="practice_label mt0">이름</span></div>
+                <div class="practice_input">{{field}}</div>
+            </div>
+            {% endfor %}
+            <div class="submit-wrapper">
+                <input type="submit" value="인증">
+            </div>
+        </form>
+    --> 
+        
+
+    <div class="setting_description">
+        출석 / 지각 여부
+    </div>
+    {% autoescape off %}
+
+    {% for schedule, timetables in res.items %}
+    
+    <div class="setting_description" style="font-size: 20px; width: 95%;">
+        <table style="margin: 0 auto; width: 100%;">
+            <tr>
+                <td style=" width:60%; height:35px">
+                    {{schedule}}
+                </td>
+                <td>
+                    <img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="" style="display: none; width: 95%;">
+        {% for timetable, attendance in timetables.items %}
+    <table style="border-collapse: collapse; margin: 10px auto; padding: 10px 5px; line-height: 1.4; width: 95%;">
+        <tr style="border-top: 1px solid rgb(216, 216, 216); height: 25px;">
+            <td style="font-weight: 600; font-size: 15px; ">{{timetable.song_id}}</td>
+            <td></td>
+            <td style="width: 45%;">{{timetable.start_time|date:"H : i"}} ~ {{timetable.end_time|date:"H : i"}}</td>
+        </tr>
+    </table>
+    <table style="border-collapse: collapse; margin: 0 auto; padding: 10px 5px; line-height: 1.4; width: 95%;">
+        <tr style="height: 25px;">
+            <td style="width: 33%;">출석</td>
+            <td style="width: 33%;">지각</td>
+            <td style="width: 33%;">미인증/불참</td>
+        </tr>
+        <tr style="vertical-align: top;">
+            <td>{{attendance|get_from_key:"출석"}}</td>
+            <td>{{attendance|get_from_key:"지각"}}</td>
+            <td>{{attendance|get_from_key:"미인증/불참"}}</td>
+        </tr>
+    </table>
+    {% endfor %}
+    </div>
+    
+    {% endfor %}
+    
+    {% endautoescape %}
+</div>
+
+
+
+</div>
+
+
+
+
+<script>
+    function collapse(element){
+        var content = element.parentElement.parentElement.parentElement.parentElement.parentElement.nextElementSibling;
+        console.log(content);
+            if (content.style.display != "none"){
+                element.style.transform = 'none'
+                content.style.display = "none";
+            } else {
+                content.style.display = "block"
+                element.style.transform = 'rotate(180deg)'
+            }
+    }
+</script>
+
+
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}
+
+{% endblock %}

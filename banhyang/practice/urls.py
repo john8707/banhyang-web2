@@ -10,5 +10,5 @@ urlpatterns = [
     path('practice/timetable', views.timetable, name='timetable'),
     path('practice/delete/<int:schedule_id>', views.practice_delete, name='practice_delete'),
     path('practice/NA', views.who_is_not_coming, name='who_is_not_coming'),
-    path('practice/noshow', views.check_arrival_time, name='check_arrival_time')
+    path('practice/attchk', views.attendance_check, name='attendance_check')
 ]
