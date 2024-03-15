@@ -86,3 +86,8 @@ class AttendanceCheck(models.Model):
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='attendancecheck')
     timetable_id = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='attendancecheck')
     arrival_time = models.TimeField(auto_now_add=True)
+
+
+class KakaoTalkId(models.Model):
+    id = models.CharField(primary_key=True, max_length=255)
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='kakaotalkid')
