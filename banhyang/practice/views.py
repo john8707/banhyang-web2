@@ -40,7 +40,7 @@ def practice(request):
             div_for_day = 0
             
             # temp time이 endtime을 넘지 않을 때 까지 10분을 temp time에 더하면서 반복
-            while temp_time <= endtime:
+            while temp_time < endtime:
 
                 # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
                 if div_for_day == 0:
