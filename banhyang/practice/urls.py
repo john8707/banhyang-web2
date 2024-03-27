@@ -10,9 +10,9 @@ urlpatterns = [
     path('practice/timetable', views.timetable, name='timetable'),
     path('practice/delete/<int:schedule_id>', views.practice_delete, name='practice_delete'),
     path('practice/NA', views.who_is_not_coming, name='who_is_not_coming'),
-    path('practice/attchk', views.attendance_check, name='attendance_check'),
+    path('practice/attchk', views.attendance_check_per_day, name='attendance_check'),
 
     #chatbot api server response
-    path('chatbot/attendance', chatbot.attendance, name='chatbot_attendance'),
+    path('chatbot/attendance', chatbot.attendance_check_only_first, name='chatbot_attendance'),
     path('chatbot/register', chatbot.register, name='chatbot_register')
 ]

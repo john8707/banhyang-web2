@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist, AttendanceCheckForm
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck
-from datetime import timedelta, date, datetime, time
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, ArrivalTime
+from datetime import timedelta, date, datetime, time, timezone
 from django.contrib import messages
 from django.db.models import Exists, OuterRef
 from .schedule import ScheduleOptimizer
@@ -133,14 +133,78 @@ def practice(request):
     return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
+def calculate_eta(user_object, date):
+    # 1. 불참 시간 리스트 만들기
+    schedule_objects = Schedule.objects.filter(date=date)
+    apply_objects_list = []
+    for schedule_object in schedule_objects:
+        apply_objects_list.extend(Apply.objects.filter(user_name=user_object,schedule_id=schedule_object))
+
+    # 2. 내 연주곡 가져오기
+    temp_song_play_objects = [x.song_id for x in Session.objects.filter(user_name=user_object)]
+    song_play_objects = list(set(temp_song_play_objects))
+    
+    # 3. 확정된 스케쥴 중에서 내 연주곡 필터, 시간별로 sort
+    timetable_objects = Timetable.objects.filter(song_id__in = song_play_objects, schedule_id__in=schedule_objects).order_by('start_time')
+
+    # 4. 시간 비교, 가능시간 존재시 즉시 return
+    for timetable_object in timetable_objects:
+        # timetable object의 시간 format을 apply의 not available의 div에 대응되는 단위로 변경
+        time_delta = int((datetime.combine(datetime.today(), timetable_object.start_time) - datetime.combine(datetime.today(),timetable_object.schedule_id.starttime)).total_seconds()/600)
+        song_div_list = [x + time_delta for x in range(int(timetable_object.schedule_id.min_per_song/10))]
+        apply_object = Apply.objects.filter(user_name=user_object, schedule_id=timetable_object.schedule_id, not_available__in=song_div_list)
+        if not apply_object:
+            return timetable_object.start_time
+    
+    return None
+
+
+# 하루에 한번만 출첵하는 경우
+def attendance_check_per_day(request):
+    message = ''
+    context = {}
+
+    timetable_objects = Timetable.objects.distinct().values('schedule_id')
+    id_list = [x['schedule_id'] for x in timetable_objects]
+    temp_date_list = [x.date for x in Schedule.objects.filter(id__in=id_list)]
+    date_list = list(set(temp_date_list))
+    date_list.sort(reverse=True)    
+    
+    user_objects = PracticeUser.objects.all()
+    # eta/real arrival time 비교 dict -> {날짜 : {사람 : [ETA, Real, 편차]}}
+    attendance_dict = {}
+    for date in date_list:
+        date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
+        attendance_dict[date_to_string] = {}
+        for user_object in user_objects:
+            arrival_time = ArrivalTime.objects.filter(user_name=user_object,date=date)
+            eta = calculate_eta(user_object=user_object, date=date)
+            delta = None
+            if arrival_time:
+                at = arrival_time[0].arrival_time
+            else:
+                at = None
+            if at and eta:
+                delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
+                if delta >= 0:
+                    delta = str(int(delta/60)) + "분"
+                else:
+                    delta = "0분"
+            attendance_dict[date_to_string][user_object.username] = [eta,at,delta]
+
+    context['res'] = attendance_dict
+    return render(request, 'attendance_check_per_day.html',context=context)
+
+
+# 각 곡마다 출석 체크 하는 경우
 def attendance_check(request):
-    form = AttendanceCheckForm()
+    #form = AttendanceCheckForm()
     message = ''
     context = {}
 
     attendance_dict ={}
     # 춣석/지각 여부 dict -> {schedule id : {timetable id : {출석:[],지각:[],불참/미인증:[]}}}
-
+    
     schedule_objects = Schedule.objects.all().order_by('-date')
     for schedule_object in schedule_objects:
         attendance_per_tt_dict = {}
@@ -176,7 +240,7 @@ def attendance_check(request):
 
 
     
-    
+    """
     if request.method == "POST":
         form = AttendanceCheckForm(request.POST)
         if form.is_valid():
@@ -191,6 +255,7 @@ def attendance_check(request):
         else:
             message = form.non_field_errors()[0]
     context['form'] = form
+    """
     context['message'] = message
     context['res'] = attendance_dict
 

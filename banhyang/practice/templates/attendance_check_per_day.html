@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load custom_filters %}
+
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+
+<div class="setting_form">
+    <!--
+
+        <div class="setting_description">
+            도착 인증하기
+        </div>
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="practice_field" style="margin-top: 20px;">
+                <div class="practice_label mt0">이름</span></div>
+                <div class="practice_input">{{field}}</div>
+            </div>
+            {% endfor %}
+            <div class="submit-wrapper">
+                <input type="submit" value="인증">
+            </div>
+        </form>
+    --> 
+        
+
+    <div class="setting_description">
+        출석 / 지각 여부
+    </div>
+    {% autoescape off %}
+
+    {% for date, dict in res.items %}
+    
+    <div class="setting_description" style="font-size: 20px; width: 95%;">
+        <table style="margin: 0 auto; width: 100%;">
+            <tr>
+                <td style=" width:60%; height:35px">
+                    {{date}}
+                </td>
+                <td>
+                    <img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="" style="display: none; width: 95%;">
+        <table style="margin: 0 auto; padding: 10px 5px; line-height: 1.4; width: 95%; border-spacing: 5px;">
+            <tr style="height: 25px; font-weight: bold;">
+                <td tyle="width: 25%;">이름</td>
+                <td style="width: 25%;">ETA</td>
+                <td style="width: 25%;">도착시간</td>
+                <td style="width: 25%;">Delta</td>
+            </tr>
+                {% for name, eta in dict.items %}
+                <tr style="vertical-align: top;">
+                <td>{{name}}</td>
+
+                {% if eta.0 %}
+                    <td>{{eta.0|date:"H : i"}}</td>
+                    {% if eta.1 %}
+                        <td>{{eta.1|date:"H : i"}}</td>
+                        <td>{{eta.2}}</td>
+                    {% else %}
+                        <td>미인증</td>
+                        <td>미인증</td>
+                    {% endif %}
+                {% else %}
+                    <td>-</td>
+                    {% if eta.1 %}
+                    <td>{{eta.1|date:"H : i"}}</td>
+                    {% else %}                    
+                    <td>-</td>
+                    {% endif %}
+                    <td>-</td>
+                {% endif %}
+                {% endfor %}
+    </table>
+    </div>
+    
+    {% endfor %}
+    
+    {% endautoescape %}
+</div>
+
+
+
+</div>
+
+
+
+
+<script>
+    function collapse(element){
+        var content = element.parentElement.parentElement.parentElement.parentElement.parentElement.nextElementSibling;
+        console.log(content);
+            if (content.style.display != "none"){
+                element.style.transform = 'none'
+                content.style.display = "none";
+            } else {
+                content.style.display = "block"
+                element.style.transform = 'rotate(180deg)'
+            }
+    }
+</script>
+
+
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}
+
+{% endblock %}

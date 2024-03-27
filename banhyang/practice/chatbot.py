@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, KakaoTalkId
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, KakaoTalkId, ArrivalTime
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -92,6 +92,47 @@ def attendance(request):
         
         return JsonResponse(simpletext_response(message))
     
+
+
+@csrf_exempt
+def attendance_check_only_first(request):
+    if request.method == "POST":
+        payloads = json.loads(request.body)
+
+        user_id = payloads['userRequest']['user']['id']
+
+        user_name = get_username_by_id(user_id)
+        if not user_name:
+            return JsonResponse(simpletext_response("등록되지 않은 사용자다냥.\n먼저 유저 등록 메뉴를 누르거나 '등록'이라고 채팅을 보내 등록을 진행해달라냐옹."))
+        try:
+            user_exist = PracticeUser.objects.get(username=user_name)
+        except PracticeUser.DoesNotExist:
+            return JsonResponse(simpletext_response("해당 인원이 존재하지 않다냥. 오탈자를 다시 확인하거나 관리자에게 문의해달라냥."))
+
+        now = datetime.datetime.now()
+
+        #오늘 날짜 date + 0시0분0초 -> datetime 형식으로
+        arrived_day_datetime = datetime.datetime.combine(datetime.date.today(), datetime.time(0,0,0,0,datetime.timezone.utc))
+
+        #오늘 합주가 존재하는지 validate
+        schedule_exist = Schedule.objects.filter(date=arrived_day_datetime)
+        if not schedule_exist:
+            return JsonResponse(simpletext_response("금일 예정된 합주가 없다냥. 날짜를 다시 확인하거나 관리자에게 문의해달라냥."))
+        
+        #5분전부터 인증 가능
+        if not schedule_exist.filter(starttime__lte = (datetime.datetime.now() + datetime.timedelta(minutes=5)).time()):
+            return JsonResponse(simpletext_response("합주 시작 5분 전부터 출석 체크를 할 수 있다냥. 좀만 기다려달라냥~"))
+
+        arrival_exist = ArrivalTime.objects.filter(date=datetime.date.today(), user_name=user_exist)
+        if arrival_exist:
+            return JsonResponse(simpletext_response("이미 출석 체크가 되어있다냥. 출석 체크는 하루에 한 번만 가능하다냥!\n출석 시간 : " + arrival_exist[0].arrival_time.strftime('%H:%M')))
+
+        s = ArrivalTime(user_name = user_exist)
+        s.save()
+
+        return JsonResponse(simpletext_response("출석 체크 되었다냥~"))
+
+
 
 @csrf_exempt
 def register(request):

@@ -91,3 +91,10 @@ class AttendanceCheck(models.Model):
 class KakaoTalkId(models.Model):
     id = models.CharField(primary_key=True, max_length=255)
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='kakaotalkid')
+
+
+class ArrivalTime(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='arrivaltime')
+    date = models.DateField(auto_now_add=True)
+    arrival_time = models.TimeField(auto_now_add=True)
