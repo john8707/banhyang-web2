@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+
+    <div class="setting_form tal">
+        <div class="setting_description">합주 정보 입력</div>
+
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            <div class="practice_field">
+                <div class="practice_label mt0">이름 <span style="color:gray">[ex) 정기합주]</span></div>
+                <div class="practice_input">{{ form.name }}</div>    
+            </div>
+
+            <div class="practice_field">
+                <div class="practice_label mt0">날짜</div>
+                <div class="practice_input"><input name="date" type="date"></div>
+            </div>
+            <div class="practice_field">
+                <div class="practice_label mt0">시간 <span style="color:gray">[<span style="color: red;">오전 오후 구분 필수</span>]</span></div>
+                <div class="practice_input">{{ form.starttime }} ~ {{ form.endtime }}</div>
+            </div>
+
+            <div class="practice_field">
+                <div class="practice_label mt0">장소</div>
+                <div class="practice_input">{{ form.location }}</div>
+            </div>
+
+            <div class="practice_field">
+                <div class="practice_label mt0">곡 당 시간</div>
+                <div class="practice_input">{{ form.minutes }}</div>
+            </div>
+
+            <div class="practice_field">
+                <div class="practice_label mt0">방 개수</div>
+                <div class="practice_input">{{ form.rooms }}</div>
+            </div>
+
+            <div class="submit-wrapper">
+                <input type="submit" value="추가">
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+{% endblock %}
