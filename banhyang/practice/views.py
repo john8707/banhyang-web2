@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PracticeApplyForm, PracticeCreateForm, SongAddForm, UserAddForm, validate_user_exist, AttendanceCheckForm
+from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm, validate_user_exist, AttendanceCheckForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, ArrivalTime
 from datetime import timedelta, date, datetime, time, timezone
 from django.contrib import messages
@@ -8,7 +8,9 @@ from .schedule import ScheduleOptimizer
 from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 
-URL_LOGIN = '/admin/'
+URL_LOGIN = '/admin/login/?next=/practice/setting'
+
+#Datetime의 요일 표시를 한글로 바꿔주는 함수
 def weekday_dict(idx):
     weekday_to_korean = {
         0: ' (월)',
@@ -22,11 +24,11 @@ def weekday_dict(idx):
     return weekday_to_korean[idx]
 
 
-def practice(request):
+def practice_apply(request):
     # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
     current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     message = None
-    # 활성화 된 합주 날짜가 존재할 경우
+    # 활성화 된 합주 날짜가 존재할 경우 form의 checkbox input 생성
     if len(current_practice):
         choice = []
         for i in current_practice:
@@ -67,7 +69,6 @@ def practice(request):
         form = PracticeApplyForm(request.POST)
         if form.is_valid():
             res = dict(request.POST)
-            username = res['username'][0]
             practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
 
             # validation
@@ -126,11 +127,11 @@ def practice(request):
                 form = PracticeApplyForm(request.POST)
         
         else:
-            message = form._errors['message']
+            message = form.non_field_errors()[0]
 
 
 
-    return render(request, 'practice.html', {'form' : form, 'choices' : choice, 'message' : message})
+    return render(request, 'practice_apply.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
 def calculate_eta(user_object, date):
@@ -185,6 +186,7 @@ def attendance_check_per_day(request):
             else:
                 at = None
             if at and eta:
+                #delta : 몇 분 지각했는지 구하기
                 delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
                 if delta >= 0:
                     delta = str(int(delta/60)) + "분"
@@ -238,24 +240,6 @@ def attendance_check(request):
         date_to_string = schedule_object.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule_object.date.weekday())
         attendance_dict[date_to_string] = attendance_per_tt_dict
 
-
-    
-    """
-    if request.method == "POST":
-        form = AttendanceCheckForm(request.POST)
-        if form.is_valid():
-            # Validation 과정 -> forms.ArrivalAddForm에서 진행
-            user_object, timetable_objects, now = form.cleaned_data
-
-            attendance_object_list = [AttendanceCheck(user_name = user_object, timetable_id=x) for x in timetable_objects]
-            AttendanceCheck.objects.bulk_create(attendance_object_list)
-            message = '출석 확인 되었습니다.'
-
-            form = AttendanceCheckForm()
-        else:
-            message = form.non_field_errors()[0]
-    context['form'] = form
-    """
     context['message'] = message
     context['res'] = attendance_dict
 
@@ -265,6 +249,7 @@ def attendance_check(request):
 @login_required(login_url=URL_LOGIN)
 def setting(request):
     message = None
+    context = {}
     if request.method == "POST":
         res = dict(request.POST)
         schedule_object = Schedule.objects.all()
@@ -280,21 +265,25 @@ def setting(request):
 
 
     practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
-    not_submitted_list = []
+    temp_not_submitted_list = []
     for practice_object in practice_objects:
         not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=practice_object)))
-        not_submitted_list.extend([i.username for i in not_submitted])
+        temp_not_submitted_list.extend([i.username for i in not_submitted])
 
-    u_not_submitted_list = list(set(not_submitted_list))
-    u_not_submitted_list.sort()
+    not_submitted_list = list(set(temp_not_submitted_list))
+    not_submitted_list.sort()
 
-    return render(request, 'setting.html', {'schedules' : schedules, 'not_submitted': u_not_submitted_list, 'message': message})
+    context['message'] = message
+    context['schedules'] = schedules
+    context['not_submitted'] = not_submitted_list
+
+    return render(request, 'setting.html', context=context)
 
 
 @login_required(login_url=URL_LOGIN)
-def create(request):
+def schedule_create(request):
     if request.method == "POST":
-        form = PracticeCreateForm(request.POST)
+        form = ScheduleCreateForm(request.POST)
         if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
             f = form.save(commit=False)
             f.date = form.cleaned_data['date'] + timedelta(hours=9)
@@ -302,15 +291,15 @@ def create(request):
             f.starttime = form.cleaned_data['starttime']
             f.endtime = form.cleaned_data['endtime']
             f.save()
-            return redirect('practice')
+            return redirect('setting')
     else:
-        form = PracticeCreateForm()
+        form = ScheduleCreateForm()
 
-    return render(request, 'create.html', {'form' : form})
+    return render(request, 'schedule_create.html', {'form' : form})
 
 
 @login_required(login_url=URL_LOGIN)
-def practice_delete(request, schedule_id):
+def schedule_delete(request, schedule_id):
     practice_to_delete = get_object_or_404(Schedule, id = schedule_id)
     practice_to_delete.delete()
     return redirect('setting')
@@ -464,7 +453,7 @@ def timetable(request):
                 Timetable.objects.bulk_create(timetable_object_list)
                 message = "저장되었습니다."
             except Exception as E:
-                message = "저장에 실패하였습니다. 관리자에게 문의하세요." + E
+                message = "저장에 실패하였습니다. 관리자에게 문의하세요."
 
     context['message'] = message
     return render(request, 'timetable.html', context=context)

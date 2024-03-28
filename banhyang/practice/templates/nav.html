@@ -1,11 +1,11 @@
 <nav class="practice_nav">
     
-    <div><a class="nav_link" href="{% url 'practice' %}">합주 불참 신청</a></div>
+    <div><a class="nav_link" href="{% url 'practice_apply' %}">합주 불참 신청</a></div>
     <div><a class="nav_link" href="{% url 'attendance_check' %}">출석 확인</a></div>
 
     {% if user.is_authenticated %}
     <div><a href="{% url 'setting' %}" class="nav_link">합주 선택/미제출 인원 확인</a></div>
-    <div><a href="{% url 'create' %}" class="nav_link">합주 날짜 생성</a></div>
+    <div><a href="{% url 'schedule_create' %}" class="nav_link">합주 날짜 생성</a></div>
     <div><a href="{% url 'song_list' %}" class="nav_link">곡 목록</a></div>
     <div><a href="{% url 'user_list' %}" class="nav_link">활동 인원 목록</a></div>
     <div><a href="{% url 'timetable' %}" class="nav_link">시간표 짜기</a></div>
