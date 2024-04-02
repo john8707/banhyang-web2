@@ -17,7 +17,7 @@ application = get_wsgi_application()
 from django.core.management import call_command
 call_command('migrate')
 
-call_command('dumpdata', '--exclude', 'contenttypes','--natural-foreign', '-o', 'db.json')
+call_command('dumpdata', 'practice','--exclude', 'contenttypes','--natural-foreign', '-o', 'db.json')
 call_command('loaddata', 'db.json', '--database=migrate')
 from django.contrib.auth import get_user_model
 User = get_user_model()  # get the currently active user model,
