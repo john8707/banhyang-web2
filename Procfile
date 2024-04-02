@@ -1,1 +1,1 @@
-web: gunicorn --bind 0:8000 banhyang.wsgi:application --log-file -
+web: gunicorn --bind 0:8000 banhyang.wsgi:application --timeout 0 --log-file -
