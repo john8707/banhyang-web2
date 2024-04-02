@@ -4,14 +4,14 @@ from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComi
 from datetime import timedelta, date, datetime, time, timezone
 from django.contrib import messages
 from django.db.models import Exists, OuterRef
-from .schedule import ScheduleOptimizer
+from .schedule import ScheduleRetreiver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor
 from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 
 URL_LOGIN = '/admin/login/?next=/practice/setting'
 
 #Datetime의 요일 표시를 한글로 바꿔주는 함수
-def weekday_dict(idx):
+def weekday_dict(idx:int) -> str:
     weekday_to_korean = {
         0: ' (월)',
         1: ' (화)',
@@ -424,17 +424,23 @@ def user_list(request):
 def timetable(request):
     context = {}
     message = None
-    s = ScheduleOptimizer()
-    s.create_schedule()
-    df_list, who_is_not_coming, timetable_object_dict = s.post_processing()
+    retreiever = ScheduleRetreiver()
+    raw_data = retreiever.retreive_from_DB()
+    processor = ScheduleProcessor(raw_data)
+    processed_data = processor.process()
+    optimizer = ScheduleOptimizer(processed_data)
+    result = optimizer.optimize()
+    postprocessor = SchedulePostProcessor(result, processed_data)
+    df_list, who_is_not_coming, timetable_object_dict = postprocessor.post_process()
+
     df_list = {i:v.fillna("X") for i,v in df_list.items()}
     context['df'] = df_list
     context['NA'] = who_is_not_coming
 
     # 불참 여부 미제출 인원 체크하기
-    practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
-    for practice_object in practice_objects:
-        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=practice_object)))
+    schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
+    for schedule_object in schedule_objects:
+        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=schedule_object)))
         if not_submitted : message = "아직 불참 여부를 제출하지 않은 인원이 존재합니다!"
 
 
