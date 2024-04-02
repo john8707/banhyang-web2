@@ -117,6 +117,15 @@ else:
     DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
     DATABASES = {
         "default": DB_PARAMS,
+
+        'migrate': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'banhyang-web',
+            'USER': 'koyeb-adm',
+            'PASSWORD': os.getenv("POSTGRESQL_PW", None),
+            'HOST': 'ep-plain-field-a1abb1n0.ap-southeast-1.pg.koyeb.app',
+            'OPTIONS': {'sslmode': 'require'},
+        },
     }
 
 
