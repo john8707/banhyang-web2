@@ -116,9 +116,7 @@ else:
     DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
     DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
     DATABASES = {
-        "default": DB_PARAMS,
-
-        'migrate': {
+        'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'banhyang-web',
             'USER': 'koyeb-adm',
@@ -128,6 +126,9 @@ else:
         },
     }
 
+"""
+DATABASES['migrate'] = DB_PARAMS
+"""
 
 
 # Password validation
@@ -160,7 +161,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
