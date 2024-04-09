@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os, json
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -102,10 +104,8 @@ else:
             }
 """
 
-from dotenv import load_dotenv
-load_dotenv()
-import dj_database_url
-if os.getenv("DJANGO_DATABASE_URL", None) is None:
+USE_TEST_DB = os.getenv("USE_TEST_DB", False)
+if USE_TEST_DB is True:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -113,8 +113,8 @@ if os.getenv("DJANGO_DATABASE_URL", None) is None:
         }
     }
 else:
-    DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
-    DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
+    #DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
+    #DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

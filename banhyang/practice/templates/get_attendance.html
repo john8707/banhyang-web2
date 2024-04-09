@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load custom_filters %}
+
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+
+<div class="setting_form">
+    {% autoescape off %}
+    {% for date, dict in res.items %}
+    <div class="setting_description">
+        {{date}} 출석 확인
+    </div>
+        <table style="margin: 0 auto; padding: 10px 5px; line-height: 1.4; width: 95%; border-spacing: 5px;">
+            <tr style="height: 25px; font-weight: bold;">
+                <td tyle="width: 25%;">이름</td>
+                <td style="width: 25%;">ETA</td>
+                <td style="width: 25%;">도착시간</td>
+                <td style="width: 25%;">지각</td>
+            </tr>
+            {% for name, eta in dict.items %}
+            <tr style="vertical-align: top;">
+            <td>{{name}}</td>
+            
+            {% if eta.0 %}
+            <td>{{eta.0|date:"H : i"}}</td>
+            {% if eta.1 %}
+            <td>{{eta.1|date:"H : i"}}</td>
+            <td>{{eta.2}}</td>
+            {% else %}
+            <td>미인증</td>
+            <td>미인증</td>
+            {% endif %}
+            {% else %}
+            <td>-</td>
+            {% if eta.1 %}
+            <td>{{eta.1|date:"H : i"}}</td>
+            {% else %}                    
+            <td>-</td>
+            {% endif %}
+            <td>-</td>
+            {% endif %}
+            {% endfor %}
+        </table>
+            
+    </div>
+    {% endfor %}
+    {% endautoescape %}
+
+
+</div>
+
+
+
+
+
+{% if message %}
+    <script>
+        alert("{{message}}");
+    </script>
+{% endif %}
+
+{% endblock %}

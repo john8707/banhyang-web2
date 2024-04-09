@@ -17,7 +17,8 @@ application = get_wsgi_application()
 from django.core.management import call_command
 call_command('migrate')
 
-if os.getenv("MIGRATE", False):
+
+if os.getenv("MIGRATE", False) is True:
     call_command('dumpdata', 'practice','--exclude', 'contenttypes','--natural-foreign', '-o', 'db.json')
     call_command('loaddata', 'db.json', '--database=migrate')
 
