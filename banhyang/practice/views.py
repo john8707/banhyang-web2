@@ -160,6 +160,16 @@ def calculate_eta(user_object, date):
     return None
 
 
+# Convert datetime object to integer(yyyymmdd)
+def date_to_integer(dt_time):
+    return 10000*dt_time.year + 100*dt_time.month + dt_time.day
+
+
+# Convert integer(yyyymmdd) to datetime object
+def integer_to_date(dt_int):
+    int_to_string = str(dt_int)
+    return datetime(int(int_to_string[0:4]), int(int_to_string[4:6]), int(int_to_string[6:8]),9,0)
+
 # 하루에 한번만 출첵하는 경우
 def attendance_check_per_day(request):
     message = ''
@@ -169,34 +179,40 @@ def attendance_check_per_day(request):
     id_list = [x['schedule_id'] for x in timetable_objects]
     temp_date_list = [x.date for x in Schedule.objects.filter(id__in=id_list)]
     date_list = list(set(temp_date_list))
-    date_list.sort(reverse=True)    
-    
-    user_objects = PracticeUser.objects.all()
-    # eta/real arrival time 비교 dict -> {날짜 : {사람 : [ETA, Real, 편차]}}
-    attendance_dict = {}
-    for date in date_list:
-        date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
-        attendance_dict[date_to_string] = {}
-        for user_object in user_objects:
-            arrival_time = ArrivalTime.objects.filter(user_name=user_object,date=date)
-            eta = calculate_eta(user_object=user_object, date=date)
-            delta = None
-            if arrival_time:
-                at = arrival_time[0].arrival_time
-            else:
-                at = None
-            if at and eta:
-                #delta : 몇 분 지각했는지 구하기
-                delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
-                if delta >= 0:
-                    delta = str(int(delta/60)) + "분"
-                else:
-                    delta = "0분"
-            attendance_dict[date_to_string][user_object.username] = [eta,at,delta]
+    date_list.sort(reverse=True)
 
-    context['res'] = attendance_dict
+    date_int_list = [(x.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(x.weekday()), date_to_integer(x)) for x in date_list]
+    context['res'] = date_int_list
     return render(request, 'attendance_check_per_day.html',context=context)
 
+
+def get_attendance_check_per_day(request, date):
+    context = {}
+    date = integer_to_date(date)
+    user_objects = PracticeUser.objects.all()
+    # eta/real arrival time 비교 dict -> {날짜 : {사람 : [ETA, 실제 도착 시간, 지각(분)]}}
+    attendance_dict = {}
+    date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
+    attendance_dict[date_to_string] = {}
+    for user_object in user_objects:
+        arrival_time = ArrivalTime.objects.filter(user_name=user_object,date=date)
+        eta = calculate_eta(user_object=user_object, date=date)
+        delta = None
+        if arrival_time:
+            at = arrival_time[0].arrival_time
+        else:
+            at = None
+        if at and eta:
+            #delta : 몇 분 지각했는지 구하기
+            delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
+            if delta >= 0:
+                delta = str(int(delta/60)) + "분"
+            else:
+                delta = "0분"
+        attendance_dict[date_to_string][user_object.username] = [eta,at,delta]
+
+    context['res'] = attendance_dict
+    return render(request, 'get_attendance.html', context=context)
 
 # 각 곡마다 출석 체크 하는 경우
 def attendance_check(request):
