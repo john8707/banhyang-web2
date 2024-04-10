@@ -223,7 +223,7 @@ class ScheduleProcessor:
         # Data for Post Processing
         processed_data['song_session_set'] = self.song_session_set
         #{합주 id : 합주 날짜} -> 09월 21일(목) 형식
-        from .views import weekday_dict
+        from banhyang.core.utils import weekday_dict
         processed_data['practiceId_to_date'] = {x.id: x.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape')  + weekday_dict(x.date.weekday()) for x in self.raw_data['schedule_objects']}
         processed_data['songId_to_name'] = {x.id : x.songname for x in self.raw_data['song_objects']}
 
