@@ -134,6 +134,7 @@ def practice_apply(request):
     return render(request, 'practice_apply.html', {'form' : form, 'choices' : choice, 'message' : message})
 
 
+# 합주 도착 예정 시간 계산기
 def calculate_eta(user_object, date):
     # 1. 불참 시간 리스트 만들기
     schedule_objects = Schedule.objects.filter(date=date)
@@ -170,8 +171,9 @@ def integer_to_date(dt_int):
     int_to_string = str(dt_int)
     return datetime(int(int_to_string[0:4]), int(int_to_string[4:6]), int(int_to_string[6:8]),9,0)
 
-# 하루에 한번만 출첵하는 경우
-def attendance_check_per_day(request):
+
+# 출석 체크 / 지각 여부 조회 위한 날짜 선택
+def attendance_check_index(request):
     message = ''
     context = {}
 
@@ -183,10 +185,11 @@ def attendance_check_per_day(request):
 
     date_int_list = [(x.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(x.weekday()), date_to_integer(x)) for x in date_list]
     context['res'] = date_int_list
-    return render(request, 'attendance_check_per_day.html',context=context)
+    return render(request, 'attendance_check_index.html',context=context)
 
 
-def get_attendance_check_per_day(request, date):
+# 선택한 날짜 별 출석 체크 / 지각 여부 확인
+def get_attendance_check(request, date):
     context = {}
     date = integer_to_date(date)
     user_objects = PracticeUser.objects.all()
@@ -213,53 +216,6 @@ def get_attendance_check_per_day(request, date):
 
     context['res'] = attendance_dict
     return render(request, 'get_attendance.html', context=context)
-
-# 각 곡마다 출석 체크 하는 경우
-def attendance_check(request):
-    #form = AttendanceCheckForm()
-    message = ''
-    context = {}
-
-    attendance_dict ={}
-    # 춣석/지각 여부 dict -> {schedule id : {timetable id : {출석:[],지각:[],불참/미인증:[]}}}
-    
-    schedule_objects = Schedule.objects.all().order_by('-date')
-    for schedule_object in schedule_objects:
-        attendance_per_tt_dict = {}
-        timetable_objects = schedule_object.timetable.all().order_by('start_time')
-        for timetable_object in timetable_objects:
-            session_objects = Session.objects.filter(song_id=timetable_object.song_id).distinct().values_list('user_name')
-
-            user_list= [x[0] for x in session_objects]
-
-            attendance_per_tt_dict[timetable_object] = {'출석':[],'지각':[],'미인증/불참':[]}
-            attendance_objects = AttendanceCheck.objects.filter(timetable_id=timetable_object)
-            for user_name in user_list:
-                user_object = PracticeUser.objects.get(username=user_name)
-                try:
-                    attendance_object = attendance_objects.get(user_name=user_object)
-                    arrival = datetime.combine(date.today(), attendance_object.arrival_time)
-                    # 5분까지 지각 허용
-                    due = datetime.combine(date.today(), timetable_object.start_time) + timedelta(minutes=6)
-                    if  arrival > due:
-                        late = arrival - due
-                        late_minute = int(late.seconds/60) + 1
-                        attendance_per_tt_dict[timetable_object]['지각'].append(user_object.username + " ("+ str(late_minute) + "분)")
-                    else:
-                        attendance_per_tt_dict[timetable_object]['출석'].append(user_object.username)
-
-                except AttendanceCheck.DoesNotExist:
-                    attendance_per_tt_dict[timetable_object]['미인증/불참'].append(user_object.username)
-            
-        
-
-        date_to_string = schedule_object.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule_object.date.weekday())
-        attendance_dict[date_to_string] = attendance_per_tt_dict
-
-    context['message'] = message
-    context['res'] = attendance_dict
-
-    return render(request, 'attendance_check.html',context=context)
 
 
 @login_required(login_url=URL_LOGIN)

@@ -29,7 +29,7 @@
             <span></span>
             <ul id="menu">
                 <li><a href="{% url 'practice_apply' %}">합주 불참 신청</a></li>
-                <li><a href="{% url 'attendance_check' %}">출석 확인</a></li>
+                <li><a href="{% url 'attendance_check' %}">출석/지각 확인</a></li>
                 {% if user.is_authenticated %}
                 <hr style="border:1px color= silver; margin: 0 auto; width:180px;">
                 <li><a href="{% url 'setting' %}">합주 선택/미제출 인원 확인</a></li>

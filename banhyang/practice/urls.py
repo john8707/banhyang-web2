@@ -10,8 +10,8 @@ urlpatterns = [
     path('practice/timetable', views.timetable, name='timetable'),
     path('practice/delete/<int:schedule_id>', views.schedule_delete, name='schedule_delete'),
     path('practice/NA', views.who_is_not_coming, name='who_is_not_coming'),
-    path('practice/attchk', views.attendance_check_per_day, name='attendance_check'),
-    path('practice/attchk/<int:date>', views.get_attendance_check_per_day, name="get_attendance"),
+    path('practice/attchk', views.attendance_check_index, name='attendance_check'),
+    path('practice/attchk/<int:date>', views.get_attendance_check, name="get_attendance"),
 
     #chatbot api server response
     path('chatbot/attendance', chatbot.attendance_check_only_first, name='chatbot_attendance'),
