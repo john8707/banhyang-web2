@@ -104,6 +104,11 @@ else:
             }
 """
 
+import sys
+import oracledb
+oracledb.version = "2.1.1"
+sys.modules["cx_Oracle"] = oracledb
+
 USE_TEST_DB = os.getenv("USE_TEST_DB", False)
 if USE_TEST_DB is True:
     DATABASES = {
@@ -113,21 +118,31 @@ if USE_TEST_DB is True:
         }
     }
 else:
-    #DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
-    #DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
+
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'banhyang-web',
-            'USER': 'koyeb-adm',
-            'PASSWORD': os.getenv("POSTGRESQL_PW", None),
-            'HOST': 'ep-plain-field-a1abb1n0.ap-southeast-1.pg.koyeb.app',
-            'OPTIONS': {'sslmode': 'require'},
-        },
+        'default' :{
+            'ENGINE' : 'django.db.backends.oracle',
+            'NAME' : os.getenv("ORACLE_DNS", None),
+            'USER' : 'ADMIN',
+            'PASSWORD' : os.getenv("ORACLE_PW", None),
+        }
     }
 
 """
+For planetscale
+DB_PARAMS = dj_database_url.parse(os.environ.get("DJANGO_DATABASE_URL").replace('\'', ''))
 DATABASES['migrate'] = DB_PARAMS
+DB_PARAMS["ENGINE"] = "banhyang.custom_db_backends.vitess"
+
+For koyeb database server
+'default': {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': 'banhyang-web',
+    'USER': 'koyeb-adm',
+    'PASSWORD': os.getenv("POSTGRESQL_PW", None),
+    'HOST': 'ep-plain-field-a1abb1n0.ap-southeast-1.pg.koyeb.app',
+    'OPTIONS': {'sslmode': 'require'},
+},
 """
 
 
