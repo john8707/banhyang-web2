@@ -12,7 +12,7 @@
         </div>
         {% for field in form %}
             <div class="practice_field">
-                <div class="practice_label" id="id_username_label">{{field.label}}</div>
+                <div class="practice_label">{{field.label}}</div>
                 <div class="practice_input">{{field}}</div>
                 {% for error in field.errors %}
                 <div class="practice_error"><b style="color: red;">{{error}}</b></div>
@@ -30,26 +30,43 @@
                 </div>
                 
                 {% elif choice.0 == -1 %}
-                <div style="margin-bottom: 15px; margin-top: 15px;">
+                <div style="margin-bottom: 30px; margin-top: 15px;">
                     <div class="practice_label">불참 사유</div>
                     <div class="practice_input">
-                        <input type="text" name="why_not_coming_{{choice.1}}" style="width: 300px; height: 25px; border-radius: 3px;" maxlength="255">
+                        <input type="text" name="why_not_coming_{{choice.1}}" style="width: 300px; height: 21px; border-radius: 3px; max-width: 100%;" maxlength="255">
                     </div>
                 </div>
-                <div class="practice_choice" style="color: blue;">
-                    <input type="checkbox" name="selected" value="{{choice.1}}">!전체 참여 가능!
+                <div class="grid-container" style="margin-bottom: 20px;">
+                    <label class="practice_choice" >
+                        <input type="checkbox" name="selected" value="20_-1">
+                        <div class="label-checkbox-blue">
+                            <div class="label-text">
+                                전체 참여
+                            </div>
+                        </div>
+                    </label>
+                    <label class="practice_choice selectall" >
+                        <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">
+                        <div class="label-checkbox">
+                            <div class="label-text">
+                                전체 불참
+                            </div>
+                        </div>
+                    </label>
                 </div>
-                <div class="practice_choice"  style="color: crimson;">
-                    <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">(전체 불참 선택)
-                </div>
-                
-            {% else %}
-                <div class="practice_choice selectall">
-                    <input type="checkbox" name="selected" value="{{choice.0}}">{{choice.1}}
-                </div>
-
+                <div class="grid-container">
+                {% else %}
+                <label class="practice_choice selectall" >
+                    <input style="display: none;" type="checkbox" name="selected" value="{{choice.0}}">
+                    <div class="label-checkbox">
+                        <div class="label-text">
+                            {{choice.1}}
+                        </div>
+                    </div>
+                </label>
             {% endif %}
             {% endfor %}
+                </div>
         </div>
 
         <div class="submit-wrapper">
@@ -70,7 +87,7 @@
 </div>
 <script type="text/javascript">
     function selectAll(selectAll) {
-        const checkboxes = selectAll.parentElement.parentElement.querySelectorAll('.selectall input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.selectall input[name="selected"]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = selectAll.checked
         })

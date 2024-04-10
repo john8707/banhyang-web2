@@ -39,9 +39,9 @@ def practice_apply(request):
                     # 전체 참가 선택지 추가
                     choice.append((-1, str(i.id) + "_" + "-1"))
                 if temp_time + timedelta(minutes=10) <= endtime:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (temp_time + timedelta(minutes=10)).strftime("%H:%M"))))
+                    choice.append((str(i.id) + "_" + str(div_for_day),"%s"%(temp_time.strftime("%H:%M"))))
                 else:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s - %s"%(temp_time.strftime("%H:%M"), (endtime).strftime("%H:%M"))))
+                    choice.append((str(i.id) + "_" + str(div_for_day),"%s"%(temp_time.strftime("%H:%M"))))
                 temp_time += timedelta(minutes=10)
                 div_for_day += 1
 
