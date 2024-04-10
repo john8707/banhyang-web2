@@ -25,22 +25,26 @@
             <td>{{name}}</td>
             
             {% if eta.0 %}
-            <td>{{eta.0|date:"H : i"}}</td>
-            {% if eta.1 %}
-            <td>{{eta.1|date:"H : i"}}</td>
-            <td>{{eta.2}}</td>
+                <td>{{eta.0|date:"H : i"}}</td>
+                {% if eta.1 %}
+                    <td>{{eta.1|date:"H : i"}}</td>
+                    {% if eta.2 > 5 %}
+                        <td style="color: red;">{{eta.2}}분</td>
+                    {% else %}
+                        <td>{{eta.2}}분</td>
+                    {% endif %}
+                {% else %}
+                    <td>미인증</td>
+                    <td style="color: red;">미인증</td>
+                {% endif %}
             {% else %}
-            <td>미인증</td>
-            <td>미인증</td>
-            {% endif %}
-            {% else %}
-            <td>-</td>
-            {% if eta.1 %}
-            <td>{{eta.1|date:"H : i"}}</td>
-            {% else %}                    
-            <td>-</td>
-            {% endif %}
-            <td>-</td>
+                <td>-</td>
+                {% if eta.1 %}
+                    <td>{{eta.1|date:"H : i"}}</td>
+                {% else %}                    
+                    <td>-</td>
+                {% endif %}
+                <td>-</td>
             {% endif %}
             {% endfor %}
         </table>

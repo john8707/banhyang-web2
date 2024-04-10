@@ -158,9 +158,9 @@ def get_attendance_check(request, date):
             #delta : 몇 분 지각했는지 구하기
             delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
             if delta >= 0:
-                delta = str(int(delta/60)) + "분"
+                delta = int(delta/60)
             else:
-                delta = "0분"
+                delta = 0
         attendance_dict[date_to_string][user_object.username] = [eta,at,delta]
 
     context['res'] = attendance_dict
