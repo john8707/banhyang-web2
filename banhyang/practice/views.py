@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm, validate_user_exist, AttendanceCheckForm
+from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, ArrivalTime
 from datetime import timedelta, date, datetime, time, timezone
 from django.contrib import messages
@@ -12,113 +12,27 @@ URL_LOGIN = '/admin/login/?next=/practice/setting'
 
 
 def practice_apply(request):
-    # Schedule에서 현재 활성화 되어있는 합주 날짜를 가져온다.
-    current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     message = None
-    # 활성화 된 합주 날짜가 존재할 경우 form의 checkbox input 생성
+    context = {}
+    current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     if len(current_practice):
-        choice = []
-        for i in current_practice:
-            # 시작 시간
-            temp_time = datetime.combine(date.today(), i.starttime)
-            # 끝나는 시간
-            endtime = datetime.combine(date.today(), i.endtime)
-
-
-            # 각 날짜별 division counter, (ex 합주 시간이 3시~4시 / 곡 당 시간이 30분일 경우 3시 = 0, 3시 30분 = 1)
-            div_for_day = 0
-            
-            # temp time이 endtime을 넘지 않을 때 까지 10분을 temp time에 더하면서 반복
-            while temp_time < endtime:
-
-                # 각 날짜별 첫번째 iteration의 choice의 value 값을 0으로 설정하고 string은 해당 날짜로 -> html에서 choice를 iteration 돌릴 때, value가 0인 경우는 choice로 안나옴  -> 수정 필요
-                if div_for_day == 0:
-                    # HTML 상 날짜 추가 용
-                    choice.append((0, "%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict(i.date.weekday()), i.starttime.strftime("%H:%M"), i.endtime.strftime("%H:%M"))))
-                    
-                    # 전체 참가 선택지 추가
-                    choice.append((-1, str(i.id) + "_" + "-1"))
-                if temp_time + timedelta(minutes=10) <= endtime:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s"%(temp_time.strftime("%H:%M"))))
-                else:
-                    choice.append((str(i.id) + "_" + str(div_for_day),"%s"%(temp_time.strftime("%H:%M"))))
-                temp_time += timedelta(minutes=10)
-                div_for_day += 1
-
         form = PracticeApplyForm()
-    # 활성화 된 합주가 없을 경우 Return Nothing
     else:
         form = None
-        choice = None
-
     # SUBMIT 했을 시
     if request.method == "POST":
         form = PracticeApplyForm(request.POST)
         if form.is_valid():
-            res = dict(request.POST)
-            practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
-
-            # validation
-            selected = []
-            if 'selected' in res:
-                selected = res['selected']
-            selected_dict = {}
-            reason_dict = {}
-            practiceId_list = [x.id for x in practice_objects]
-
-            is_validate = True
-            for i in practiceId_list:
-                selected_dict[i] = [int(x.split('_')[1]) for x in selected if int(x.split('_')[0]) == i]
-                reason_dict[i] = res['why_not_coming_' + str(i) + '_-1'][0]
-
-                # 최소 한 개 선택
-                if selected_dict[i] == []:
-                    message = "불참 시간 혹은 전체 참여를 각 날짜별로 선택해 주세요."
-                    is_validate = False
-                
-                # 불참인데 사유를 입력하지 않은 경우
-                elif reason_dict[i] == '' and len(selected_dict[i]) > 1:
-                    message = "불참 사유를 입력해 주세요"
-                    is_validate = False
-                
-                # 참여 혹은 불참 
-                elif -1 in selected_dict[i] and len(selected_dict[i]) > 1:
-                    message = "불참 혹은 전체 참여 중 1가지만 선택해 주세요."
-                    is_validate = False
-
-                # 전체 참여인데 불참 사유가 존재하는 경우 -> 사유 지우기
-                if -1 in selected_dict[i]:
-                    reason_dict[i] = ""
-
-            # 모든 Validation 통과하고 DB 업데이트
-            if is_validate:
-                Apply.objects.filter(user_name=form.cleaned_data['user_object']).delete()
-                WhyNotComing.objects.filter(user_name=form.cleaned_data['user_object']).delete()
-
-                for k,v in reason_dict.items():
-                    if v:
-                        schedule_object = Schedule.objects.get(id=k)
-                        w = WhyNotComing(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, reason=v)
-                        w.save()
-                # validation 이후 제출
-                for i in selected:
-                    schedule_object = Schedule.objects.get(id=i.split('_')[0])
-                    a = Apply(user_name=form.cleaned_data['user_object'], schedule_id=schedule_object, not_available=i.split('_')[1])
-                    a.save()
-                
-            
-                message = "제출되었습니다."
-                form = PracticeApplyForm()
-            
-            else:
-                form = PracticeApplyForm(request.POST)
-        
+            form.save()
+            message = "제출되었습니다."
+            form = PracticeApplyForm()
         else:
             message = form.non_field_errors()[0]
+            form = PracticeApplyForm(request.POST)
 
-
-
-    return render(request, 'practice_apply.html', {'form' : form, 'choices' : choice, 'message' : message})
+    context['form'] = form
+    context['message'] = message
+    return render(request, 'practice_apply.html', context=context)
 
 
 # 출석 체크 / 지각 여부 조회 위한 날짜 선택
