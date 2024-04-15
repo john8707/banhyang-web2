@@ -100,9 +100,11 @@
 <script type="text/javascript">
     function selectAll(selectAll) {
         const checkboxes = selectAll.parentElement.parentElement.parentElement.querySelectorAll('.selectall input[class=checkit]');
+        const attendall = selectAll.parentElement.parentElement.firstElementChild.firstElementChild;
         checkboxes.forEach((checkbox) => {
-            checkbox.checked = selectAll.checked
+            checkbox.checked = selectAll.checked;
         })
+        attendall.checked = 1-selectAll.checked;
     }
 </script>
 
