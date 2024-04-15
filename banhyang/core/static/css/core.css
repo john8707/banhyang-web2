@@ -484,6 +484,9 @@ input[type="checkbox"]:checked+.label-checkbox-blue{
         max-width: 100%;
         min-width: 0%;
     }
+    .label-text{
+        font-size: 10pt;
+    }
 
     .practice_input{
         padding: 0;
