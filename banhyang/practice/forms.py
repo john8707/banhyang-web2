@@ -47,7 +47,7 @@ class PracticeApplyForm(forms.Form):
             # 날짜 Display용 Fake input
             self.fields["label_" + str(i.id)] = forms.DateField(
                 required=False,
-                label="%s (%s~%s)"%(i.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict(i.date.weekday()),
+                label="%s (%s~%s)"%(i.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') +weekday_dict(i.date.weekday()),
                                     i. starttime.strftime("%H:%M"),
                                     i.endtime.strftime("%H:%M")),
                 widget=forms.DateInput(attrs={'display':'None'}))
