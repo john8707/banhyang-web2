@@ -172,6 +172,13 @@ a, a:visited{
     font-size: 13px;
 }
 
+.why_not_coming, #id_user_name{
+    width: 300px;
+    height: 21px;
+    border-radius: 3px;
+    max-width: 100%;
+}
+
 .grid-container{
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -187,7 +194,7 @@ label.practice_choice{
     width: 85px;
     height: 30px;
     margin: 0 auto 15px;
-
+    cursor: pointer;
 }
 .label-checkbox, .label-checkbox-blue{
     display: table;

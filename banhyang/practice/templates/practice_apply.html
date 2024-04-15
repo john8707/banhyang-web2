@@ -10,7 +10,10 @@
             합주에 참여할 수 <b style="color: red; text-decoration: underline;">"없는"</b> 시간을 모두 선택해주세요. <br>
             수정이 필요한 경우 다시 제출해주세요. <br>
         </div>
-        {% for field in form %}
+            
+            {% for field in form %}
+            
+            {% if field.name == 'user_name' %}
             <div class="practice_field">
                 <div class="practice_label">{{field.label}}</div>
                 <div class="practice_input">{{field}}</div>
@@ -18,55 +21,64 @@
                 <div class="practice_error"><b style="color: red;">{{error}}</b></div>
                 {% endfor %}
             </div>
-        {% endfor %}
-        <br> <span></span>
-        <div>
-            {% for choice in choices %}
-            {% if choice.0 == 0 %}
-                </div>
-                <div class="choice_wrapper">
-                <div class="practice_choice_date">
-                    {{choice.1}}
-                </div>
-                
-                {% elif choice.0 == -1 %}
+            <br> <span></span>
+        <div><div>
+            {% elif 'label' in field.name %}
+        </div>
+        </div>
+            <div class="choice_wrapper">
+                    <div class="practice_choice_date">
+                        {{field.label}}
+                    </div>
+            
+            
+            {% elif 'why_not_coming' in field.name %}
                 <div style="margin-bottom: 30px; margin-top: 15px;">
                     <div class="practice_label">불참 사유</div>
                     <div class="practice_input">
-                        <input type="text" name="why_not_coming_{{choice.1}}" style="width: 300px; height: 21px; border-radius: 3px; max-width: 100%;" maxlength="255">
+                        {{field}}
                     </div>
                 </div>
-                <div class="grid-container" style="margin-bottom: 20px;">
-                    <label class="practice_choice" >
-                        <input type="checkbox" name="selected" value="20_-1">
-                        <div class="label-checkbox-blue">
-                            <div class="label-text">
-                                전체 참여
-                            </div>
-                        </div>
-                    </label>
-                    <label class="practice_choice selectall" >
-                        <input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)">
-                        <div class="label-checkbox">
-                            <div class="label-text">
-                                전체 불참
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div class="grid-container">
-                {% else %}
-                <label class="practice_choice selectall" >
-                    <input style="display: none;" type="checkbox" name="selected" value="{{choice.0}}">
-                    <div class="label-checkbox">
+
+            
+            {% elif '-1' in field.name %}
+            <div class="grid-container" style="margin-bottom: 20px;">
+                <label class="practice_choice" >
+                    {{field}}
+                    <div class="label-checkbox-blue">
                         <div class="label-text">
-                            {{choice.1}}
+                            전체 참여
                         </div>
                     </div>
                 </label>
+            
+            {% elif 'selectall' in field.name %}
+                <label class="practice_choice selectall" >
+                    {{field}}
+                    <div class="label-checkbox">
+                        <div class="label-text">
+                            전체 불참
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="grid-container">
+            {% else %}
+                <label class="practice_choice selectall">
+                    {{field}}
+                    <div class="label-checkbox">
+                        <div class="label-text">
+                            {{field.label}}
+                        </div>
+                    </div>
+                </label>
+            
+
             {% endif %}
+            
             {% endfor %}
-                </div>
+        </div>
         </div>
 
         <div class="submit-wrapper">
@@ -75,7 +87,7 @@
         </div>
     
     </form>
-    
+
     {% else %}
     <div class="practice_form" style="text-align: center;">
         예정된 합주가 없습니다. 잠시만 기다려주세요 :)
@@ -87,7 +99,7 @@
 </div>
 <script type="text/javascript">
     function selectAll(selectAll) {
-        const checkboxes = document.querySelectorAll('.selectall input[name="selected"]');
+        const checkboxes = selectAll.parentElement.parentElement.parentElement.querySelectorAll('.selectall input[class=checkit]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = selectAll.checked
         })
