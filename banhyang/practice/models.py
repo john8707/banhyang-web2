@@ -59,17 +59,6 @@ class WhyNotComing(models.Model):
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='whynotcoming')
     reason = models.CharField(max_length=255)
 
-"""
-# 지각 및 노쇼 체크용 도착시간 DB
-class ArrivalTime(models.Model):
-    id = models.AutoField(primary_key=True)
-    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='arrivaltime')
-    date = models.DateField(auto_now_add=True)
-    arrival_time = models.TimeField(auto_now_add=True)
-    confirmed_arrival_time = models.TimeField(null=True, default=None)
-    is_confirmed = models.BooleanField(default=False)
-"""
-
 
 # 합주 시간표
 class Timetable(models.Model):
@@ -79,13 +68,6 @@ class Timetable(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     room_number = models.IntegerField(default=0)
-
-
-class AttendanceCheck(models.Model):
-    id = models.AutoField(primary_key=True)
-    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='attendancecheck')
-    timetable_id = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='attendancecheck')
-    arrival_time = models.TimeField(auto_now_add=True)
 
 
 class KakaoTalkId(models.Model):
