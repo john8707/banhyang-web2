@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, AttendanceCheck, ArrivalTime
+from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from datetime import timedelta, date, datetime, time, timezone
 from django.contrib import messages
 from django.db.models import Exists, OuterRef
