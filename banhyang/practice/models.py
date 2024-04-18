@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
 # 합주 날짜
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
@@ -8,7 +9,7 @@ class Schedule(models.Model):
     date = models.DateTimeField()
     starttime = models.TimeField()
     endtime = models.TimeField()
-    location = models.CharField(max_length=255,  null=True)
+    location = models.CharField(max_length=255, null=True)
     min_per_song = models.IntegerField()
     is_current = models.BooleanField(default=True)
     rooms = models.IntegerField()
@@ -19,7 +20,7 @@ class Schedule(models.Model):
 
 # 바냥이들의 정보
 class PracticeUser(models.Model):
-    username = models.CharField(max_length=255,primary_key=True)
+    username = models.CharField(max_length=255, primary_key=True)
 
     def __str__(self):
         return self.username
@@ -38,6 +39,7 @@ class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
     priority = models.IntegerField(default=3, validators=[MinValueValidator(0), MaxValueValidator(6)])
+
     def __str__(self):
         return self.songname
 
@@ -48,9 +50,10 @@ class Session(models.Model):
     song_id = models.ForeignKey(SongData, on_delete=models.CASCADE, related_name='session')
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='session')
     instrument = models.CharField(max_length=255)
+
     def __str__(self) -> str:
         return ",".join([self.song_id.songname, self.user_name.username, self.instrument])
-    
+
 
 # 불참 사유!
 class WhyNotComing(models.Model):

@@ -1,6 +1,7 @@
 from django import template
 register = template.Library()
 
+
 @register.filter('get_from_key')
 def get_from_key(dict, key):
     if dict[key]:

@@ -13,7 +13,7 @@ urlpatterns = [
     path('practice/attchk', views.attendance_check_index, name='attendance_check'),
     path('practice/attchk/<int:date>', views.get_attendance_check, name="get_attendance"),
 
-    #chatbot api server response
+    # chatbot api server response
     path('chatbot/attendance', chatbot.attendance_check_only_first, name='chatbot_attendance'),
     path('chatbot/register', chatbot.register, name='chatbot_register')
 ]
