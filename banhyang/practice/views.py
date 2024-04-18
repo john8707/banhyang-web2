@@ -61,21 +61,18 @@ def get_attendance_check(request, date):
     date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
     attendance_dict[date_to_string] = {}
     for user_object in user_objects:
-        arrival_time = ArrivalTime.objects.filter(user_name=user_object,date=date)
+        arrival_time_object = ArrivalTime.objects.filter(user_name=user_object,date=date)
         eta = calculate_eta(user_object=user_object, date=date)
         delta = None
-        if arrival_time:
-            at = arrival_time[0].arrival_time
+        if arrival_time_object:
+            arival_time = arrival_time_object[0].arrival_time
         else:
-            at = None
-        if at and eta:
+            arival_time = None
+        if arival_time and eta:
             #delta : 몇 분 지각했는지 구하기
-            delta = (datetime.combine(datetime.today(), at) - datetime.combine(datetime.today(), eta)).total_seconds()
-            if delta >= 0:
-                delta = int(delta/60)
-            else:
-                delta = 0
-        attendance_dict[date_to_string][user_object.username] = [eta,at,delta]
+            delta = (datetime.combine(datetime.today(), arival_time) - datetime.combine(datetime.today(), eta)).total_seconds()
+            late_time = max(int(delta/60), 0)
+        attendance_dict[date_to_string][user_object.username] = [eta,arival_time,late_time]
 
     context['res'] = attendance_dict
     return render(request, 'get_attendance.html', context=context)
@@ -87,22 +84,22 @@ def setting(request):
     context = {}
     if request.method == "POST":
         res = dict(request.POST)
-        schedule_object = Schedule.objects.all()
-        schedule_object.update(is_current=False)
+        schedule_objects = Schedule.objects.all()
+        schedule_objects.update(is_current=False)
         if 'schedule_checkbox' in res:
             Schedule.objects.filter(id__in=res['schedule_checkbox']).update(is_current=True)
-        for obj in schedule_object:
-            idx = obj.id
+        for schedule_object in schedule_objects:
+            idx = schedule_object.id
             Schedule.objects.filter(id=idx).update(min_per_song=int(res['minute_'+str(idx)][0]), rooms=int(res['rooms_'+str(idx)][0]))
         message = "변경되었습니다."
             
     schedules = Schedule.objects.all().order_by('date')
 
 
-    practice_objects = Schedule.objects.filter(is_current=True).order_by('date')
+    current_schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
     temp_not_submitted_list = []
-    for practice_object in practice_objects:
-        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=practice_object)))
+    for current_schedule_object in current_schedule_objects:
+        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=current_schedule_object)))
         temp_not_submitted_list.extend([i.username for i in not_submitted])
 
     not_submitted_list = list(set(temp_not_submitted_list))
