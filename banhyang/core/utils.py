@@ -1,8 +1,9 @@
 from banhyang.practice.models import Schedule, Timetable, Session, Apply
 from datetime import datetime
 
-#Datetime의 요일 표시를 한글로 바꿔주는 함수
-def weekday_dict(idx:int) -> str:
+
+# Datetime의 요일 표시를 한글로 바꿔주는 함수
+def weekday_dict(idx: int) -> str:
     """
     Datetime object의 요일 표시를 int -> 한글 string으로 변환해주는 함수
     """
@@ -26,12 +27,12 @@ def calculate_eta(user_object, date):
     schedule_objects = Schedule.objects.filter(date=date)
     apply_objects_list = []
     for schedule_object in schedule_objects:
-        apply_objects_list.extend(Apply.objects.filter(user_name=user_object,schedule_id=schedule_object))
+        apply_objects_list.extend(Apply.objects.filter(user_name=user_object, schedule_id=schedule_object))
 
     # 2. 내 연주곡 가져오기
     temp_song_play_objects = [x.song_id for x in Session.objects.filter(user_name=user_object)]
     song_play_objects = list(set(temp_song_play_objects))
-    
+
     # 3. 확정된 스케쥴 중에서 내 연주곡 필터, 시간별로 sort
     timetable_objects = Timetable.objects.filter(song_id__in = song_play_objects, schedule_id__in=schedule_objects).order_by('start_time')
 
