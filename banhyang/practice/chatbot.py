@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Schedule, PracticeUser, KakaoTalkId, ArrivalTime
 import json
+import datetime
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import datetime
+
+from .models import Schedule, PracticeUser, KakaoTalkId, ArrivalTime
 
 
 def get_username_by_id(id):

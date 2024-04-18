@@ -1,8 +1,9 @@
+from datetime import date, timedelta, datetime
+
 from django import forms
-from .models import Schedule, PracticeUser, Apply, WhyNotComing
 from django.core.exceptions import ValidationError
-import datetime
-from datetime import date
+
+from .models import Schedule, PracticeUser, Apply, WhyNotComing
 from banhyang.core.utils import weekday_dict
 
 # Check user validation from PracticeUser model
@@ -41,8 +42,8 @@ class PracticeApplyForm(forms.Form):
     # 동적으로 Boolean Field 생성
     def generate_boolean_fields(self):
         for i in self.current_schedule:
-            time_counter = datetime.datetime.combine(date.today(), i.starttime)
-            end_time = datetime.datetime.combine(date.today(), i.endtime)
+            time_counter = datetime.combine(date.today(), i.starttime)
+            end_time = datetime.combine(date.today(), i.endtime)
 
             # 날짜 Display용 Fake input
             self.fields["label_" + str(i.id)] = forms.DateField(
@@ -95,7 +96,7 @@ class PracticeApplyForm(forms.Form):
                         'class' : 'checkit'
                     })
                 )
-                time_counter += datetime.timedelta(minutes=10)
+                time_counter += timedelta(minutes=10)
                 division_counter += 1
 
 

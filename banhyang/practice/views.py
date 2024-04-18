@@ -1,13 +1,19 @@
+# 표준 라이브러리
+from collections import defaultdict
+from datetime import timedelta, date, datetime
+
+# core Django
+from django.db.models import Exists, OuterRef
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+# project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from datetime import timedelta, date, datetime, time, timezone
-from django.contrib import messages
-from django.db.models import Exists, OuterRef
 from .schedule import ScheduleRetreiver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor
-from django.contrib.auth.decorators import login_required
-from collections import defaultdict
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
+
+
 URL_LOGIN = '/admin/login/?next=/practice/setting'
 
 

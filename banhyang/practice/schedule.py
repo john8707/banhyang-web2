@@ -1,11 +1,10 @@
 from ortools.linear_solver import pywraplp
-from .models import SongData, PracticeUser, Schedule, Apply, Session
-import os
 import pandas as pd
 from datetime import datetime,date, timedelta
 from math import ceil
 from collections import defaultdict
 
+from .models import SongData, PracticeUser, Schedule, Apply, Session
 
 # 합주 object input하면 합주가 총 몇시간인지 구하는 함수
 def calc_minute_delta(object) -> int:
