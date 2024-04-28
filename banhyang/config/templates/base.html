@@ -61,6 +61,13 @@
 </div>
 
 
+
 <div class="footer">
     <p>Copyright 2020. YONSEI UNIVERSITY ROCKBAND BANHYANG 34th Jaewon LIM. ALL RIGHTS RESERVED.</p>
 </div>
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}

@@ -118,7 +118,7 @@ def setting(request):
 @login_required(login_url=URL_LOGIN)
 def schedule_create(request):
     context = {}
-    message = ''
+    message = None
     form = ScheduleCreateForm()
     if request.method == "POST":
         form = ScheduleCreateForm(request.POST)
