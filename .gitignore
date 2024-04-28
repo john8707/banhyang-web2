@@ -5,3 +5,4 @@ __pycache__/
 secrets.json
 ngrok.exe
 .env
+.flake8
