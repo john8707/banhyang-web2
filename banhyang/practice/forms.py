@@ -17,19 +17,29 @@ def validate_user_exist(name, phonenumber):
         return True
 
 
-# 합주 날짜 생성 form -> Schedule model
-class ScheduleCreateForm(forms.ModelForm):
-    # Schedule 모델 베이스 폼, field들 가져옴
-    class Meta:
-        model = Schedule
-        fields = ['name', 'date', 'location', 'rooms']
+class ScheduleCreateForm(forms.Form):
+    """
+    합주 날짜 생성 폼
+    """
+    name = forms.CharField(max_length=255, required=True)
+    date = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
+    location = forms.CharField(max_length=255, required=True)
+    rooms = forms.IntegerField(required=True)
+    minutes = forms.ChoiceField(choices=[(10, "10분"), (20, "20분"), (30, "30분"), (40, "40분"), (50, "50분"), (60, "60분")])
+    starttime = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type': 'time'}))
+    endtime = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type': 'time'}))
 
-    # 위에서 가져오지 않은 field들을 보기 편하게 만들어서 보여줌
-    def __init__(self, *args, **kwargs):
-        super(ScheduleCreateForm, self).__init__(*args, **kwargs)
-        self.fields['minutes'] = forms.ChoiceField(choices=[(10, "10분"), (20, "20분"), (30, "30분"), (40, "40분"), (50, "50분"), (60, "60분")])
-        self.fields['starttime'] = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type': 'time'}))
-        self.fields['endtime'] = forms.TimeField(input_formats=['%H:%M'], widget=forms.TimeInput(attrs={'type': 'time'}))
+    def clean(self) -> dict:
+        form_data = self.cleaned_data
+        if form_data['starttime'] >= form_data['endtime']:
+            raise ValidationError("합주의 시작 시간은 끝나는 시간 이전이어야 합니다.")
+        return form_data
+
+    def save(self) -> None:
+        form_data = self.cleaned_data
+        s = Schedule(name=form_data['name'], date=form_data['date'] + timedelta(hours=9), location=form_data['location'], rooms=form_data['rooms'],
+                     min_per_song=form_data['minutes'], starttime=form_data['starttime'], endtime=form_data['endtime'])
+        s.save()
 
 
 # 합주 신청 폼

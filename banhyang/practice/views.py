@@ -117,20 +117,21 @@ def setting(request):
 
 @login_required(login_url=URL_LOGIN)
 def schedule_create(request):
+    context = {}
+    message = ''
+    form = ScheduleCreateForm()
     if request.method == "POST":
         form = ScheduleCreateForm(request.POST)
-        if form.is_valid() and form.cleaned_data['starttime'] < form.cleaned_data['endtime']:
-            f = form.save(commit=False)
-            f.date = form.cleaned_data['date'] + timedelta(hours=9)
-            f.min_per_song = form.cleaned_data['minutes']
-            f.starttime = form.cleaned_data['starttime']
-            f.endtime = form.cleaned_data['endtime']
-            f.save()
+        if form.is_valid():
+            form.save()
             return redirect('setting')
-    else:
-        form = ScheduleCreateForm()
+        else:
+            message = form.non_field_errors()[0]
+            form = ScheduleCreateForm(request.POST)
 
-    return render(request, 'schedule_create.html', {'form': form})
+    context['form'] = form
+    context['message'] = message
+    return render(request, 'schedule_create.html', context=context)
 
 
 @login_required(login_url=URL_LOGIN)
@@ -155,6 +156,7 @@ def song_list(request):
             message = "등록되었습니다."
         else:
             message = form.non_field_errors()[0]
+            form = SongAddForm(request.POST)
 
     # 곡 삭제하는 경우
     if request.method == "POST" and 'delete' in request.POST:
@@ -210,6 +212,7 @@ def user_list(request):
 
         else:
             message = form.non_field_errors()[0]
+            form = UserAddForm(request.POST)
 
     # 인원 삭제하는 경우
     if request.method == "POST" and 'delete' in request.POST:
