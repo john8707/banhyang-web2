@@ -150,22 +150,9 @@ def song_list(request):
         form = SongAddForm(request.POST)
         # forms에서 validation 진행
         if form.is_valid():
-            f = form.cleaned_data
-            SongData.objects.filter(songname=f['song_name']).delete()
-
-            # 곡의 제목부터 저장
-            s = SongData(songname=f['song_name'])
-            s.save()
-            session_index = {'vocals': 'v', 'drums': 'd', 'guitars': 'g', 'bass': 'b', 'keyboards': 'k', 'etc': 'etc'}
-            # 곡의 세션들 저장
-            for key, values in f.items():
-                if key != 'song_name':
-                    for user in values:
-                        se = Session(song_id=s, user_name=user, instrument=session_index[key])
-                        se.save()
+            form.save()
             form = SongAddForm()
             message = "등록되었습니다."
-        # validation error
         else:
             message = form.non_field_errors()[0]
 

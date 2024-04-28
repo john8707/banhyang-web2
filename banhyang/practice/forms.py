@@ -1,9 +1,10 @@
 from datetime import date, timedelta, datetime
+from typing import Any
 
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Schedule, PracticeUser, Apply, WhyNotComing
+from .models import Schedule, PracticeUser, Apply, WhyNotComing, SongData, Session
 from banhyang.core.utils import weekday_dict
 
 
@@ -145,11 +146,12 @@ class PracticeApplyForm(forms.Form):
 
     # 제출한 데이터 DB에 저장
     def save(self) -> None:
-        data = self.cleaned_data
-        user_object = data['user_object']
-        selected_dict = data['selected_dict']
-        reason_dict = data['reason_dict']
-        schedule_objects = data['schedule_objects']
+        form_data = self.cleaned_data
+        user_object = form_data['user_object']
+        selected_dict = form_data['selected_dict']
+        reason_dict = form_data['reason_dict']
+        schedule_objects = form_data['schedule_objects']
+
         for schedule_object in schedule_objects:
             Apply.objects.filter(user_name=user_object, schedule_id=schedule_object).delete()
             WhyNotComing.objects.filter(user_name=user_object, schedule_id=schedule_object).delete()
@@ -162,8 +164,10 @@ class PracticeApplyForm(forms.Form):
             Apply.objects.bulk_create(apply_bulk_list)
 
 
-# 곡 세션 추가 전용 커스텀 필드
 class SongSessionField(forms.CharField):
+    """
+    곡 데이터 추가 Form을 위한 커스텀 필드
+    """
     def to_python(self, value):
         if not value:
             return []
@@ -181,17 +185,43 @@ class SongAddForm(forms.Form):
 
     etc = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder': 'etc'}))
 
-    def clean(self):
+    def session_index(self) -> dict:
+        """
+        key : 세션의 명칭, value : 축약어 형태의 dictionary 리턴
+        ex) {'vocals': 'v', 'drums': 'd', 'guitars': 'g', 'bass': 'b', 'keyboards': 'k', 'etc': 'etc'}
+        """
+        index = {'vocals': 'v', 'drums': 'd', 'guitars': 'g', 'bass': 'b', 'keyboards': 'k', 'etc': 'etc'}
+        return index
+    
+    def clean(self) -> dict:
+        """
+        유저 존재 여부를 validate한 후 user를 모델 objects로 변경 후 리턴
+        """
         form_data = self.cleaned_data
-        try:
-            for key, values in form_data.items():
-                if key != "song_name" and values:
-                    user_objects = [PracticeUser.objects.get(username=x.strip()) for x in values if x]
-                    form_data[key] = user_objects
+        for key in self.session_index():
+            try:
+                user_objects = [PracticeUser.objects.get(username=x.strip()) for x in form_data[key] if x]
+                form_data[key] = user_objects
 
-        except PracticeUser.DoesNotExist:
-            raise ValidationError('세션들의 이름을 다시 확인해주세요.')
+            except PracticeUser.DoesNotExist:
+                raise ValidationError("세션들의 이름을 다시 확인해주세요.")
+
         return form_data
+    
+    def save(self) -> None:
+        """
+        Custom Save for SongAddForm.
+        이미 동명의 곡이 존재하는 경우 SongData에서 삭제 후 SongData, Session 데이터 저장
+        """
+        form_data = self.cleaned_data
+        SongData.objects.filter(songname=form_data['song_name']).delete()
+
+        s = SongData(songname=form_data['song_name'])
+        s.save()
+
+        for key, value in self.session_index().items():
+            session_bulk_list = [Session(song_id=s, user_name=x, instrument=value) for x in form_data[key] if x]
+            Session.objects.bulk_create(session_bulk_list)
 
 
 # 바냥이들 정보 추가 폼
