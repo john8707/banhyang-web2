@@ -16,7 +16,7 @@
 
             <div class="practice_field">
                 <div class="practice_label mt0">날짜</div>
-                <div class="practice_input"><input name="date" type="date"></div>
+                <div class="practice_input">{{ form.date }}</div>
             </div>
             <div class="practice_field">
                 <div class="practice_label mt0">시간 <span style="color:gray">[<span style="color: red;">오전 오후 구분 필수</span>]</span></div>
@@ -45,6 +45,12 @@
     </div>
 
 </div>
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}
 
 
 {% endblock %}
