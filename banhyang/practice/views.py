@@ -162,10 +162,10 @@ def song_list(request):
         delete_ids = request.POST.getlist('song_id')
         if delete_ids:
             d = SongData.objects.filter(id__in=delete_ids)
-            if d:
+            try:
                 d.delete()
                 message = "삭제되었습니다."
-            else:
+            except:
                 message = "삭제에 실패하였습니다. 다시 시도해주세요."
         else:
             message = "하나 이상의 곡을 선택해주세요."
@@ -204,9 +204,7 @@ def user_list(request):
     if request.method == "POST" and 'add' in request.POST:
         form = UserAddForm(request.POST)
         if form.is_valid():
-            f = form.cleaned_data
-            s = PracticeUser(username=f['username'])
-            s.save()
+            form.save()
             message = "추가되었습니다."
             form = UserAddForm()
 

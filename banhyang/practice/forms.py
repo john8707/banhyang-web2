@@ -174,8 +174,10 @@ class SongSessionField(forms.CharField):
         return value.split(',')
 
 
-# 곡 제목 추가 폼
 class SongAddForm(forms.Form):
+    """
+    곡 데이터 추가 폼
+    """
     song_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': '곡 제목'}))
     vocals = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder': '보컬'}))
     drums = SongSessionField(required=False, widget=forms.TextInput(attrs={'placeholder': '드럼'}))
@@ -224,16 +226,28 @@ class SongAddForm(forms.Form):
             Session.objects.bulk_create(session_bulk_list)
 
 
-# 바냥이들 정보 추가 폼
 class UserAddForm(forms.Form):
+    """
+    유저 추가 폼
+    """
     username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': '이름'}))
 
     def clean(self):
+        """
+        등록하려는 유저의 이름이 이미 존재하는지 validate
+        """
         form_data = self.cleaned_data
-        # input한 이름의 유저가 존재하는지 validate
         try:
-            user_exist = PracticeUser.objects.filter(username=form_data['username'])
+            user_exist = PracticeUser.objects.get(username=form_data['username'])
             if user_exist:
                 raise ValidationError("해당 인원이 이미 존재합니다. 동명이인의 경우 숫자, 세션등을 이용해 구분하여 주세요.")
         except PracticeUser.DoesNotExist:
             return form_data
+
+    def save(self) -> None:
+        """
+        유저 저장
+        """
+        user_name = self.cleaned_data['username']
+        p = PracticeUser(username=user_name)
+        p.save()
