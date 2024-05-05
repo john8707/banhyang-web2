@@ -68,15 +68,15 @@ def get_attendance_check(request, date):
     for user_object in user_objects:
         arrival_time_object = ArrivalTime.objects.filter(user_name=user_object, date=date)
         eta = calculate_eta(user_object=user_object, date=date)
-        delta = None
+        late_time = None
         if arrival_time_object:
-            arival_time = arrival_time_object[0].arrival_time
+            arrival_time = arrival_time_object[0].arrival_time
         else:
-            arival_time = None
-        if arival_time and eta:
-            delta = (datetime.combine(datetime.today(), arival_time) - datetime.combine(datetime.today(), eta)).total_seconds()
+            arrival_time = None
+        if arrival_time and eta:
+            delta = (datetime.combine(datetime.today(), arrival_time) - datetime.combine(datetime.today(), eta)).total_seconds()
             late_time = max(int(delta / 60), 0)
-        attendance_dict[date_to_string][user_object.username] = [eta, arival_time, late_time]
+        attendance_dict[date_to_string][user_object.username] = [eta, arrival_time, late_time]
 
     context['res'] = attendance_dict
     return render(request, 'get_attendance.html', context=context)
