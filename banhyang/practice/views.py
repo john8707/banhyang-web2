@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetreiver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor
+from .schedule import ScheduleRetriver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -244,8 +244,8 @@ def timetable(request):
     context = {}
     message = None
 
-    retreiever = ScheduleRetreiver()
-    raw_data = retreiever.retreive_from_DB()
+    retriever = ScheduleRetriver()
+    raw_data = retriever.retrieve_from_DB()
 
     processor = ScheduleProcessor(raw_data)
     processed_data = processor.process()
@@ -254,10 +254,26 @@ def timetable(request):
     result = optimizer.optimize()
 
     postprocessor = SchedulePostProcessor(result, processed_data)
-    df_list, who_is_not_coming, timetable_object_dict = postprocessor.post_process()
+    schedule_df_dict, who_is_not_coming, timetable_object_dict = postprocessor.post_process()
 
-    df_list = {i: v.fillna("X") for i, v in df_list.items()}
-    context['df'] = df_list
+    schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
+
+    retriever = RouteRetriever()
+    raw_data = retriever.retrieve_db_data()
+
+    for i,v in schedule_df_dict.items():
+        processor = RouteProcessor(raw_data, v)
+        processed_data = processor.process()
+
+        optimizer = RouteOptimizer(processed_data, raw_data)
+        result = optimizer.optimize()
+
+        postprocessor = RoutePostProcessor(optimizer, v)
+        new_dataframe = postprocessor.post_process()
+
+        schedule_df_dict[i] = new_dataframe
+
+    context['df'] = schedule_df_dict
     context['NA'] = who_is_not_coming
 
     # 불참 여부 미제출 인원 체크하기
@@ -277,11 +293,9 @@ def timetable(request):
 
             # Bulk 저장
             timetable_object_list = [Timetable(schedule_id=schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_number=info_tuple[2]) for song_id, info_tuple in v.items()]
-            try:
-                Timetable.objects.bulk_create(timetable_object_list)
-                message = "저장되었습니다."
-            except Exception:
-                message = "저장에 실패하였습니다. 관리자에게 문의하세요."
+            Timetable.objects.bulk_create(timetable_object_list)
+            message = "저장되었습니다."
+
 
     context['message'] = message
     return render(request, 'timetable.html', context=context)
