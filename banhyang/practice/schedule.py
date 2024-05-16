@@ -80,27 +80,28 @@ class ScheduleProcessor:
     def __init__(self, raw_data: dict) -> None:
         self.raw_data = raw_data
 
-    def create_practice_info(self) -> None:
+    def get_practice_info(self) -> dict:
         """
-        Change Schedule Objects to dictionary
+        Change Schedule Objects to dictionary \
+        {schedule id : {총 합주 시간: , 곡 당 시간: , 하루에 몇 타임: , 방 개수: , 시작 시간: , 끝 시간:}}
         """
         practice_info = {x.id: {'total_minutes': calc_minute_delta(x),  # 총 합주 시간
                                 'minute_per_song': int(x.min_per_song / 10),  # 곡 당 분(10분 단위)
                                 'song_per_day': ceil(calc_minute_delta(x) / int(x.min_per_song / 10) / 10),  # 하루에 몇곡까지 하는지
-                                'room_count': x.rooms,  # 합주에 사용할 방의 갯수
+                                'room_count': x.rooms,  # 합주에 사용할 방의 개수
                                 'start_time': x.starttime,
                                 'end_time': x.endtime} for x in self.raw_data['schedule_objects']}
 
-        self.practice_info = practice_info
+        return practice_info
 
-    def create_available_dict(self) -> None:
+    def get_available_dict(self, practice_info: dict) -> dict:
         """
-        Create available dict -> {이름 : {합주 Id :[한 곡 합주하는 시간만큼의 참석 여부 Bool]}}
+        각 인원 별로 시간대별 참석 여부 Boolean List를 dictionary로 return \
+        {이름 : {합주 Id :[한 곡 합주하는 시간만큼의 참석 여부 Bool]}}
         ex) { '김반향': {12: [0, 1, 0], 10: [1, 1, 1, 1]} }
         """
         available_dict = {}
         unavailable_dict = {}
-        practice_info = self.practice_info
         for user in [x.username for x in self.raw_data['user_objects']]:
             unavailable_dict[user] = {}
             available_dict[user] = {}
@@ -123,9 +124,9 @@ class ScheduleProcessor:
                         song_count = 0
 
                 available_dict[user][scheduleId] = temp
-        self.available_dict = available_dict
+        return available_dict
 
-    def create_song_session_dict(self) -> None:
+    def get_song_session_dict(self) -> dict:
         """
         {곡 id : [곡 참여자 목록]}형태의 dict로 생성
         """
@@ -137,24 +138,24 @@ class ScheduleProcessor:
                 temp[session.instrument].append(session.user_name.username)
             song_session_dict[songId] = dict(temp)
 
-        self.song_session_dict = song_session_dict
+        return song_session_dict
 
-    def create_song_available_dict(self) -> None:
+    def get_song_available_dict(self, song_session_dict: dict, practice_info: dict, available_dict: dict) -> dict:
         song_available_dict = {}
         song_priority_dict = {x.id: x.priority for x in self.raw_data['song_objects']}
         session_weight_parameters = self.raw_data['param_dict']['session_weight']
         priority_weight_parameters = self.raw_data['param_dict']['priority_weight']
 
-        for songId, session in self.song_session_dict.items():
+        for songId, session in song_session_dict.items():
             temp_dict = {}
             for scheduleId in [x.id for x in self.raw_data['schedule_objects']]:
                 temp_list = []
-                song_per_day = self.practice_info[scheduleId]['song_per_day']
+                song_per_day = practice_info[scheduleId]['song_per_day']
                 for i in range(song_per_day):
                     n = 0
                     count = 0
                     for session_abbrev, session_name_list in session.items():
-                        n += sum([self.available_dict[name][scheduleId][i] for name in session_name_list]) * session_weight_parameters[session_abbrev]
+                        n += sum([available_dict[name][scheduleId][i] for name in session_name_list]) * session_weight_parameters[session_abbrev]
                         count += session_weight_parameters[session_abbrev] * len(session_name_list)
 
                     temp_list.append(round(n / count, 2) * priority_weight_parameters[song_priority_dict[songId]])
@@ -162,20 +163,19 @@ class ScheduleProcessor:
                 temp_dict[scheduleId] = temp_list
 
             song_available_dict[songId] = temp_dict
-        self.song_available_dict = song_available_dict
+        return song_available_dict
 
-    def create_song_conflict_list(self) -> None:
+    def get_song_conflict_list(self, song_session_dict: dict) -> dict:
         """
         참여 인원이 겹치는 2곡의 리스트의 리스트 생성
         """
         song_session_set = {}
-        for i, v in self.song_session_dict.items():
+        for i, v in song_session_dict.items():
             song_session_set[i] = []
             for names in v.values():
                 song_session_set[i].extend([x for x in names if x not in song_session_set[i]])
             song_session_set[i] = set(song_session_set[i])
 
-        self.song_session_set = song_session_set
 
         # 세션 겹치는 곡 목록 생성
         song_conflict_list = []
@@ -186,29 +186,29 @@ class ScheduleProcessor:
                 if song_session_set[songId_list[i]].intersection(song_session_set[songId_list[j]]):
                     song_conflict_list.append([songId_list[i], songId_list[j]])
 
-        self.song_conflict_list = song_conflict_list
+        return song_session_set, song_conflict_list
 
     def process(self) -> dict:
         """
         Raw data를 정제해 optimizer에 전달하는 값들을 dict로 return
         """
         processed_data = {}
-        self.create_practice_info()
-        self.create_available_dict()
-        self.create_song_session_dict()
-        self.create_song_available_dict()
-        self.create_song_conflict_list()
+        practice_info = self.get_practice_info()
+        available_dict = self.get_available_dict(practice_info)
+        song_session_dict = self.get_song_session_dict()
+        song_available_dict = self.get_song_available_dict(song_session_dict, practice_info, available_dict)
+        song_session_set, song_conflict_list = self.get_song_conflict_list(song_session_dict)
 
-        processed_data['practice_info_dict'] = self.practice_info
+        processed_data['practice_info_dict'] = practice_info
         processed_data['scheduleId_list'] = [x.id for x in self.raw_data['schedule_objects']]
         processed_data['songId_list'] = [x.id for x in self.raw_data['song_objects']]
 
-        processed_data['available_dict'] = self.available_dict
-        processed_data['song_available_dict'] = self.song_available_dict
-        processed_data['song_conflict_list'] = self.song_conflict_list
+        processed_data['available_dict'] = available_dict
+        processed_data['song_available_dict'] = song_available_dict
+        processed_data['song_conflict_list'] = song_conflict_list
 
         # Data for Post Processing
-        processed_data['song_session_set'] = self.song_session_set
+        processed_data['song_session_set'] = song_session_set
 
         # {합주 id : 합주 날짜} -> 09월 21일(목) 형식
         processed_data['practiceId_to_date'] = {x.id: x.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(x.date.weekday()) for x in self.raw_data['schedule_objects']}
@@ -223,30 +223,24 @@ class ScheduleOptimizer:
     """
     def __init__(self, processed_data) -> None:
         self.processed_data = processed_data
+        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
     def time_iter(self, p) -> range:
         "제약 조건 설정할 때 합주 별 반복되는 iteration 함수화"
         return range(self.processed_data['practice_info_dict'][p]['song_per_day'])
 
-    def optimize(self) -> dict:
-        """
-        Integer programming을 이용해 최적화 된 합주를 생성, 의사 결정 변수의 값들을 dict로 return
-        """
-        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
-
+    def add_decision_variable(self) -> None:
         self.x = {}
 
-        # 의사 결정 변수 선언
         for p in self.processed_data['scheduleId_list']:
             for t in self.time_iter(p):
                 for s in self.processed_data['songId_list']:
                     self.x[p, t, s] = self.solver.BoolVar('self.x[%i, %i, %i]' % (p, t, s))
 
-        # 목적 함수 선언
+    def add_objective_function(self) -> None:
         self.solver.Maximize(self.solver.Sum([self.processed_data['song_available_dict'][s][p][t] * self.x[p, t, s] for s in self.processed_data['songId_list'] for p in self.processed_data['scheduleId_list'] for t in self.time_iter(p)]))
 
-        # 제약 조건 설정하기 (자세한 제약 조건 내용은 주석 참조)
-
+    def add_constraint(self) -> None:
         # 전체 합주 통틀어서 곡 당 최대 한번 (if 가능한 총 합주 타임이 곡의 갯수보다 많을 경우)
         for s in self.processed_data['songId_list']:
             self.solver.Add(self.solver.Sum([self.x[p, t, s] for p in self.processed_data['scheduleId_list'] for t in self.time_iter(p)]) <= 1)
@@ -267,9 +261,16 @@ class ScheduleOptimizer:
                 for t in self.time_iter(p):
                     self.solver.Add(self.x[p, t, duplicated_list[0]] + self.x[p, t, duplicated_list[1]] <= 1)
 
+    def optimize(self) -> dict:
+        """
+        Integer programming을 이용해 최적화 된 합주를 생성, 의사 결정 변수의 값들을 dict로 return
+        """
+        self.add_decision_variable()
+        self.add_objective_function()
+        self.add_constraint()
+
         # 최적화! -> 특정값 조회 방법 : self.x[1,3,4].solution_value()
         self.solver.Solve()
-
         return self.x
 
 
