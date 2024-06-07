@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor
+from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BassRetriever
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -244,40 +244,42 @@ def timetable(request):
     context = {}
     message = None
 
-    retriever = ScheduleRetriver()
-    raw_data = retriever.retrieve_from_DB()
+    base_retriever = BassRetriever()
+    common_data = base_retriever.retreive_common_data()
 
-    processor = ScheduleProcessor(raw_data)
-    processed_data = processor.process()
+    schedule_retriever = ScheduleRetriever()
+    raw_data = schedule_retriever.retrieve_from_DB(common_data=common_data)
 
-    optimizer = ScheduleOptimizer(processed_data)
-    result = optimizer.optimize()
+    schedule_processor = ScheduleProcessor(raw_data)
+    processed_data = schedule_processor.process()
 
-    postprocessor = SchedulePostProcessor(result, processed_data)
-    schedule_df_dict, who_is_not_coming, timetable_object_dict = postprocessor.post_process()
+    schedule_optimizer = ScheduleOptimizer(processed_data)
+    result = schedule_optimizer.optimize()
+
+    schedule_postprocessor = SchedulePostProcessor(result, processed_data)
+    schedule_df_dict, who_is_not_coming, timetable_object_dict = schedule_postprocessor.post_process()
 
     schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
 
-    retriever = RouteRetriever()
-    raw_data = retriever.retrieve_db_data()
+    route_retriever = RouteRetriever()
+    raw_data = route_retriever.retrieve_db_data(common_data=common_data)
 
     for i,v in schedule_df_dict.items():
-        processor = RouteProcessor(raw_data, v)
-        processed_data = processor.process()
+        route_processor = RouteProcessor(raw_data, v)
+        processed_data = route_processor.process()
 
-        optimizer = RouteOptimizer(processed_data, raw_data)
-        result = optimizer.optimize()
+        route_optimizer = RouteOptimizer(processed_data, raw_data)
+        result = route_optimizer.optimize()
 
-        postprocessor = RoutePostProcessor(optimizer, v)
-        new_dataframe = postprocessor.post_process()
-
+        route_postprocessor = RoutePostProcessor(route_optimizer, v)
+        new_dataframe = route_postprocessor.post_process()
         schedule_df_dict[i] = new_dataframe
 
     context['df'] = schedule_df_dict
     context['NA'] = who_is_not_coming
 
     # 불참 여부 미제출 인원 체크하기
-    schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
+    schedule_objects = schedule_processor.raw_data['schedule_objects']
     for schedule_object in schedule_objects:
         not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=schedule_object)))
         if not_submitted:
