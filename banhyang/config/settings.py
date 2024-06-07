@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
-import os, json
+import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -23,10 +23,9 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-    
 from django.core.management.utils import get_random_secret_key
 
-SECRET_KEY = SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
@@ -44,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'banhyang.core',
     'django.contrib.humanize',
-    'banhyang.practice'
+    'banhyang.practice',
+    'debug_toolbar'
 ]
 
 MIDDLEWARE = [
@@ -56,7 +56,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
+
+INTERNAL_IPS = ('127.0.0.1')
 
 ROOT_URLCONF = 'banhyang.config.urls'
 
@@ -104,10 +107,6 @@ else:
             }
 """
 
-import sys
-import oracledb
-oracledb.version = "2.1.1"
-sys.modules["cx_Oracle"] = oracledb
 
 USE_TEST_DB = os.getenv("USE_TEST_DB", False)
 if USE_TEST_DB is True:
@@ -118,13 +117,16 @@ if USE_TEST_DB is True:
         }
     }
 else:
-
+    import sys
+    import oracledb
+    oracledb.version = "2.1.1"
+    sys.modules["cx_Oracle"] = oracledb
     DATABASES = {
-        'default' :{
-            'ENGINE' : 'django.db.backends.oracle',
-            'NAME' : os.getenv("ORACLE_DNS", None),
-            'USER' : 'ADMIN',
-            'PASSWORD' : os.getenv("ORACLE_PW", None),
+        'default': {
+            'ENGINE': 'django.db.backends.oracle',
+            'NAME': os.getenv("ORACLE_DNS", None),
+            'USER': 'ADMIN',
+            'PASSWORD': os.getenv("ORACLE_PW", None),
         }
     }
 
@@ -187,7 +189,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     'banhyang/core/static',
     'banhyang/practice/static'
-    
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
