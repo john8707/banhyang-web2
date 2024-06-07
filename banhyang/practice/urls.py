@@ -1,5 +1,8 @@
-from django.urls import path
+import mimetypes
+from django.urls import path, include
 from . import views, chatbot
+import debug_toolbar
+from banhyang.config import settings
 
 urlpatterns = [
     path('practice', views.practice_apply, name='practice_apply'),
@@ -17,3 +20,9 @@ urlpatterns = [
     path('chatbot/attendance', chatbot.attendance_check_only_first, name='chatbot_attendance'),
     path('chatbot/register', chatbot.register, name='chatbot_register')
 ]
+
+if settings.DEBUG:
+    mimetypes.add_type("application/javascript", ".js", True)
+    urlpatterns += [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ]
