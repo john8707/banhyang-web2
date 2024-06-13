@@ -55,6 +55,29 @@
 
 </div>
 </div>
+<script>
+        document.querySelectorAll('td').forEach(td=>{
+            td.addEventListener('click', swapTD)
+            });
 
+        let swapTitle='';
+        let holding = false;
+        let previousTD;
+
+        // click two 'td' to swap values
+        function swapTD(ev){
+            if(ev.target.tagName!=='TD') return;
+            if(!holding){
+                holding = true;
+                previousTD = ev.target;
+                swapTitle = previousTD.innerHTML;
+            }
+            else if(holding){
+                holding = false;
+                previousTD.innerHTML = ev.target.innerHTML;
+                ev.target.innerHTML = swapTitle;
+            }
+        }
+    </script>
 
 {% endblock %}
