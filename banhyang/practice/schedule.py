@@ -16,7 +16,7 @@ def calc_minute_delta(object) -> int:
     return int(delta.seconds / 60)
 
 
-class ScheduleRetreiver:
+class ScheduleRetriver:
     """
     Retreive Raw Data from Database Server to Make Optimized Timetables.
 
@@ -56,7 +56,7 @@ class ScheduleRetreiver:
 
         return param_dict
 
-    def retreive_from_DB(self) -> dict:
+    def retrieve_from_DB(self) -> dict:
         """
         DB에서 Raw 데이터 받아와 dict로 return.
         """

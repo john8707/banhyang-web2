@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetreiver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor
+from .schedule import ScheduleRetriver, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -244,8 +244,8 @@ def timetable(request):
     context = {}
     message = None
 
-    retreiever = ScheduleRetreiver()
-    raw_data = retreiever.retreive_from_DB()
+    retriever = ScheduleRetriver()
+    raw_data = retriever.retrieve_from_DB()
 
     processor = ScheduleProcessor(raw_data)
     processed_data = processor.process()
