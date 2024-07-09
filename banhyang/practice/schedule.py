@@ -337,3 +337,302 @@ class SchedulePostProcessor:
             schedule_df_dict[self.processed_data['practiceId_to_date'][p]] = my_df
 
         return schedule_df_dict, not_coming_dict, timetable_object_dict
+
+
+class RouteRetriever:
+    """
+    Retrieve Data from DB server
+    """
+    def __init__(self) -> None:
+        pass
+    
+    def get_parameters(self) -> dict:
+        param_dict = {}
+
+        session_id_dict = {
+            0: 'g',
+            1: 'v',
+            2: 'b',
+            3: 'd',
+            4: 'k',
+            5: 'etc'
+        }
+        session_weight_dict = {
+            0: 1, # guitar
+            1: 0, # vocal
+            2: 0, # bass
+            3: 0, # drum
+            4: 0, # keyboard
+            5: 0, # etc
+        }
+
+        param_dict['session_abb_id_dict'] = session_id_dict
+        param_dict['session_weight_dict'] = session_weight_dict
+
+        return param_dict
+
+    def retrieve_db_data(self) -> dict:
+        raw_data = {}
+        user_objects = PracticeUser.objects.all()
+        song_objects = SongData.objects.all()
+        session_objects = Session.objects.all()
+
+        raw_data['user_objects'] = user_objects
+        raw_data['song_objects'] = song_objects
+        raw_data['session_objects'] = session_objects
+
+        raw_data['param_dict'] = self.get_parameters()
+
+        return raw_data
+
+
+class RouteProcessor:
+    """
+    Process Raw data for Route optimizer
+    """
+    def __init__(self, raw_data, schedule_dataframe) -> None:
+        self.raw_data = raw_data
+        self.schedule_dataframe = schedule_dataframe
+
+    def convert_dataframe_to_list(self) -> list:
+        """
+        Schedule Dataframe의 각 Row(곡 제목)를 곡의 id list의 list로 변경하여 Return
+
+        각 List는 각 타임별 곡들의 id list
+
+        기존 id_list
+        """
+        song_id_dict = {x.songname : x.id for x in self.raw_data['song_objects']}
+        dataframe_row_list = []
+
+        for row in self.schedule_dataframe.itertuples():
+            dataframe_row_list.append(row[1:])
+
+        schedule_id_list = []
+
+        for row in dataframe_row_list:
+            temp_list = []
+            total_room_number = len(row)
+            for name in row:
+                temp_list.append(song_id_dict[name]) if name is not 'X' else None
+            schedule_id_list.append(temp_list)
+
+        return schedule_id_list, total_room_number
+
+    def get_users_song_per_session(self) -> dict:
+        """
+        { 유저이름 : {세션 1: [곡 id 목록], 세션2: [곡 id 목록]} } 형식의 dictionary Return
+
+        기존 session_dict
+        """
+        user_session_dict = {}
+        for user in self.raw_data['user_objects']:
+            user_session_dict[user.username] = {'g':[], 'v':[], 'b':[], 'd':[], 'k':[], 'etc':[]}
+            user_session_objects = self.raw_data['session_objects'].filter(user_name=user)
+
+            for i in user_session_objects:
+                user_session_dict[user.username][i.instrument].append(i.song_id)
+
+        return user_session_dict
+    
+    def get_users_song_order(self, schedule_id_list) -> dict:
+        """
+        해당 schedule의 유저별 세션별 곡 순서 list를 dictionary로,
+
+        { 유저이름 : {세션 1: [곡 순서 목록], 세션2: [곡 순서 목록]} } 형식의 dictionary Return
+        
+        """
+        user_order_dict = {}
+        user_objects = self.raw_data['user_objects']
+        session_objects = self.raw_data['session_objects']
+
+        for user in user_objects:
+            user_order_dict[user.username] = {'g':[], 'v':[], 'b':[], 'd':[], 'k':[], 'etc':[]}
+
+        for id_list in schedule_id_list:
+            for i in id_list:
+                song_sessions = session_objects.filter(song_id=i)
+
+                for session_object in song_sessions:
+                    user_order_dict[session_object.user_name.username][session_object.instrument].append(session_object.song_id.id)
+
+        return user_order_dict
+    
+    def get_user_id_dict(self) -> dict:
+        """
+        { 유저이름 : id }, { id : 유저이름 } 형식의 dictionary 2개 Return
+
+        실제 유저 id는 DB에 존재하지 않기에 임의의 index 부여
+        """
+
+        user_id_dict = {}
+
+        n = 0
+        for i in self.raw_data['user_objects']:
+            user_id_dict[i.username] = n
+            n += 1
+
+        id_user_dict = {v: k for k, v in user_id_dict.items()}
+        return user_id_dict, id_user_dict
+    
+    def get_song_time_dict(self, schedule_id_list) -> dict:
+        """
+        { 곡 id : [해당 곡 time index]}
+        """
+        song_t_dict = {x.id : [] for x in self.raw_data['song_objects']}
+
+        for t in range(len(schedule_id_list)):
+            for i in schedule_id_list[t]:
+                song_t_dict[i].append(t)
+
+        return song_t_dict
+
+    def process(self) -> dict:
+        """
+        필요한 데이터를 모두 전처리하여 dictionary에 담아 return
+        """
+
+        processed_data = {}
+        schedule_id_list, total_room_number = self.convert_dataframe_to_list()
+
+        user_session_dict = self.get_users_song_per_session()
+
+        user_order_dict = self.get_users_song_order(schedule_id_list)
+
+        user_id_dict, id_user_dict = self.get_user_id_dict()
+        song_t_dict = self.get_song_time_dict(schedule_id_list)
+
+        processed_data['schedule_id_list'] = schedule_id_list
+        processed_data['total_room_number'] = total_room_number
+        processed_data['user_session_dict'] = user_session_dict
+        processed_data['user_order_dict'] = user_order_dict
+        processed_data['user_id_dict'] = user_id_dict
+        processed_data['id_user_dict'] = id_user_dict
+        processed_data['song_t_dict'] = song_t_dict
+
+        return processed_data
+
+
+class RouteOptimizer():
+    """
+    방 이동 횟수를 최적화
+    """
+    def __init__(self, processed_data, raw_data) -> None:
+        self.schedule_id_list = processed_data['schedule_id_list']
+        self.total_room_number = processed_data['total_room_number']
+        self.user_session_dict = processed_data['user_session_dict']
+        self.user_order_dict = processed_data['user_order_dict']
+        self.user_id_dict = processed_data['user_id_dict']
+        self.id_user_dict = processed_data['id_user_dict']
+        self.song_t_dict = processed_data['song_t_dict']
+
+        self.session_id_dict = raw_data['param_dict']['session_abb_id_dict']
+        self.session_weight_dict = raw_data['param_dict']['session_weight_dict']
+        self.song_objects = raw_data['song_objects']
+
+        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+
+    def add_decision_variable(self):
+        self.s = {}
+        self.x = {}
+        self.y = {}
+        # s[i,t,r] -> i: 곡 id, t: 순서, r: 방 번호인 곡
+        # i의 t번째 time의 방 번호가 r인지 여부 Boolean Var
+        for t in range(len(self.schedule_id_list)):
+            for r in range(self.total_room_number):
+                for i in self.schedule_id_list[t]:
+                    self.s[i, t, r] = self.solver.BoolVar('self.s[%i, %i, %i]' % (i, t, r))
+
+        # y[p, s, n] -> p: 유저 id, s: 세션, n: n번째 곡 
+        # p의 s세션 n번째 곡 이후 이동 여부 Boolean Var
+        for p in self.id_user_dict:
+            for s in self.session_id_dict:
+                for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]]) - 1):
+                    self.y[p, s, n] = self.solver.BoolVar('self.y[%i, %i, %i]' % (p, s, n))
+
+        # y의 값을 구하기 위한 Dummy Var
+        for p in self.id_user_dict:
+            for s in self.session_id_dict:
+                for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]]) - 1):
+                    for r in range(self.total_room_number):
+                        self.x[p, s, n, r] = self.solver.BoolVar('self.x[%i, %i, %i, %i]' % (p, s, n, r))
+
+    def add_objective_function(self):
+        # Minimize y * 세션별 weight
+        self.solver.Minimize(
+            self.solver.Sum([self.y[p, s, n] * self.session_weight_dict[s]
+                             for p in self.id_user_dict
+                             for s in self.session_id_dict
+                             for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]]) - 1)]))
+
+    def add_constraint(self):
+        # 곡 i는 t타임에서 전체 room 중 반드시 하나에만 들어가야함
+        for t in range(len(self.schedule_id_list)):
+            for i in self.schedule_id_list[t]:
+                self.solver.Add(self.solver.Sum(self.s[i, t, r] for r in range(self.total_room_number)) == 1)
+
+        # x = 1 -> y = 0 / x = 0 -> y = 1
+        # x가 모두 0일 경우, 즉 아래 제약 조건에 의해 n번째 곡의 방과 n+1번째 곡의 방이 서로 다를 경우 이동이 발생하므로 y = 1이 되게 함
+        for p in self.id_user_dict:
+            for s in self.session_id_dict:
+                for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]]) - 1):
+                    self.solver.Add(self.y[p, s, n] + self.solver.Sum(self.x[p, s, n, r] for r in range(self.total_room_number)) == 1)        
+
+        # 현재 곡과 다음 곡의 방이 같을 경우 x = 1이 되게 함
+        for p in self.id_user_dict:
+            for s in self.session_id_dict:
+                t_pointer = 0
+                t_pointer2 = 0
+                for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]]) - 1):
+                    song_id = self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]][n]
+                    song_id2 = self.user_order_dict[self.id_user_dict[p]][self.session_id_dict[s]][n + 1]
+                    for t in self.song_t_dict[song_id]:
+                        if t >= t_pointer:
+                            t_pointer = t
+                            break
+                    for t in self.song_t_dict[song_id2]:
+                        if t >= t_pointer2:
+                            t_pointer2 = t
+                            break
+                    for r in range(self.total_room_number):
+                            
+                        self.solver.Add(self.x[p, s, n, r] <= self.s[song_id, t_pointer, r])
+                        self.solver.Add(self.x[p, s, n, r] <= self.s[song_id2, t_pointer2, r])
+                        self.solver.Add(self.x[p, s, n, r] >= self.s[song_id, t_pointer, r] + self.s[song_id2, t_pointer2, r] - 1)
+
+        # 같은 t의 서로 다른 곡들은 같은 방을 사용하지 않음
+        for t in range(len(self.schedule_id_list)):
+            for r in range(self.total_room_number):
+                self.solver.Add(self.solver.Sum(self.s[i, t, r] for i in self.schedule_id_list[t]) <= 1)
+
+    def optimize(self):
+        self.add_decision_variable()
+        self.add_objective_function()
+        self.add_constraint()
+
+        self.solver.Solve()
+
+        return self.s
+
+
+class RoutePostProcessor:
+    def __init__(self, optimizer:ScheduleOptimizer, original_dataframe) -> None:
+        self.result = optimizer.s
+        self.schedule_id_list = optimizer.schedule_id_list
+        self.total_room_number = optimizer.total_room_number
+
+        self.original_dataframe = original_dataframe
+
+    def get_id_song_dict(self) -> dict:
+        return {x.id : x.songname for x in SongData.objects.all()}
+
+    def post_process(self):
+        id_song_dict = self.get_id_song_dict()
+        new_dataframe = pd.DataFrame(data=[], index=self.original_dataframe.index, columns=self.original_dataframe.columns)
+        for t in range(len(self.schedule_id_list)):
+            for r in range(self.total_room_number):
+                for i in self.schedule_id_list[t]:
+                    if self.result[i, t, r].solution_value() > 0:
+                        new_dataframe.iloc[t, r] = id_song_dict[i]
+
+        return new_dataframe.fillna('X')
