@@ -1,11 +1,14 @@
 absl-py==2.0.0
+APScheduler==3.10.4
 asgiref==3.7.2
 astroid==2.3.3
+backports.zoneinfo==0.2.1
 cffi==1.15.1
 colorama==0.4.3
 cryptography==42.0.5
 dj-database-url==0.5.0
 Django==3.0.4
+django-apscheduler==0.4.0
 django-debug-toolbar==3.0
 entrypoints==0.3
 gunicorn==20.0.4
@@ -33,6 +36,8 @@ six==1.14.0
 sqlparse==0.3.1
 typed-ast==1.4.1
 typing_extensions==4.7.1
+tzdata==2024.1
+tzlocal==5.1
 White-Noise==0.1.0
 whitenoise==5.0.1
 wrapt==1.11.2

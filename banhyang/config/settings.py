@@ -44,8 +44,13 @@ INSTALLED_APPS = [
     'banhyang.core',
     'django.contrib.humanize',
     'banhyang.practice',
-    'debug_toolbar'
+    'debug_toolbar',
+    'django_apscheduler'
 ]
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a" 
+# 자동으로 스케쥴러 실행
+SCHEDULER_DEFAULT = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

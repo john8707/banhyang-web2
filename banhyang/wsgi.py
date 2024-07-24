@@ -29,3 +29,7 @@ User = get_user_model()  # get the currently active user model,
 if os.getenv("DJANGO_SUPERUSER_USERNAME", None) and os.getenv("DJANGO_SUPERUSER_PASSWORD", None):
     User.objects.filter(username=os.getenv("DJANGO_SUPERUSER_USERNAME")).exists() or \
         call_command('createsuperuser', interactive=False)
+
+
+from banhyang.practice.views import sched
+sched.start()
