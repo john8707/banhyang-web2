@@ -62,4 +62,4 @@ def integer_to_date(dt_int):
     yyyymmdd 형식의 integer을 Datetime object로 변환
     """
     int_to_string = str(dt_int)
-    return datetime(int(int_to_string[0:4]), int(int_to_string[4:6]), int(int_to_string[6:8]),9,0)
+    return datetime(int(int_to_string[0:4]), int(int_to_string[4:6]), int(int_to_string[6:8]),0,0)

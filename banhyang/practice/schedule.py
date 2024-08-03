@@ -334,8 +334,6 @@ class SchedulePostProcessor:
         schedule_df_dict = {}
         # 곡 별 불참 인원을 리스트로 보여주기
         not_coming_dict = {}
-        # Timetable DB 저장용 DB Object 딕셔너리 -> {합주 object : {곡 object : (시작시간, 끝시간, 방 번호), }}
-        timetable_object_dict = {}
 
         # 결과값을 data frame으로! / 합주 불참자까지 나오도록
         day_count = 0
@@ -344,8 +342,6 @@ class SchedulePostProcessor:
             idx = []
             song_per_day = self.processed_data['practice_info_dict'][p]['song_per_day']
             time_count = datetime.combine(date(1, 1, 1), self.processed_data['practice_info_dict'][p]['start_time'])
-
-            timetable_object_dict[p] = {}
 
             # Dataframe의 시간 index 생성
             for _ in range(song_per_day):
@@ -357,7 +353,6 @@ class SchedulePostProcessor:
 
             # 의사 결정 변수의 값 > 0 -> 해당 타임에 해당 곡 합주가 존재한다는 뜻
             # 시간표 Dataframe에 string으로 저장
-            # object로 timetable_object_dict에 넣기
             # 불참 인원을 not_coming_dict에 넣기
             for t in self.time_iter(p):
                 room_count = 0
@@ -368,15 +363,12 @@ class SchedulePostProcessor:
                         # 전체 불참만 보이기 ==0, 일부 불참도 보이기 <1
                         not_coming_dict[self.processed_data['songId_to_name'][s] + " (" + self.processed_data['practiceId_to_date'][p] + " " + idx[t] + ")"] = [x for x in self.processed_data['song_session_set'][s] if self.processed_data['available_dict'][x][p][t] < 1]
 
-                        start_time = datetime.combine(date(1, 1, 1), self.processed_data['practice_info_dict'][p]['start_time']) + timedelta(minutes=self.processed_data['practice_info_dict'][p]['minute_per_song'] * 10 * t)
-                        end_time = min(start_time + timedelta(minutes=self.processed_data['practice_info_dict'][p]['minute_per_song'] * 10), datetime.combine(date(1, 1, 1), self.processed_data['practice_info_dict'][p]['end_time']))
-                        timetable_object_dict[p][s] = (start_time.time(), end_time.time(), room_count)
 
             my_df.header = "day" + str(day_count)
             day_count += 1
-            schedule_df_dict[self.processed_data['practiceId_to_date'][p]] = my_df
+            schedule_df_dict[p] = my_df
 
-        return schedule_df_dict, not_coming_dict, timetable_object_dict
+        return schedule_df_dict, not_coming_dict
 
 
 class RouteRetriever:
@@ -651,3 +643,22 @@ class RoutePostProcessor:
                         new_dataframe.iloc[t, r] = id_song_dict[i]
 
         return new_dataframe.fillna('X')
+
+
+def timetable_df_to_objects(timetable_df_dict:dict, schedule_info_dict:dict, song_objects:dict) -> dict:
+    """
+    시간표 dataframe을 인풋으로 받아, 해당 시간표에 맞는 timetable objects로 저장하기 위한 데이터의 딕셔너리로 변환
+     
+    {합주 id : {곡 id : (시작 시간, 끝 시간, 방 이름)}} 형식
+    """
+    timetable_object_dict = {}
+    song_name_to_id = {x.songname : x.id for x in song_objects}
+    for i, df in timetable_df_dict.items():
+        timetable_object_dict[i] = {}
+        for time_count, row in enumerate(df.itertuples(index=False)):
+            start_time = datetime.combine(date(1, 1, 1), schedule_info_dict[i]['start_time']) + timedelta(minutes=schedule_info_dict[i]['minute_per_song'] * 10 * time_count)
+            end_time = min(start_time + timedelta(minutes=schedule_info_dict[i]['minute_per_song'] * 10), datetime.combine(date(1, 1, 1), schedule_info_dict[i]['end_time']))
+            for room_count in range(len(row)):
+                if row[room_count] != 'X':
+                    timetable_object_dict[i][song_name_to_id[row[room_count]]] = (start_time.time(), end_time.time(), df.columns[room_count])
+    return timetable_object_dict
