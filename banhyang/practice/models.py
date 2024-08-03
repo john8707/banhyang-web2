@@ -70,7 +70,7 @@ class Timetable(models.Model):
     song_id = models.ForeignKey(SongData, on_delete=models.CASCADE, related_name='timetable')
     start_time = models.TimeField()
     end_time = models.TimeField()
-    room_number = models.IntegerField(default=0)
+    room_name = models.CharField(default='room', max_length=255)
 
 
 class KakaoTalkId(models.Model):
