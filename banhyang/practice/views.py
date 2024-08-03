@@ -13,7 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BassRetriever
+from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BassRetriever, timetable_df_to_objects
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -257,38 +257,60 @@ def timetable(request):
     context = {}
     message = None
 
+    # 시간표, 동선 최적화 위한 공통 데이터 가져오기
     base_retriever = BassRetriever()
     common_data = base_retriever.retreive_common_data()
 
+    # 시간표 최적화 위한 데이터 가져오기
     schedule_retriever = ScheduleRetriever()
     raw_data = schedule_retriever.retrieve_from_DB(common_data=common_data)
 
+    # 시간표 최적화 위한 전처리 과정
     schedule_processor = ScheduleProcessor(raw_data)
     processed_data = schedule_processor.process()
 
+    # 시간표를 db 저장하기 위해 timetable object로 변환하기 위한 데이터 가져오기
+    info_dict = processed_data['practice_info_dict']
+    song_objects = raw_data['song_objects']
+    practiceId_to_date = processed_data['practiceId_to_date']
+
+    # 시간표 optimizer을 이용한 최적화
     schedule_optimizer = ScheduleOptimizer(processed_data)
     result = schedule_optimizer.optimize()
 
+    # 최적화된 시간표를 후처리하여 시간표를 dataframe로, 불참 인원과 사유를 dictionary로 반환
     schedule_postprocessor = SchedulePostProcessor(result, processed_data)
-    schedule_df_dict, who_is_not_coming, timetable_object_dict = schedule_postprocessor.post_process()
+    schedule_df_dict, who_is_not_coming = schedule_postprocessor.post_process()
 
+    # 웹의 가독성을 위해 dataframe의 Nan을 'X'로 변경
     schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
 
+    # 동선 최적화 위한 데이터 가져오기
     route_retriever = RouteRetriever()
     raw_data = route_retriever.retrieve_db_data(common_data=common_data)
 
-    for i,v in schedule_df_dict.items():
-        route_processor = RouteProcessor(raw_data, v)
+    for i,df in schedule_df_dict.items():
+        # 동선 최적화 위한 전처리 과정
+        route_processor = RouteProcessor(raw_data, df)
         processed_data = route_processor.process()
 
+        # 동선 optimizer을 이용한 최적화
         route_optimizer = RouteOptimizer(processed_data, raw_data)
         result = route_optimizer.optimize()
 
-        route_postprocessor = RoutePostProcessor(route_optimizer, v)
+        # 동선 최적화된 시간표를 후처리하여 시간표를 dataframe로 반환
+        route_postprocessor = RoutePostProcessor(route_optimizer, df)
         new_dataframe = route_postprocessor.post_process()
+
         schedule_df_dict[i] = new_dataframe
 
-    context['df'] = schedule_df_dict
+
+    # 웹 가독성을 위해 시간표들의 dictionary의 키를 Song id -> Song name으로 변환
+    schedule_df_result = {}
+    for i, v in schedule_df_dict.items():
+        schedule_df_result[practiceId_to_date[i]] = v
+
+    context['df'] = schedule_df_result
     context['NA'] = who_is_not_coming
 
     # 불참 여부 미제출 인원 체크하기
@@ -298,7 +320,11 @@ def timetable(request):
         if not_submitted:
             message = "아직 불참 여부를 제출하지 않은 인원이 존재합니다!"
 
+    # 시간표를 확정하는 경우
     if request.method == "POST":
+        # 확정된 시간표를 db 저장하기 위해 데이터 가공
+        timetable_object_dict = timetable_df_to_objects(schedule_df_dict, info_dict, song_objects)
+
         for schedule_id, v in timetable_object_dict.items():
             schedule_id = Schedule.objects.get(id=schedule_id)
             existing_timetable_object = Timetable.objects.filter(schedule_id=schedule_id)
@@ -307,10 +333,9 @@ def timetable(request):
                 existing_timetable_object.delete()
 
             # Bulk 저장
-            timetable_object_list = [Timetable(schedule_id=schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_number=info_tuple[2]) for song_id, info_tuple in v.items()]
+            timetable_object_list = [Timetable(schedule_id=schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_name=info_tuple[2]) for song_id, info_tuple in v.items()]
             Timetable.objects.bulk_create(timetable_object_list)
             message = "저장되었습니다."
-
 
     context['message'] = message
     return render(request, 'timetable.html', context=context)
