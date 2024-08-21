@@ -13,7 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BassRetriever, timetable_df_to_objects
+from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BaseRetriever, timetable_df_to_objects
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -258,7 +258,7 @@ def timetable(request):
     message = None
 
     # 시간표, 동선 최적화 위한 공통 데이터 가져오기
-    base_retriever = BassRetriever()
+    base_retriever = BaseRetriever()
     common_data = base_retriever.retreive_common_data()
 
     # 시간표 최적화 위한 데이터 가져오기
