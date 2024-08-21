@@ -226,13 +226,19 @@ class SongAddForm(forms.Form):
         이미 동명의 곡이 존재하는 경우 SongData에서 삭제 후 SongData, Session 데이터 저장
         """
         form_data = self.cleaned_data
-        SongData.objects.filter(songname=form_data['song_name']).delete()
+        song_exist = SongData.objects.filter(songname=form_data['song_name'])
 
-        s = SongData(songname=form_data['song_name'])
-        s.save()
+        if song_exist:
+            for i in song_exist:
+                song_object = i
+                i.session.all().delete()
+
+        else:
+            song_object = SongData(songname=form_data['song_name'])
+            song_object.save()
 
         for key, value in self.session_index().items():
-            session_bulk_list = [Session(song_id=s, user_name=x, instrument=value) for x in form_data[key] if x]
+            session_bulk_list = [Session(song_id=song_object, user_name=x, instrument=value) for x in form_data[key] if x]
             Session.objects.bulk_create(session_bulk_list)
 
 
