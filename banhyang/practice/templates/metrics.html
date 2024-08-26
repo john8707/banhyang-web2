@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+    <div class="setting_form">
+        <div class="setting_description">
+            합주 통계
+        </div>
+        <div class="chart_container" style="width: 90%; margin: 0 auto;">
+
+            <canvas id="dailyChart"></canvas>
+            <canvas id="songChart"></canvas>
+            <canvas id="userChart"></canvas>
+        </div>
+        <div class="chart_container" style="width: 60%; margin: 0 auto;">
+            <canvas id="totalChart"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    Chart.register(ChartDataLabels);
+
+    let dailyCt =  document.getElementById('dailyChart');
+    let dailyChartData = {
+        type : 'line',
+        data : {
+            labels : {{ daily_label | safe }},
+            datasets: [{
+                label: '참석률',
+                data: {{ daily_data }},
+            }]
+        },
+
+        options: {
+            scales: {
+                y:{
+                    max: 100,
+                    suggestedMin: 70,
+                },
+            },
+            plugins: {
+                legend : {
+                    display : false
+                },
+                title: {
+                    display: true,
+                    text: '날짜별 참석률'
+                },
+                datalabels: {
+                    display: false,
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.formattedValue + '%';
+                        }
+                    }
+                },
+            },
+            interaction: {
+                mode: 'nearest',
+                intersect: false,
+                axis : 'x',
+            },
+        }
+
+    };
+    let dailyChart = new Chart(dailyCt, dailyChartData);
+
+
+    let songCt =  document.getElementById('songChart');
+    let songChartData = {
+        type : 'line',
+        data : {
+            labels : {{ song_label | safe }},
+            datasets: [{
+                label: '참석률',
+                data: {{ song_data }},
+            }]
+        },
+
+        options: {
+            scales: {
+                y:{
+                    max: 100,
+                    suggestedMin: 70,
+                },
+            },
+            plugins: {
+                legend : {
+                    display : false
+                },
+                title: {
+                    display: true,
+                    text: '곡별 참석률'
+                },
+                datalabels: {
+                    display: false,
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.formattedValue + '%';
+                        }
+                    }
+                },
+            },
+            interaction: {
+                mode: 'nearest',
+                intersect: false,
+                axis : 'x',
+            },
+        }
+
+    };
+    let songChart = new Chart(songCt, songChartData);
+
+
+    let userCt =  document.getElementById('userChart');
+    let userChartData = {
+        type : 'line',
+        data : {
+            labels : {{ user_label | safe }},
+            datasets: [{
+                label: '참석률',
+                data: {{ user_data }},
+            }]
+        },
+
+        options: {
+            scales: {
+                y:{
+                    max: 100,
+                    suggestedMin: 70,
+                },
+                x: {
+                    ticks:{
+                        autoSkip: false,
+                        font:{
+                            size: 10
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend : {
+                    display : false
+                },
+                title: {
+                    display: true,
+                    text: '인원별 참석률'
+                },
+                datalabels: {
+                    display: false,
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.formattedValue + '%';
+                        }
+                    }
+                },
+            },
+            interaction: {
+                mode: 'nearest',
+                intersect: false,
+                axis : 'x',
+            },
+        }
+
+    }
+    let userChart = new Chart(userCt, userChartData);
+
+
+    let totalCt = document.getElementById('totalChart');
+    let totalChartData = {
+        type : 'doughnut',
+        data : {
+            labels : ['참석률', '불참률'],
+            datasets : [
+                {
+                    label : "%",
+                    data : [parseFloat('{{total_chart}}'),100 - parseFloat('{{total_chart}}')],
+                    backgroundColor : [
+                        'rgb(0, 117, 167)',
+                        'rgb(253, 0, 65)'
+                    ]
+                }
+            ]
+        },
+        options : {
+            plugins: {
+                legend : {
+                    display : false
+                },
+                title: {
+                    display: true,
+                    text: '전체 참석률'
+                },
+                datalabels: {
+                    formatter: (value) => {
+                        if (value < 15) return '';
+                        return value + '%';
+                    },
+                    display: true,
+                    color: 'rgb(255, 255, 255)',
+                    font: {
+                        weight: 'bold',
+                        size: '16',
+                    },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.formattedValue + '%';
+                        }
+                    }
+                }
+            },
+            aspectRatio: 1,
+
+        }
+    }
+    let totalChart = new Chart(totalCt, totalChartData);
+</script>
+{% endblock %}
