@@ -225,6 +225,36 @@ input[type="checkbox"]:checked+.label-checkbox-blue{
     color: rgb(48, 145, 255);
 }
 
+.timetable-title{
+    border: none;
+    color: #000;
+    text-align: center;
+    width: 100%;
+    pointer-events: none;
+    vertical-align: middle;
+    height: 20px;
+    line-height: 20px;
+}
+
+.timetable-table{
+    border-spacing: 0px;
+    width: 85%;
+}
+.timetable-table tr{
+    height: 30px;
+}
+
+.timetable-table tr:nth-child(even){
+    background-color: rgb(238 238 238);
+}
+
+.timetable-title{
+    background-color: transparent;
+}
+
+.swap-selected{
+    background: rgb(248 223 230);
+}
 
 
 .submit-wrapper, .setting_description{

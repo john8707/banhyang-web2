@@ -5,27 +5,32 @@
 <div class="practice_container">
     {% include 'nav.html' %}
 
-<div class="setting_form">
-
+    <div class="setting_form">
+    <form action="" method="post" onsubmit="return confirm('시간표를 확정하고 저장하시겠습니까? 해당 날짜의 기존 저장된 시간표는 삭제됩니다.')">
     {% for k, v in df.items %}
-    <table style="border-spacing: 15px 12px; margin: 0 auto; text-align: center;">
+    <table class="timetable-table" style="margin: 0 auto; text-align: center;">
     <div class="setting_description">
         {{k}}
     </div>
     <tr>
         <td></td>
-    {% for j in v.columns %}
-        <td style="font-weight: bold;">{{j}}</td>
+    {% for j in v.1.columns %}
+        <td style="font-weight: bold; font-size: 15px;">{{j}}</td>
     {% endfor %}
     </tr>
-    {% for j in v.itertuples %}
-        <tr>
+    {% for j in v.1.itertuples %}
+        <tr >
 
             {% for i in j %}
                 {% if i  %}
-                    <td>{{i}}</td>
-                {% else %}
-                    <td>X</td>
+                    {% if not forloop.first %}
+                        <td class="timetable-swap">
+                            <input class="timetable-title" type="text" name="timetable_{{v.0}}_{{forloop.parentloop.counter0}}_{{forloop.counter0 | add:'-1'}}" id="" value="{{i}}" readonly="readonly">
+                    {% else %}
+                        <td style="font-weight: bold; width: 18%;">
+                        {{i}}
+                    {% endif %}
+                        </td>
                 {% endif %}
             {% endfor %}
         </tr>
@@ -33,8 +38,13 @@
     {% endfor %}
 </table>
 
+<button type="button" id="edit-button">편집</button>
+<button type="button" id="save-button" style="display: none;">저장</button>
+<button type="button" id="cancel-button" style="display: none;">초기화</button>
+
 <br>
-<form action="" method="post" onsubmit="return confirm('시간표를 확정하고 저장하시겠습니까? 해당 날짜의 기존 저장된 시간표는 삭제됩니다.')">
+
+<br>
     {% csrf_token %}
     <input type="submit" value="시간표 확정하기">
 </form>
@@ -55,6 +65,101 @@
 
 </div>
 </div>
+
+
+<script>
+    window.onload = function(){
+        let timetables = document.querySelectorAll('.timetable-swap');
+        timetables.forEach( (timetable) => {
+            timetable.addEventListener('click', swap);
+        });
+
+        let editMode = false;
+        let selected = false;
+
+        let previousElement;
+        let previousTitle = ''
+
+        let currentElement;
+        let currentTitle = '';
+
+        function resetSelected(){
+            previousElement = '';
+            previousTitle = '';
+
+            currentElement = '';
+            currentTitle = '';
+
+            selected = false;
+
+            document.querySelectorAll('.swap-selected').forEach((el) => el.classList.remove('swap-selected'));
+        }
+        
+        resetSelected();
+        
+        // 선택된 두 개의 곡을 바꿈
+        function swap(ev){
+            console.log(ev);
+            if(!editMode) return;
+            if(selected){
+                selected = false;
+                currentElement = ev.target.firstElementChild;
+                currentTitle = currentElement.value;
+
+                previousElement.value = currentTitle;
+                currentElement.value = previousTitle;
+                
+                previousElement.classList.remove('swap-selected');
+            }
+            else if(!selected){
+                selected = true;
+                previousElement = ev.target.firstElementChild;
+                previousElement.className += ' swap-selected';
+                previousTitle = previousElement.value;
+            }
+        }
+
+        let editButton = document.querySelector('#edit-button');
+        let saveButton = document.querySelector('#save-button');
+        let cancelButton = document.querySelector('#cancel-button');
+        
+
+        editButton.addEventListener('click', edit);
+        saveButton.addEventListener('click', save);
+        cancelButton.addEventListener('click', cancel);
+
+        function edit(ev){
+            console.log(ev);
+            editMode = true;
+
+            editButton.style.display = 'none';
+            cancelButton.style.display = 'inline-block';
+            saveButton.style.display = 'inline-block';
+        }
+
+        function save(ev){
+            editMode = false;
+            resetSelected();
+            editButton.style.display = 'inline-block';
+            cancelButton.style.display = 'none';
+            saveButton.style.display = 'none';
+        }
+
+        function cancel(ev){
+            editMode = false;
+            resetSelected();
+            editButton.style.display = 'inline-block';
+            cancelButton.style.display = 'none';
+            saveButton.style.display = 'none';
+
+            timetables.forEach( (timetable) => {
+                timetable.firstElementChild.value = timetable.firstElementChild.defaultValue;
+            });
+        }
+    }
+
+</script>
+
 
 
 {% endblock %}

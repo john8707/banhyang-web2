@@ -306,11 +306,10 @@ def timetable(request):
 
         schedule_df_dict[i] = new_dataframe
 
-
     # 웹 가독성을 위해 시간표들의 dictionary의 키를 Song id -> Song name으로 변환
     schedule_df_result = {}
     for i, v in schedule_df_dict.items():
-        schedule_df_result[practiceId_to_date[i]] = v
+        schedule_df_result[practiceId_to_date[i]] = [i,v]
 
     context['df'] = schedule_df_result
     context['NA'] = who_is_not_coming
@@ -324,6 +323,16 @@ def timetable(request):
 
     # 시간표를 확정하는 경우
     if request.method == "POST":
+        # POST 데이터 파싱하기 -> 기존 Dataframe의 순서 수정
+        for key, value in request.POST.items():
+            post_parsed = key.split('_')
+            if post_parsed[0] == 'timetable':
+                song_name = value
+                parsed_id = int(post_parsed[1])
+                col = int(post_parsed[2])
+                row = int(post_parsed[3])
+                schedule_df_dict[parsed_id].iloc[col, row] = song_name
+
         # 확정된 시간표를 db 저장하기 위해 데이터 가공
         timetable_object_dict = timetable_df_to_objects(schedule_df_dict, info_dict, song_objects)
 
