@@ -135,7 +135,6 @@ a, a:visited{
     width: 30%;
     text-align: right;
     font-weight: bold;
-    margin-top: 6px;
     font-size: 13px;
 }
 
@@ -192,7 +191,7 @@ label.practice_choice{
     padding-bottom: 0px;
     display: block;
     width: 85px;
-    height: 30px;
+    height: 35px;
     margin: 0 auto 15px;
     cursor: pointer;
 }
@@ -221,10 +220,40 @@ input[type="checkbox"]:checked+.label-checkbox{
 }
 
 input[type="checkbox"]:checked+.label-checkbox-blue{
-    border: 1px rgb(48, 145, 255) solid;
-    color: rgb(48, 145, 255);
+    border: 1px #0d6efd solid;
+    color: #0d6efd;
 }
 
+.timetable-title{
+    border: none;
+    color: #000;
+    text-align: center;
+    width: 100%;
+    pointer-events: none;
+    vertical-align: middle;
+    height: 20px;
+    line-height: 20px;
+}
+
+.timetable-table{
+    border-spacing: 0px;
+    width: 85%;
+}
+.timetable-table tr{
+    height: 30px;
+}
+
+.timetable-table tr:nth-child(even){
+    background-color: rgb(248, 248, 248);
+}
+
+.timetable-title{
+    background-color: transparent;
+}
+
+.swap-selected{
+    background: rgb(248 223 230);
+}
 
 
 .submit-wrapper, .setting_description{
@@ -256,8 +285,12 @@ input[type="checkbox"]:checked+.label-checkbox-blue{
     width: 300px;
     height: 25px;
     border-radius: 3px;
+    vertical-align: middle;
 }
 
+#id_username{
+    height: 31px;
+}
 
 .setting_choice{
     font-size: 13px;

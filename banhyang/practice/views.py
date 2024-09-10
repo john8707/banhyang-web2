@@ -1,6 +1,7 @@
 # 표준 라이브러리
 from collections import defaultdict
 from datetime import timedelta, date, datetime
+import json
 
 # core Django
 from django.db.models import Exists, OuterRef
@@ -13,7 +14,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BassRetriever, timetable_df_to_objects
+from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BaseRetriever, timetable_df_to_objects
+from .metrics import AttendanceStatistics
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 
@@ -258,7 +260,7 @@ def timetable(request):
     message = None
 
     # 시간표, 동선 최적화 위한 공통 데이터 가져오기
-    base_retriever = BassRetriever()
+    base_retriever = BaseRetriever()
     common_data = base_retriever.retreive_common_data()
 
     # 시간표 최적화 위한 데이터 가져오기
@@ -304,11 +306,10 @@ def timetable(request):
 
         schedule_df_dict[i] = new_dataframe
 
-
     # 웹 가독성을 위해 시간표들의 dictionary의 키를 Song id -> Song name으로 변환
     schedule_df_result = {}
     for i, v in schedule_df_dict.items():
-        schedule_df_result[practiceId_to_date[i]] = v
+        schedule_df_result[practiceId_to_date[i]] = [i,v]
 
     context['df'] = schedule_df_result
     context['NA'] = who_is_not_coming
@@ -322,6 +323,16 @@ def timetable(request):
 
     # 시간표를 확정하는 경우
     if request.method == "POST":
+        # POST 데이터 파싱하기 -> 기존 Dataframe의 순서 수정
+        for key, value in request.POST.items():
+            post_parsed = key.split('_')
+            if post_parsed[0] == 'timetable':
+                song_name = value
+                parsed_id = int(post_parsed[1])
+                col = int(post_parsed[2])
+                row = int(post_parsed[3])
+                schedule_df_dict[parsed_id].iloc[col, row] = song_name
+
         # 확정된 시간표를 db 저장하기 위해 데이터 가공
         timetable_object_dict = timetable_df_to_objects(schedule_df_dict, info_dict, song_objects)
 
@@ -420,3 +431,46 @@ def who_is_not_coming(request):
     context['when_and_why'] = when_and_why
 
     return render(request, 'who_is_not_coming.html', context=context)
+
+
+@login_required(login_url=URL_LOGIN)
+def metrics(request):
+    context = {}
+
+    stats = AttendanceStatistics()
+    user_percentage, schedule_percentage, song_percentage, total_percentage = stats.get_metrics()
+    
+    # 합주 id를 날짜로 변경하고 정렬 후 라벨과 데이터로 나눔
+    id_to_date_dict = {}
+    for schedule_id, percentage in schedule_percentage.items():
+        schedule_object = Schedule.objects.get(id=schedule_id)
+        schedule_date = schedule_object.date
+        id_to_date_dict[schedule_date] = percentage
+    
+    schedule_label = sorted(id_to_date_dict.keys())
+    schedule_data = [id_to_date_dict[x] for x in schedule_label]
+    schedule_label = [x.strftime('%m.%d') for x in schedule_label]
+
+    # 곡 object를 제목으로 변경하고 참석률 순으로 정렬 후 라벨과 데이터로 나눔
+    sorted_song_percentage = {k.songname : v for k, v in sorted(song_percentage.items(), key=lambda x:x[1])}
+    song_label = json.dumps(list(sorted_song_percentage.keys()))
+    song_data = list(sorted_song_percentage.values())
+
+    # 유저별 참석률을 정렬 후 라벨과 데이터로 나눔
+    sorted_user_percentage = {k : v for k, v in sorted(user_percentage.items(), key= lambda x: x[1])}
+    user_label = json.dumps(list(sorted_user_percentage.keys()))
+    user_data = list(sorted_user_percentage.values())
+
+
+    context['daily_label'] = json.dumps(schedule_label)
+    context['daily_data'] = schedule_data
+
+    context['song_label'] = song_label
+    context['song_data'] = song_data
+
+    context['user_label'] = user_label
+    context['user_data'] = user_data
+
+    context['total_chart'] = total_percentage
+
+    return render(request, 'metrics.html', context=context)
