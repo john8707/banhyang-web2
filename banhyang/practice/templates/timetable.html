@@ -38,23 +38,16 @@
     {% endfor %}
 </table>
 
-<button type="button" id="edit-button">편집</button>
-<button type="button" id="save-button" style="display: none;">저장</button>
-<button type="button" id="cancel-button" style="display: none;">초기화</button>
-
-<br>
-
-<br>
-    {% csrf_token %}
-    <input type="submit" value="시간표 확정하기">
-</form>
+<button type="button" id="edit-button" class="btn btn-outline-secondary btn-sm">편집</button>
+<button type="button" id="save-button" class="btn btn-outline-primary btn-sm" style="display: none;">저장</button>
+<button type="button" id="cancel-button" class="btn btn-outline-danger btn-sm" style="display: none;">초기화</button>
 
 <div class="setting_description">
     불참 명단
 </div>
 
 <div style="margin-bottom: 20px; line-height: 1.6;">
-
+    
     {% for key, value in NA.items %}
     {% if value %}
     {{key}} : {{value}} <br>
@@ -62,7 +55,10 @@
     {% endfor %}
 </div>
 
+{% csrf_token %}
+<input type="submit" class="btn btn-outline-primary btn-sm" value="시간표 확정하기">
 
+</form>
 </div>
 </div>
 
