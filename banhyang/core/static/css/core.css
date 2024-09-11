@@ -25,6 +25,10 @@
          url('../fonts/nanum-gothic-v17-latin_korean-700.svg#NanumGothic') format('svg'); /* Legacy iOS */
 }
 
+*, ::after, ::before{
+    box-sizing: content-box;
+}
+
 body{
     background-color: rgb(252,252,252);
     padding-top: 130px;
@@ -136,6 +140,7 @@ a, a:visited{
     text-align: right;
     font-weight: bold;
     font-size: 13px;
+    margin-top: 3px;
 }
 
     
