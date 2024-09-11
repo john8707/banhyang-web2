@@ -30,7 +30,6 @@
             <span></span>
             <ul id="menu">
                 <li><a href="{% url 'practice_apply' %}">합주 불참 신청</a></li>
-                <li><a href="{% url 'attendance_check' %}">출석/지각 확인</a></li>
                 {% if user.is_authenticated %}
                 <hr style="border:1px color= silver; margin: 0 auto; width:180px;">
                 <li><a href="{% url 'setting' %}">합주 선택/미제출 인원 확인</a></li>
@@ -39,6 +38,7 @@
                 <li><a href="{% url 'user_list' %}">활동 인원 목록</a></li>
                 <li><a href="{% url 'timetable' %}">시간표 짜기</a></li>
                 <li><a href="{% url 'who_is_not_coming' %}">불참 시간대 및 사유</a></li>
+                <li><a href="{% url 'metrics' %}">합주 통계</a></li>
                 {% endif %}
             </ul>
        </div>

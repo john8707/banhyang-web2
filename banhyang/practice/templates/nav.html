@@ -1,7 +1,6 @@
 <nav class="practice_nav">
     
     <div><a class="nav_link" href="{% url 'practice_apply' %}">합주 불참 신청</a></div>
-    <div><a class="nav_link" href="{% url 'attendance_check' %}">출석/지각 확인</a></div>
 
     {% if user.is_authenticated %}
     <div><a href="{% url 'setting' %}" class="nav_link">합주 선택/미제출 인원 확인</a></div>
