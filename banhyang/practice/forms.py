@@ -79,7 +79,8 @@ class PracticeApplyForm(forms.Form):
                 label="전체 참여",
                 widget=forms.CheckboxInput(attrs={
                     'name': 'selected',
-                    'value': str(i.id) + "_-1"
+                    'value': str(i.id) + "_-1",
+                    "onclick": "attendAll(this)"
                 })
             )
 
@@ -104,7 +105,8 @@ class PracticeApplyForm(forms.Form):
                     label=time_counter.strftime("%H:%M"),
                     widget=forms.CheckboxInput(attrs={
                         'value': str(i.id) + "_" + str(division_counter),
-                        'class': 'checkit'
+                        'class': 'checkit',
+                        'onclick': 'validateButtonChecked(this)'
                     })
                 )
                 time_counter += timedelta(minutes=10)

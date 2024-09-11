@@ -95,7 +95,6 @@
         
         // 선택된 두 개의 곡을 바꿈
         function swap(ev){
-            console.log(ev);
             if(!editMode) return;
             if(selected){
                 selected = false;
@@ -125,7 +124,6 @@
         cancelButton.addEventListener('click', cancel);
 
         function edit(ev){
-            console.log(ev);
             editMode = true;
 
             editButton.style.display = 'none';

@@ -43,7 +43,7 @@
             
             {% elif '-1' in field.name %}
             <div class="grid-container" style="margin-bottom: 20px;">
-                <label class="practice_choice" >
+                <label class="practice_choice attendall" >
                     {{field}}
                     <div class="label-checkbox-blue">
                         <div class="label-text">
@@ -65,7 +65,7 @@
 
             <div class="grid-container">
             {% else %}
-                <label class="practice_choice selectall">
+                <label class="practice_choice select_indiv">
                     {{field}}
                     <div class="label-checkbox">
                         <div class="label-text">
@@ -98,13 +98,50 @@
 
 </div>
 <script type="text/javascript">
-    function selectAll(selectAll) {
-        const checkboxes = selectAll.parentElement.parentElement.parentElement.querySelectorAll('.selectall input[class=checkit]');
-        const attendall = selectAll.parentElement.parentElement.firstElementChild.firstElementChild;
+    function selectAll(button) {
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select_indiv input[class=checkit]');
+        const attendall = button.parentElement.parentElement.firstElementChild.firstElementChild;
         checkboxes.forEach((checkbox) => {
-            checkbox.checked = selectAll.checked;
+            checkbox.checked = button.checked;
         })
-        attendall.checked = 1-selectAll.checked;
+        if (button.checked){
+            attendall.checked = 0;
+        }
+    }
+    
+    function attendAll(button) {
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select_indiv input');
+        const selectall = button.parentElement.parentElement.parentElement.querySelector('.selectall input');
+        if(button.checked){
+                checkboxes.forEach((checkbox) => {
+                checkbox.checked = 0;
+            })
+            selectall.checked = 0;
+        };
+    }
+
+    function validateButtonChecked(button) {
+        const selectall = button.parentElement.parentElement.parentElement.querySelector('.selectall input');
+        const attendall = button.parentElement.parentElement.parentElement.querySelector('.attendall input');
+
+        if(button.checked) {
+            attendall.checked = 0;
+        }
+        
+        if(!button.checked){
+            selectall.checked = 0;
+        }
+        
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select_indiv input');
+        let allChecked = 1
+        if(button.checked){
+            checkboxes.forEach((checkbox) =>{
+                if(!checkbox.checked){
+                    allChecked = 0;
+                }
+            });
+            selectall.checked = allChecked;
+        }
     }
 </script>
 
