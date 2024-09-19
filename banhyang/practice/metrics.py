@@ -96,7 +96,7 @@ class AttendanceStatistics():
             if counter_list[0] + counter_list[1] > 0:
                 user_attendance_percentage_dict[user] = round(counter_list[0] / (counter_list[0] + counter_list[1]), 2) * 100
             else:
-                user_attendance_percentage_dict[user] = None
+                user_attendance_percentage_dict[user] = 0
         return user_attendance_percentage_dict
 
     def get_metrics(self) -> Tuple[dict, dict, defaultdict, float]:
