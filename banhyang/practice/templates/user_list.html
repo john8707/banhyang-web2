@@ -30,7 +30,7 @@
         <br>
         {% for user in users %}
         <tr>
-            <td><input type="checkbox" value={{user.username}} name="user_name"></td>
+            <td><input type="checkbox" value="{{user.username}}" name="user_name"></td>
             <td>{{user.username}}</td>
         </tr>
         {% endfor %}
