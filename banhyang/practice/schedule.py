@@ -284,7 +284,7 @@ class ScheduleOptimizer:
     """
     def __init__(self, processed_data) -> None:
         self.processed_data = processed_data
-        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.SAT_INTEGER_PROGRAMMING)
 
     def time_iter(self, p) -> range:
         "제약 조건 설정할 때 합주 별 반복되는 iteration 함수화"
@@ -567,7 +567,7 @@ class RouteOptimizer():
         self.session_weight_dict = raw_data['param_dict']['session_weight_dict']
         self.song_objects = raw_data['song_objects']
 
-        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.SAT_INTEGER_PROGRAMMING)
 
     def add_decision_variable(self):
         """
