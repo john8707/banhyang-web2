@@ -4,7 +4,7 @@ from datetime import timedelta, date, datetime
 import json
 
 # core Django
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
@@ -195,7 +195,8 @@ def song_list(request):
         u = SongData.objects.filter(id=update_Id).update(priority=update_value)
 
     # 곡 목록 보여주기
-    songs = SongData.objects.all().order_by('songname')
+    session_qs = Session.objects.select_related('user_name')
+    songs = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs))
     song_dict = {}
     for song in songs:
         session_dict = defaultdict(list)
