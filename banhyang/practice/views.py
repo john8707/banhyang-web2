@@ -14,7 +14,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BaseRetriever, timetable_df_to_objects
+from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BaseRetriever, timetable_df_to_objects, get_all_na_users
 from .metrics import AttendanceStatistics
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
@@ -270,6 +270,9 @@ def timetable(request):
     # 시간표 최적화 위한 전처리 과정
     schedule_processor = ScheduleProcessor(raw_data)
     processed_data = schedule_processor.process()
+    available_dict = processed_data['available_dict']
+    song_session_set = processed_data['song_session_set']
+    songId_to_name = processed_data['songId_to_name']
 
     # 시간표를 db 저장하기 위해 timetable object로 변환하기 위한 데이터 가져오기
     info_dict = processed_data['practice_info_dict']
@@ -280,9 +283,9 @@ def timetable(request):
     schedule_optimizer = ScheduleOptimizer(processed_data)
     result = schedule_optimizer.optimize()
 
-    # 최적화된 시간표를 후처리하여 시간표를 dataframe로, 불참 인원과 사유를 dictionary로 반환
+    # 최적화된 시간표를 후처리하여 timetable의 dataframe dict로 반환
     schedule_postprocessor = SchedulePostProcessor(result, processed_data)
-    schedule_df_dict, who_is_not_coming = schedule_postprocessor.post_process()
+    schedule_df_dict, na_indexes = schedule_postprocessor.post_process()
 
     # 웹의 가독성을 위해 dataframe의 Nan을 'X'로 변경
     schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
@@ -306,13 +309,17 @@ def timetable(request):
 
         schedule_df_dict[i] = new_dataframe
 
-    # 웹 가독성을 위해 시간표들의 dictionary의 키를 Song id -> Song name으로 변환
+    # 웹 가독성을 위해 시간표들의 dictionary의 키를 schedule id -> MM월 DD일 (요일)으로 변환
     schedule_df_result = {}
     for i, v in schedule_df_dict.items():
         schedule_df_result[practiceId_to_date[i]] = [i,v]
+        na_indexes[i].append(practiceId_to_date[i])
 
     context['df'] = schedule_df_result
-    context['NA'] = who_is_not_coming
+
+    na_users = get_all_na_users(available_dict, song_session_set, songId_to_name)
+    context['na_users'] = na_users
+    context['na_indexes'] = na_indexes
 
     # 불참 여부 미제출 인원 체크하기
     schedule_objects = schedule_processor.raw_data['schedule_objects']

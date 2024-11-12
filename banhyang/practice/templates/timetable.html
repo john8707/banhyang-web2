@@ -46,13 +46,7 @@
     불참 명단
 </div>
 
-<div style="margin-bottom: 20px; line-height: 1.6;">
-    
-    {% for key, value in NA.items %}
-    {% if value %}
-    {{key}} : {% for name in value %} {{name}} {% endfor %} <br>
-    {% endif %}
-    {% endfor %}
+<div style="margin-bottom: 20px; line-height: 1.6;" class="na_list_container">
 </div>
 
 {% csrf_token %}
@@ -62,6 +56,8 @@
 </div>
 </div>
 
+{{ na_users| json_script:"na_users" }}
+{{ na_indexes| json_script:"na_indexes" }}
 
 <script>
     window.onload = function(){
@@ -92,7 +88,29 @@
         }
         
         resetSelected();
-        
+
+        const na_users = JSON.parse(document.getElementById('na_users').textContent);
+        const na_indexes = JSON.parse(document.getElementById('na_indexes').textContent);
+        function getNaList(){
+            timetables = document.querySelectorAll('.timetable-title');
+            na_div = document.querySelector('.na_list_container');
+            na_div.innerHTML = '';
+            for (let i of timetables) {
+                var values = i.name.split('_');
+                var tt_id = values[1];
+                var t_iter = values[2];
+                var r_iter = values[3];
+                var song_name = i.value;
+                if (song_name == 'X'){
+                    continue
+                };
+                if (na_users[song_name][tt_id][t_iter] !== undefined){
+                    na_div.innerHTML += song_name + " (" + na_indexes[tt_id][1] + " " + na_indexes[tt_id][0][t_iter] + ") : " + na_users[song_name][tt_id][t_iter] + "<br>";
+                };
+            }
+        }
+        getNaList();
+
         // 선택된 두 개의 곡을 바꿈
         function swap(ev){
             if(!editMode) return;
@@ -105,6 +123,7 @@
                 currentElement.value = previousTitle;
                 
                 previousElement.classList.remove('swap-selected');
+                getNaList();
             }
             else if(!selected){
                 selected = true;
@@ -146,9 +165,10 @@
             cancelButton.style.display = 'none';
             saveButton.style.display = 'none';
 
-            timetables.forEach( (timetable) => {
-                timetable.firstElementChild.value = timetable.firstElementChild.defaultValue;
+            timetables.forEach( (timetable) => {                
+                timetable.value = timetable.defaultValue;
             });
+            getNaList();
         }
     }
 
