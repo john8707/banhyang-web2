@@ -364,7 +364,8 @@ def timetable(request):
 def who_is_not_coming(request):
     # 불참 시간과 사유
     context = {}
-    current_schedule = Schedule.objects.filter(is_current=True)
+    apply_qs = Apply.objects.select_related('user_name')
+    current_schedule = Schedule.objects.filter(is_current=True).prefetch_related(Prefetch('apply', queryset=apply_qs))
     schedule_info = {}
     when_and_why = {}
 
@@ -417,7 +418,7 @@ def who_is_not_coming(request):
 
             # 날짜 별 불참 사유 dictionary
             reason_why[schedule_id] = {}
-            reason_object = WhyNotComing.objects.filter(schedule_id=schedule)
+            reason_object = WhyNotComing.objects.filter(schedule_id=schedule).select_related('user_name')
             for i in reason_object:
                 reason_why[schedule_id][i.user_name.username] = i.reason
 
