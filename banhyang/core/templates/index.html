@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,8 +31,9 @@
             </ul>
         </div>    
         
-        <div style="position: relative;">
-            <img src="{% static 'image/concert1.png' %}" alt="concert image" id="main-image" width="1200">
+        <div style="position: relative;" id="main-image-container">
+            {% static "" as baseURL %}
+            <img src="{% static 'image/concert' %}{% generate_random 1 3 %}.png" alt="concert image" id="main-image" width="1200">
             <img src="{% static 'image/logo2.png' %}" alt="logo2" id="logo-image">    
         </div>
         
