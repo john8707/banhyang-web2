@@ -27,7 +27,7 @@ sched = BackgroundScheduler()
 # oracle free tier의 auto inactive 방지용
 def prevent_db_sleep():
     print("Awake db connection")
-    len(PracticeUser.objects.all())
+    print(len(PracticeUser.objects.all()))
 
 sched.add_job(prevent_db_sleep, 'interval', days=6)
 
