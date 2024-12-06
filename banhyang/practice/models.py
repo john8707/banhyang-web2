@@ -38,7 +38,7 @@ class Apply(models.Model):
 class SongData(models.Model):
     id = models.AutoField(primary_key=True)
     songname = models.CharField(max_length=255)
-    priority = models.IntegerField(default=3, validators=[MinValueValidator(0), MaxValueValidator(6)])
+    priority = models.IntegerField(default=3, validators=[MinValueValidator(-1), MaxValueValidator(5)])
 
     def __str__(self):
         return self.songname

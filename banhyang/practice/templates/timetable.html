@@ -38,6 +38,7 @@
     {% endfor %}
 </table>
 
+
 <button type="button" id="edit-button" class="btn btn-outline-secondary btn-sm">편집</button>
 <button type="button" id="save-button" class="btn btn-outline-primary btn-sm" style="display: none;">저장</button>
 <button type="button" id="cancel-button" class="btn btn-outline-danger btn-sm" style="display: none;">초기화</button>
@@ -47,6 +48,16 @@
 </div>
 
 <div style="margin-bottom: 20px; line-height: 1.6;" class="na_list_container">
+</div>
+
+<div class="setting_description">
+    합주 미진행 곡
+</div>
+<div class="div">
+    {% for i in na_songs %}
+    {{i}} <br>
+    {% endfor %}
+    <br><br>
 </div>
 
 {% csrf_token %}

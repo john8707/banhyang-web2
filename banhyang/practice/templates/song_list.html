@@ -35,7 +35,7 @@
                 <option value="3" {% if song.priority == 3 %} selected {% endif %}>3</option>
                 <option value="4" {% if song.priority == 4 %} selected {% endif %}>4</option>
                 <option value="5" {% if song.priority == 5 %} selected {% endif %}>5</option>
-                <option value="6" {% if song.priority == 6 %} selected {% endif %}>고려X</option>
+                <option value="-1" {% if song.priority == -1 %} selected {% endif %}>합주X</option>
             </select>
         </td>
         <td><img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;"></td>

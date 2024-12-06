@@ -196,7 +196,7 @@ def song_list(request):
 
     # 곡 목록 보여주기
     session_qs = Session.objects.select_related('user_name')
-    songs = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs))
+    songs = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs)).order_by('songname')
     song_dict = {}
     for song in songs:
         session_dict = defaultdict(list)
@@ -317,6 +317,11 @@ def timetable(request):
         na_indexes[i].append(practiceId_to_date[i])
 
     context['df'] = schedule_df_result
+
+    # 합주 진행하지 않는 (곡 목록의 우선 순위 상에서 합주 X로 선택된) 곡들
+    na_songs = SongData.objects.filter(priority=-1)
+    na_songs = [x.songname for x in na_songs]
+    context['na_songs'] = na_songs
 
     na_users = get_all_na_users(available_dict, song_session_set, songId_to_name)
     context['na_users'] = na_users

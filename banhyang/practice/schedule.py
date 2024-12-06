@@ -34,7 +34,7 @@ class BaseRetriever:
         user_objects = PracticeUser.objects.prefetch_related('session')
         session_objects = Session.objects.all()
         session_qs = Session.objects.select_related('user_name')
-        song_objects = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs))
+        song_objects = SongData.objects.exclude(priority=-1).prefetch_related(Prefetch('session', queryset=session_qs))
 
         common_data['user_objects'] = user_objects
         common_data['song_objects'] = song_objects
@@ -72,12 +72,11 @@ class ScheduleRetriever:
         # Song Model의 우선 순위 별 가중치의 값
         priority_weight_parameters = {
             0: 100,
-            1: 1.6,
-            2: 1.3,
+            1: 2.0,
+            2: 1.5,
             3: 1,
-            4: 0.7,
-            5: 0.4,
-            6: 0
+            4: 0.5,
+            5: 0.0,
         }
         param_dict['priority_weight'] = priority_weight_parameters
 
