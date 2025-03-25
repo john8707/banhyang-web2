@@ -9,7 +9,7 @@ from django.db.models import Prefetch, QuerySet
 
 
 from .models import Timetable, Session, SongData, Schedule, Apply, PracticeUser
-from .schedule import calc_minute_delta
+from .timetable import calc_minute_delta
 
 
 class AttendanceStatistics():

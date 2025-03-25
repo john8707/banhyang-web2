@@ -16,8 +16,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
-from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, SchedulePostProcessor, RouteRetriever, RouteProcessor, RouteOptimizer, RoutePostProcessor, BaseRetriever, timetable_df_to_objects, get_all_na_users
 from .metrics import AttendanceStatistics
+from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 # LOGIN Redirecting 페이지 -> 로그인이 필요한 페이지에 로그인 없이 접근할 경우 해당 링크로 redirect됨
@@ -298,66 +298,34 @@ def timetable(request:HttpRequest) -> HttpResponse:
     """
     !! 합주 시간표 생성 페이지 !!
     
-    자세한 로직은 schedule.py 참고하기
+    자세한 로직은 timetable.py 참고하기
     """
     context = {}
     message = None
 
-    # 시간표, 동선 최적화 위한 공통 데이터 가져오기
-    base_retriever = BaseRetriever()
-    common_data = base_retriever.retreive_common_data()
-
-    # 시간표 최적화 위한 데이터 가져오기
-    schedule_retriever = ScheduleRetriever()
-    raw_data = schedule_retriever.retrieve_from_DB(common_data=common_data)
-
-    # 시간표 최적화 위한 전처리 과정
-    schedule_processor = ScheduleProcessor(raw_data)
-    processed_data = schedule_processor.process()
-    available_dict = processed_data['available_dict']
-    song_session_set = processed_data['song_session_set']
-    songId_to_name = processed_data['songId_to_name']
-
-    # 시간표를 db 저장하기 위해 timetable object로 변환하기 위한 데이터 가져오기
-    info_dict = processed_data['practice_info_dict']
-    song_objects = raw_data['song_objects']
-    practiceId_to_date = processed_data['practiceId_to_date']
-
-    # 시간표 optimizer을 이용한 최적화
-    schedule_optimizer = ScheduleOptimizer(processed_data)
-    result = schedule_optimizer.optimize()
-
-    # 최적화된 시간표를 후처리하여 timetable의 dataframe dict로 반환
-    schedule_postprocessor = SchedulePostProcessor(result, processed_data)
-    schedule_df_dict, na_indexes = schedule_postprocessor.post_process()
+    schedule_opt = ScheduleOptimizer()
+    schedule_opt.retreive_data()
+    schedule_opt.process()
+    schedule_opt.optimize()
+    schedule_df_dict, na_indexes = schedule_opt.post_process()
 
     # 웹의 가독성을 위해 dataframe의 Nan을 'X'로 변경
     schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
-
     # 동선 최적화 위한 데이터 가져오기
-    route_retriever = RouteRetriever()
-    raw_data = route_retriever.retrieve_db_data(common_data=common_data)
-
     for i,df in schedule_df_dict.items():
-        # 동선 최적화 위한 전처리 과정
-        route_processor = RouteProcessor(raw_data, df)
-        processed_data = route_processor.process()
-
-        # 동선 optimizer을 이용한 최적화
-        route_optimizer = RouteOptimizer(processed_data, raw_data)
-        result = route_optimizer.optimize()
-
-        # 동선 최적화된 시간표를 후처리하여 시간표를 dataframe로 반환
-        route_postprocessor = RoutePostProcessor(route_optimizer, df)
-        new_dataframe = route_postprocessor.post_process()
+        route_opt = RouteOptimizer(df)
+        route_opt.retreive_data()
+        route_opt.process()
+        route_opt.optimize()
+        new_dataframe = route_opt.post_process()
 
         schedule_df_dict[i] = new_dataframe
 
     # 웹 가독성을 위해 시간표들의 dictionary의 키를 schedule id -> MM월 DD일 (요일)으로 변환
     schedule_df_result = {}
     for i, v in schedule_df_dict.items():
-        schedule_df_result[practiceId_to_date[i]] = [i,v]
-        na_indexes[i].append(practiceId_to_date[i])
+        schedule_df_result[schedule_opt.practiceId_to_date[i]] = [i,v]
+        na_indexes[i].append(schedule_opt.practiceId_to_date[i])
 
     context['df'] = schedule_df_result
 
@@ -366,12 +334,14 @@ def timetable(request:HttpRequest) -> HttpResponse:
     na_songs = [x.songname for x in na_songs]
     context['na_songs'] = na_songs
 
-    na_users = get_all_na_users(available_dict, song_session_set, songId_to_name)
+    na_users = get_all_na_users(schedule_opt.available_dict, 
+                                schedule_opt.song_session_set, 
+                                schedule_opt.songId_to_name)
     context['na_users'] = na_users
     context['na_indexes'] = na_indexes
 
     # 불참 여부 미제출 인원 체크하기
-    schedule_objects = schedule_processor.raw_data['schedule_objects']
+    schedule_objects = schedule_opt.schedule_objects
     for schedule_object in schedule_objects:
         not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=schedule_object)))
         if not_submitted:
@@ -390,7 +360,9 @@ def timetable(request:HttpRequest) -> HttpResponse:
                 schedule_df_dict[parsed_id].iloc[col, row] = song_name
 
         # 확정된 시간표를 db 저장하기 위해 데이터 가공
-        timetable_object_dict = timetable_df_to_objects(schedule_df_dict, info_dict, song_objects)
+        timetable_object_dict = timetable_df_to_objects(schedule_df_dict, 
+                                                        schedule_opt.practice_info, 
+                                                        schedule_opt.song_objects)
 
         for schedule_id, v in timetable_object_dict.items():
             schedule_id = Schedule.objects.get(id=schedule_id)
