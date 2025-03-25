@@ -2,11 +2,13 @@
 from collections import defaultdict
 from datetime import timedelta, date, datetime
 import json
+import typing
 
 # core Django
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 
 # django third party apps
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -18,8 +20,11 @@ from .schedule import ScheduleRetriever, ScheduleProcessor, ScheduleOptimizer, S
 from .metrics import AttendanceStatistics
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
-
+# LOGIN Redirecting 페이지 -> 로그인이 필요한 페이지에 로그인 없이 접근할 경우 해당 링크로 redirect됨
 URL_LOGIN = '/admin/login/?next=/practice/setting'
+
+# type alias when response is redirect or response
+RedirectOrResponse = typing.Union[HttpResponse, HttpResponseRedirect]
 
 
 sched = BackgroundScheduler()
@@ -32,9 +37,13 @@ def prevent_db_sleep():
 sched.add_job(prevent_db_sleep, 'interval', days=6)
 
 
-def practice_apply(request):
+def practice_apply(request:HttpRequest) -> HttpResponse:
+    """
+    합주 불참 신청 페이지
+    """
     message = None
     context = {}
+    # is_current(불참을 받을 합주)가 체크된 합주 일정을 가져옴
     current_practice = Schedule.objects.filter(is_current=True).order_by('date')
     if len(current_practice):
         form = PracticeApplyForm()
@@ -48,6 +57,7 @@ def practice_apply(request):
             message = "제출되었습니다."
             form = PracticeApplyForm()
         else:
+            # Validation 에러 발생
             message = form.non_field_errors()[0]
             form = PracticeApplyForm(request.POST)
 
@@ -56,8 +66,10 @@ def practice_apply(request):
     return render(request, 'practice_apply.html', context=context)
 
 
-# 출석 체크 / 지각 여부 조회 위한 날짜 선택
-def attendance_check_index(request):
+def attendance_check_index(request:HttpRequest) -> HttpResponse:
+    """
+    출석체크 여부 확인을 위한 합주 목록
+    """
     context = {}
 
     timetable_objects = Timetable.objects.distinct().values('schedule_id')
@@ -71,8 +83,10 @@ def attendance_check_index(request):
     return render(request, 'attendance_check_index.html', context=context)
 
 
-# 선택한 날짜 별 출석 체크 / 지각 여부 확인
-def get_attendance_check(request, date):
+def get_attendance_check(request:HttpRequest, date:int) -> HttpResponse:
+    """
+    선택한 날짜의 출석체크 여부 확인 페이지
+    """
     context = {}
     date = integer_to_date(date)
     user_objects = PracticeUser.objects.all()
@@ -80,6 +94,8 @@ def get_attendance_check(request, date):
     attendance_dict = {}
     date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
     attendance_dict[date_to_string] = {}
+
+    # 각 인원 별 도착시간과 ETA를 비교하여 출석/지각/불참 여부 계산
     for user_object in user_objects:
         arrival_time_object = ArrivalTime.objects.filter(user_name=user_object, date=date)
         eta = calculate_eta(user_object=user_object, date=date)
@@ -98,12 +114,19 @@ def get_attendance_check(request, date):
 
 
 @login_required(login_url=URL_LOGIN)
-def setting(request):
+def setting(request:HttpRequest) -> HttpResponse:
+    """
+    불참 조사 받을 합주 날짜 선택 및 불참 조사 미제출 인원 확인 페이지
+    """
     message = None
     context = {}
+
+    # 불참 받을 합주 날짜 선택 후 제출 혹은 곡 당 minute, room number 수정
     if request.method == "POST":
         res = dict(request.POST)
         schedule_objects = Schedule.objects.all()
+
+        # 모든 합주 일정의 is current false 후 선택한 일정만 true로 변경
         schedule_objects.update(is_current=False)
         if 'schedule_checkbox' in res:
             Schedule.objects.filter(id__in=res['schedule_checkbox']).update(is_current=True)
@@ -112,6 +135,7 @@ def setting(request):
             Schedule.objects.filter(id=idx).update(min_per_song=int(res['minute_' + str(idx)][0]), rooms=int(res['rooms_' + str(idx)][0]))
         message = "변경되었습니다."
 
+    # 미제출 인원 목록 조회
     schedules = Schedule.objects.all().order_by('date')
 
     current_schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
@@ -131,7 +155,10 @@ def setting(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def schedule_create(request):
+def schedule_create(request:HttpRequest) -> RedirectOrResponse:
+    """
+    합주 일정 생성 페이지
+    """
     context = {}
     message = None
     form = ScheduleCreateForm()
@@ -141,6 +168,7 @@ def schedule_create(request):
             form.save()
             return redirect('setting')
         else:
+            # validation fail
             message = form.non_field_errors()[0]
             form = ScheduleCreateForm(request.POST)
 
@@ -150,16 +178,22 @@ def schedule_create(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def schedule_delete(request, schedule_id):
+def schedule_delete(_:HttpRequest, schedule_id:int) -> HttpResponseRedirect:
+    """
+    합주 일정 목록에서 특정 날짜 삭제 시 해당 합주 일정의 id를 url parameter로 받아와 삭제
+    """
     practice_to_delete = get_object_or_404(Schedule, id=schedule_id)
     practice_to_delete.delete()
     return redirect('setting')
 
 
 @login_required(login_url=URL_LOGIN)
-def song_list(request):
+def song_list(request:HttpRequest) -> HttpResponse:
+    """
+    곡 목록 CRUD 페이지
+    """
     context = {}
-    form = SongAddForm
+    form = SongAddForm()
     message = None
     # 곡 추가하는 경우
     if request.method == "POST" and 'add' in request.POST:
@@ -170,6 +204,7 @@ def song_list(request):
             form = SongAddForm()
             message = "등록되었습니다."
         else:
+            # validation error
             message = form.non_field_errors()[0]
             form = SongAddForm(request.POST)
 
@@ -213,7 +248,10 @@ def song_list(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def user_list(request):
+def user_list(request:HttpRequest) -> HttpResponse:
+    """
+    유저 목록 확인 및 추가, 삭제 페이지
+    """
     form = UserAddForm()
     context = {}
     message = None
@@ -256,7 +294,12 @@ def user_list(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def timetable(request):
+def timetable(request:HttpRequest) -> HttpResponse:
+    """
+    !! 합주 시간표 생성 페이지 !!
+    
+    자세한 로직은 schedule.py 참고하기
+    """
     context = {}
     message = None
 
@@ -366,8 +409,10 @@ def timetable(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def who_is_not_coming(request):
-    # 불참 시간과 사유
+def who_is_not_coming(request:HttpRequest) -> HttpResponse:
+    """
+    인원 별 불참 사유와 시간 확인 조회 페이지
+    """
     context = {}
     apply_qs = Apply.objects.select_related('user_name')
     current_schedule = Schedule.objects.filter(is_current=True).prefetch_related(Prefetch('apply', queryset=apply_qs))
@@ -448,7 +493,12 @@ def who_is_not_coming(request):
 
 
 @login_required(login_url=URL_LOGIN)
-def metrics(request):
+def metrics(request:HttpRequest) -> HttpResponse:
+    """
+    합주 관련 통계 페이지
+
+    자세한 통계 데이터는 metrics.py 확인
+    """
     context = {}
 
     stats = AttendanceStatistics()
