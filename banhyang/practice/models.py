@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
 
 
 # 합주 날짜
@@ -83,3 +84,9 @@ class ArrivalTime(models.Model):
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='arrivaltime')
     date = models.DateField(auto_now_add=True)
     arrival_time = models.TimeField(auto_now_add=True)
+
+
+class User(AbstractUser):
+    student_id = models.IntegerField(null=True)
+    phone_number = models.CharField(max_length=11, null=True)
+    is_confirmed = models.BooleanField(null=True)
