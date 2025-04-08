@@ -27,8 +27,15 @@ if MIGRATE is True:
 
 User = get_user_model()  # get the currently active user model,
 if os.getenv("DJANGO_SUPERUSER_USERNAME", None) and os.getenv("DJANGO_SUPERUSER_PASSWORD", None):
+    DJANGO_SUPERUSER_NAME = os.getenv("DJANGO_SUPERUSER_NAME", 'admin')
+    DJANGO_SUPERUSER_STUDENT_ID = os.getenv("DJANGO_SUPERUSER_STUDENT_ID", '0')
+    DJANGO_SUPERUSER_PHONE_NUMBER = os.getenv("DJANGO_SUPERUSER_PHONE_NUMBER", '0')
     User.objects.filter(username=os.getenv("DJANGO_SUPERUSER_USERNAME")).exists() or \
-        call_command('createsuperuser', interactive=False)
+        call_command('createsuperuser',
+                     '--name', DJANGO_SUPERUSER_NAME,
+                     '--student_id', DJANGO_SUPERUSER_STUDENT_ID,
+                     '--phone_number', DJANGO_SUPERUSER_PHONE_NUMBER,
+                     '--is_confirmed', True, interactive=False)
 
 
 from banhyang.practice.views import sched

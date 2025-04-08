@@ -87,6 +87,9 @@ class ArrivalTime(models.Model):
 
 
 class User(AbstractUser):
-    student_id = models.IntegerField(null=True)
-    phone_number = models.CharField(max_length=11, null=True)
-    is_confirmed = models.BooleanField(null=True)
+    name = models.CharField(max_length=255, unique=True)
+    student_id = models.CharField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=255, unique=True)
+    is_confirmed = models.BooleanField(null=False, default=False)
+
+    REQUIRED_FIELDS = ['email', 'name', 'student_id', 'phone_number', 'is_confirmed']
