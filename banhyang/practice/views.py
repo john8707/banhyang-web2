@@ -7,21 +7,25 @@ import typing
 # core Django
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 
 # django third party apps
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
-from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm
+from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm, SignupForm, LoginForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 # LOGIN Redirecting 페이지 -> 로그인이 필요한 페이지에 로그인 없이 접근할 경우 해당 링크로 redirect됨
-URL_LOGIN = '/admin/login/?next=/practice/setting'
+URL_LOGIN = '/login'
 
 # type alias when response is redirect or response
 RedirectOrResponse = typing.Union[HttpResponse, HttpResponseRedirect]
@@ -37,6 +41,37 @@ def prevent_db_sleep():
 sched.add_job(prevent_db_sleep, 'interval', days=6)
 
 
+# 회원 가입 view
+def signup(request:HttpRequest) -> RedirectOrResponse:
+    if request.method == "POST":
+        # form validation
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            authenticate(username=username, password=raw_password)
+            messages.info(request, "회원가입 신청이 완료되었습니다. 임원진 승인 후 이용 가능합니다.")
+            return redirect('practice_apply')
+    else:
+        form = SignupForm()
+
+    return render(request, 'signup.html', {'form' : form})
+
+def login(request:HttpRequest):
+    form = LoginForm()
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=raw_password)
+            if user is not None:
+                auth_login(request, user)
+                return redirect('practice_apply')
+    return render(request, 'login.html', {'form':form})
+
+@login_required(login_url=URL_LOGIN)
 def practice_apply(request:HttpRequest) -> HttpResponse:
     """
     합주 불참 신청 페이지
@@ -113,7 +148,7 @@ def get_attendance_check(request:HttpRequest, date:int) -> HttpResponse:
     return render(request, 'get_attendance.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def setting(request:HttpRequest) -> HttpResponse:
     """
     불참 조사 받을 합주 날짜 선택 및 불참 조사 미제출 인원 확인 페이지
@@ -154,7 +189,7 @@ def setting(request:HttpRequest) -> HttpResponse:
     return render(request, 'setting.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def schedule_create(request:HttpRequest) -> RedirectOrResponse:
     """
     합주 일정 생성 페이지
@@ -177,7 +212,7 @@ def schedule_create(request:HttpRequest) -> RedirectOrResponse:
     return render(request, 'schedule_create.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def schedule_delete(_:HttpRequest, schedule_id:int) -> HttpResponseRedirect:
     """
     합주 일정 목록에서 특정 날짜 삭제 시 해당 합주 일정의 id를 url parameter로 받아와 삭제
@@ -187,7 +222,7 @@ def schedule_delete(_:HttpRequest, schedule_id:int) -> HttpResponseRedirect:
     return redirect('setting')
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def song_list(request:HttpRequest) -> HttpResponse:
     """
     곡 목록 CRUD 페이지
@@ -247,7 +282,7 @@ def song_list(request:HttpRequest) -> HttpResponse:
     return render(request, 'song_list.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def user_list(request:HttpRequest) -> HttpResponse:
     """
     유저 목록 확인 및 추가, 삭제 페이지
@@ -293,7 +328,7 @@ def user_list(request:HttpRequest) -> HttpResponse:
     return render(request, 'user_list.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def timetable(request:HttpRequest) -> HttpResponse:
     """
     !! 합주 시간표 생성 페이지 !!
@@ -380,7 +415,7 @@ def timetable(request:HttpRequest) -> HttpResponse:
     return render(request, 'timetable.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def who_is_not_coming(request:HttpRequest) -> HttpResponse:
     """
     인원 별 불참 사유와 시간 확인 조회 페이지
@@ -464,7 +499,7 @@ def who_is_not_coming(request:HttpRequest) -> HttpResponse:
     return render(request, 'who_is_not_coming.html', context=context)
 
 
-@login_required(login_url=URL_LOGIN)
+@staff_member_required
 def metrics(request:HttpRequest) -> HttpResponse:
     """
     합주 관련 통계 페이지

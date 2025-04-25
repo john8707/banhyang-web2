@@ -30,7 +30,7 @@
             <span></span>
             <ul id="menu">
                 <li><a href="{% url 'practice_apply' %}">합주 불참 신청</a></li>
-                {% if user.is_authenticated %}
+                {% if user.is_staff %}
                 <hr style="border:1px color= silver; margin: 0 auto; width:180px;">
                 <li><a href="{% url 'setting' %}">합주 선택/미제출 인원 확인</a></li>
                 <li><a href="{% url 'schedule_create' %}">합주 날짜 생성</a></li>
@@ -44,12 +44,12 @@
        </div>
     </nav>
     {% if user.is_authenticated %}
-    <a href="/admin/logout/?next=/practice">
+    <a href="{% url 'logout' %}">
         <img src="{% static 'image/account-logout-32.png' %}" alt="login" id="login-img">    
     </a>
 
     {% else %}
-    <a href="/admin/login/?next=/practice/setting">
+    <a href="{% url 'login' %}">
         <img src="{% static 'image/account-login-32.png' %}" alt="login" id="login-img">    
     </a>
     {% endif %}
@@ -71,5 +71,12 @@
     <script>
             alert("{{message}}");
     </script>
+{% endif %}
+{% if messages %}
+    {% for message in messages %}
+    <script>
+            alert("{{message}}");
+    </script>
+    {% endfor %}
 {% endif %}
 </body>

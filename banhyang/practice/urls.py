@@ -1,10 +1,15 @@
 import mimetypes
 from django.urls import path, include
+from django.contrib.auth import views as auth_view
 from . import views, chatbot
 import debug_toolbar
 from banhyang.config import settings
 
+
 urlpatterns = [
+    path('signup', views.signup, name='signup'),
+    path('login', views.login, name='login'),
+    path('logout', auth_view.LogoutView.as_view(), name='logout'),
     path('practice', views.practice_apply, name='practice_apply'),
     path('practice/setting', views.setting, name='setting'),
     path('practice/create', views.schedule_create, name='schedule_create'),
