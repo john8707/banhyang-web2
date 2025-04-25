@@ -28,6 +28,16 @@
 
     <div class="login_form" style=" margin: 0 auto; text-align: center; margin-top: 50px;">
         <form method="POST" style="color: white;">
+            <div class="" style="font-size: 21px; font-weight: bold;">
+
+                {% if is_signup %}
+                SIGN UP
+                {% else %}
+                LOGIN
+                {% endif %}
+                <br>
+                <br>
+            </div>
             {% csrf_token %}
     
             {% for field in form %}
@@ -47,7 +57,21 @@
                     alert("{{error}}")
                 </script>
             {% endfor %}
-            <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">로그인</button>
+            {% if is_signup %}
+                <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">
+                    SIGN UP
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">
+                    LOGIN
+                </button>
+                <br>
+                <br>or
+                <br>
+                <button type="button" class="btn btn-outline-light btn-sm" style="margin-top: 30px;" onclick="location.href = '/signup'">
+                    회원가입 하기
+                </button>
+            {% endif %}
     </div>
 
     </form>

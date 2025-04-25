@@ -75,7 +75,7 @@ class SignupForm(UserCreationForm):
         self.fields['password2'].widget.attrs.update({'placeholder': "8자리 이상"})
 
         self.fields['name'].label = "이름"
-        self.fields['name'].widget.attrs.update({'placeholder': "김반향, 동명이인이 존재하는 경우 숫자등으로 구분해주세요."})
+        self.fields['name'].widget.attrs.update({'placeholder': "김반향"})
 
         self.fields['email'].label = "이메일"
         self.fields['email'].widget.attrs.update({'placeholder': "banhyang@yonsei.ac.kr"})

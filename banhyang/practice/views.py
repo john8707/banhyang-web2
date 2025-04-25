@@ -43,6 +43,8 @@ sched.add_job(prevent_db_sleep, 'interval', days=6)
 
 # 회원 가입 view
 def signup(request:HttpRequest) -> RedirectOrResponse:
+    context ={}
+    context['is_signup'] = True
     if request.method == "POST":
         # form validation
         form = SignupForm(request.POST)
@@ -56,7 +58,8 @@ def signup(request:HttpRequest) -> RedirectOrResponse:
     else:
         form = SignupForm()
 
-    return render(request, 'signup.html', {'form' : form})
+    context['form'] = form
+    return render(request, 'login.html',context)
 
 def login(request:HttpRequest):
     form = LoginForm()

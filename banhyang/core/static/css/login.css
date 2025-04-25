@@ -70,6 +70,9 @@ a {
     color: white;
 
 }
+.login_field input::placeholder{
+    color: rgb(185, 184, 184);
+}
 
 #main-image{
     display: block;
