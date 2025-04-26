@@ -91,6 +91,12 @@ class SignupForm(UserCreationForm):
                 'class' : 'signup_form'
             })
 
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
+        if "-" in phone_number:
+            phone_number = phone_number.replace("-","")
+        return phone_number
+
     class Meta:
         model = get_user_model()
         fields = ('username', 'password1', 'password2','name', 'email', 'student_id', 'phone_number')
