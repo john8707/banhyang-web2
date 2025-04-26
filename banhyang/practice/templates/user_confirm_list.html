@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load custom_filters %}
+{% load static %}
+
+
+
+<div class="practice_container">
+    {% include 'nav.html' %}
+
+<div class="setting_form">
+
+<div class="setting_description">
+    가입 대기 목록
+</div>
+<form action="" method="post" onsubmit="return confirm('선택된 인원의 가입을 승인/거절 하시겠습니까?')">
+{% csrf_token %}
+
+<table style="border-spacing: 10px 5px; margin: 0 auto; text-align: center; border-collapse: collapse; width: 95%;">
+    <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54); height: 50px;">
+        <td style="width: 50px;"><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
+        <td style="width: 141px;">이름</td>
+        <td style="width: 136px;">아이디</td>
+        <td style="width: 50px;"></td>
+    </tr>
+    {% for user in not_confirmed %}
+    <tr style="border-top: 1px solid rgb(216, 216, 216); height: 45px;">
+        <td><input type="checkbox" value={{user.id}} name="user_id"></td>
+        <td style="font-weight: 600; font-size: 14px;">{{user.name}}</td>
+        <td style="font-weight: 600; font-size: 14px;">{{user.username}}</td>
+
+        <td><img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;"></td>
+    </tr>
+    <tr style="display: none; height: 35px;">
+        <td colspan="4">
+            <table style="width: 100%; padding: 10px 5px;">
+                <tr>
+                    <th style="width: 100px; color: gray;">이메일</th>
+                    <th style="width: 100px; color: gray;">전화번호</th>
+                    <th style="width: 100px; color: gray;">학번</th>
+                </tr>
+                <tr>
+                    <td style="width: 100px;">{{user.email}}</td>
+                    <td style="width: 100px;">{{user.phone_number}}</td>
+                    <td style="width: 100px;">{{user.student_id}}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+<br>
+<input type="submit" value="승인" class="btn btn-outline-primary btn-sm" name="confirmed">
+<input type="submit" value="거절" class="btn btn-outline-danger btn-sm" name="deny">
+
+</form>
+
+
+
+<div class="setting_description">
+    활동 인원 목록
+</div>
+
+<form action="" method="post" onsubmit="return confirm('선택된 인원의 계정을 삭제하시겠습니까?')">
+    {% csrf_token %}
+    
+    <table style="border-spacing: 10px 5px; margin: 0 auto; text-align: center; border-collapse: collapse; width: 95%;">
+        <tr style="font-weight: bold; font-size: large; color: rgb(54, 54, 54); height: 50px;">
+            <td style="width: 50px;"><input type="checkbox" name="selectall" value="selectall" onclick="selectAll(this)"></td>
+            <td style="width: 141px;">이름</td>
+            <td style="width: 136px;">아이디</td>
+            <td style="width: 50px;"></td>
+        </tr>
+        {% for user in confirmed %}
+        <tr style="border-top: 1px solid rgb(216, 216, 216); height: 45px;">
+            <td><input type="checkbox" value={{user.id}} name="user_id"></td>
+            <td style="font-weight: 600; font-size: 14px;">{{user.name}}</td>
+            <td style="font-weight: 600; font-size: 14px;">{{user.username}}</td>
+    
+            <td><img onclick="collapse(this);" src="{% static 'image/arrow-down.png' %}" style="width: 16px; height: 16px; cursor: pointer;"></td>
+        </tr>
+        <tr style="display: none; height: 35px;">
+            <td colspan="4">
+                <table style="width: 100%; padding: 10px 5px;">
+                    <tr>
+                        <th style="width: 100px; color: gray;">이메일</th>
+                        <th style="width: 100px; color: gray;">전화번호</th>
+                        <th style="width: 100px; color: gray;">학번</th>
+                    </tr>
+                    <tr>
+                        <td style="width: 100px;">{{user.email}}</td>
+                        <td style="width: 100px;">{{user.phone_number}}</td>
+                        <td style="width: 100px;">{{user.student_id}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    
+    <br>
+    <input type="submit" value="삭제" class="btn btn-outline-danger btn-sm" name="delete">
+    </form>
+    
+
+
+
+
+
+
+
+
+
+
+
+</div>
+</div>
+
+<script type="text/javascript">
+    function selectAll(selectAll) {
+        const checkboxes = document.getElementsByName("user_id");
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = selectAll.checked
+        })
+    }
+</script>
+<script>
+    function collapse(element){
+        var content = element.parentElement.parentElement.nextElementSibling;
+        ;
+        if (content.style.display != "none"){
+            element.style.transform = 'none'
+            content.style.display = "none";
+        } else {
+            content.style.display = "table-row"
+            element.style.transform = 'rotate(180deg)'
+        }
+    }
+</script>
+
+
+{% endblock %}
+

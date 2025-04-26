@@ -8,7 +8,7 @@ import typing
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -330,6 +330,43 @@ def user_list(request:HttpRequest) -> HttpResponse:
     context['users'] = users
     return render(request, 'user_list.html', context=context)
 
+@staff_member_required
+def user_confirm_list(request:HttpRequest) -> HttpResponse:
+    context : dict = {}
+    User_model = get_user_model()
+
+    # 가입 대기 목록
+    not_confirmed_users = User_model.objects.filter(is_confirmed=False).order_by('name')
+    # 가입 완료 목록
+    confirmed_users = User_model.objects.filter(is_confirmed=True, is_superuser=False).order_by('name')
+
+    context['not_confirmed'] = not_confirmed_users
+    context['confirmed'] = confirmed_users
+
+    # 가입 승인하는 경우
+    if request.method == "POST" and 'confirmed' in request.POST:
+        confirm_ids = request.POST.getlist('user_id')
+        if confirm_ids:
+            c = User_model.objects.filter(id__in=confirm_ids)
+            for obj in c:
+                obj.is_confirmed = True
+            update_counts = User_model.objects.bulk_update(c, ['is_confirmed'])
+            messages.info(request, "가입 승인이 완료되었습니다.")
+        else:
+            messages.info(request, "한명 이상의 인원을 선택해주세요.")
+
+
+    # 기존 인원을 삭제하는 경우
+    if request.method == "POST" and ("delete" in request.POST or "deny" in request.POST):
+        delete_ids = request.POST.getlist('user_id')
+        if delete_ids:
+            d = User_model.objects.filter(id__in=delete_ids)
+            d.delete()
+            messages.info(request, "삭제가 완료되었습니다.")
+        else:
+            messages.info(request, "한명 이상의 인원을 선택해주세요.")
+
+    return render(request, 'user_confirm_list.html', context=context)
 
 @staff_member_required
 def timetable(request:HttpRequest) -> HttpResponse:

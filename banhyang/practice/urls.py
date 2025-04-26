@@ -15,6 +15,7 @@ urlpatterns = [
     path('practice/create', views.schedule_create, name='schedule_create'),
     path('practice/songs', views.song_list, name='song_list'),
     path('practice/users', views.user_list, name='user_list'),
+    path('practice/userss', views.user_confirm_list, name='user_confirm_list'),
     path('practice/timetable', views.timetable, name='timetable'),
     path('practice/delete/<int:schedule_id>', views.schedule_delete, name='schedule_delete'),
     path('practice/NA', views.who_is_not_coming, name='who_is_not_coming'),
