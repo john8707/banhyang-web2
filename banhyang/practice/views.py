@@ -53,7 +53,7 @@ def signup(request:HttpRequest) -> RedirectOrResponse:
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
             authenticate(username=username, password=raw_password)
-            messages.info(request, "회원가입 신청이 완료되었습니다. 임원진 승인 후 이용 가능합니다.")
+            messages.success(request, "회원가입 신청이 완료되었습니다. 임원진 승인 후 이용 가능합니다.")
             return redirect('practice_apply')
     else:
         form = SignupForm()
@@ -79,7 +79,6 @@ def practice_apply(request:HttpRequest) -> HttpResponse:
     """
     합주 불참 신청 페이지
     """
-    message = None
     context = {}
     # is_current(불참을 받을 합주)가 체크된 합주 일정을 가져옴
     current_practice = Schedule.objects.filter(is_current=True).order_by('date')
@@ -92,15 +91,14 @@ def practice_apply(request:HttpRequest) -> HttpResponse:
         form = PracticeApplyForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            message = "제출되었습니다."
+            messages.success(request, "제출되었습니다.")
             form = PracticeApplyForm()
         else:
             # Validation 에러 발생
-            message = form.non_field_errors()[0]
+            messages.error(request, form.non_field_errors()[0])
             form = PracticeApplyForm(request.POST)
 
     context['form'] = form
-    context['message'] = message
     return render(request, 'practice_apply.html', context=context)
 
 
@@ -156,7 +154,6 @@ def setting(request:HttpRequest) -> HttpResponse:
     """
     불참 조사 받을 합주 날짜 선택 및 불참 조사 미제출 인원 확인 페이지
     """
-    message = None
     context = {}
 
     # 불참 받을 합주 날짜 선택 후 제출 혹은 곡 당 minute, room number 수정
@@ -171,7 +168,7 @@ def setting(request:HttpRequest) -> HttpResponse:
         for schedule_object in schedule_objects:
             idx = schedule_object.id
             Schedule.objects.filter(id=idx).update(min_per_song=int(res['minute_' + str(idx)][0]), rooms=int(res['rooms_' + str(idx)][0]))
-        message = "변경되었습니다."
+        messages.success(request, "변경되었습니다.")
 
     # 미제출 인원 목록 조회
     schedules = Schedule.objects.all().order_by('date')
@@ -185,7 +182,6 @@ def setting(request:HttpRequest) -> HttpResponse:
     not_submitted_list = list(set(temp_not_submitted_list))
     not_submitted_list.sort()
 
-    context['message'] = message
     context['schedules'] = schedules
     context['not_submitted'] = not_submitted_list
 
@@ -198,7 +194,6 @@ def schedule_create(request:HttpRequest) -> RedirectOrResponse:
     합주 일정 생성 페이지
     """
     context = {}
-    message = None
     form = ScheduleCreateForm()
     if request.method == "POST":
         form = ScheduleCreateForm(request.POST)
@@ -207,11 +202,10 @@ def schedule_create(request:HttpRequest) -> RedirectOrResponse:
             return redirect('setting')
         else:
             # validation fail
-            message = form.non_field_errors()[0]
+            messages.error(request, form.non_field_errors()[0])
             form = ScheduleCreateForm(request.POST)
 
     context['form'] = form
-    context['message'] = message
     return render(request, 'schedule_create.html', context=context)
 
 
@@ -232,7 +226,6 @@ def song_list(request:HttpRequest) -> HttpResponse:
     """
     context = {}
     form = SongAddForm()
-    message = None
     # 곡 추가하는 경우
     if request.method == "POST" and 'add' in request.POST:
         form = SongAddForm(request.POST)
@@ -240,10 +233,10 @@ def song_list(request:HttpRequest) -> HttpResponse:
         if form.is_valid():
             form.save()
             form = SongAddForm()
-            message = "등록되었습니다."
+            messages.success(request, "등록되었습니다.")
         else:
             # validation error
-            message = form.non_field_errors()[0]
+            messages.error(request, form.non_field_errors()[0])
             form = SongAddForm(request.POST)
 
     # 곡 삭제하는 경우
@@ -254,11 +247,11 @@ def song_list(request:HttpRequest) -> HttpResponse:
             d = SongData.objects.filter(id__in=delete_ids)
             try:
                 d.delete()
-                message = "삭제되었습니다."
+                messages.success(request, "삭제되었습니다.")
             except:
-                message = "삭제에 실패하였습니다. 다시 시도해주세요."
+                messages.error(request, "삭제에 실패하였습니다. 다시 시도해주세요.")
         else:
-            message = "하나 이상의 곡을 선택해주세요."
+            messages.error(request, "하나 이상의 곡을 선택해주세요.")
 
     # 곡의 합주 우선순위 업데이트
     if request.method == "POST" and 'updateId' in request.POST and request.POST['updateId']:
@@ -281,7 +274,6 @@ def song_list(request:HttpRequest) -> HttpResponse:
         song_dict[song] = dict(session_dict)
     context['songs'] = song_dict
     context['form'] = form
-    context['message'] = message
     return render(request, 'song_list.html', context=context)
 
 
@@ -331,7 +323,6 @@ def timetable(request:HttpRequest) -> HttpResponse:
     자세한 로직은 timetable.py 참고하기
     """
     context = {}
-    message = None
 
     schedule_opt = ScheduleOptimizer()
     schedule_opt.retreive_data()
@@ -375,7 +366,7 @@ def timetable(request:HttpRequest) -> HttpResponse:
     for schedule_object in schedule_objects:
         not_submitted = get_user_model().objects.filter(~Exists(Apply.objects.filter(user_id=OuterRef('pk'), schedule_id=schedule_object)), is_confirmed=True, is_superuser=False)
         if not_submitted:
-            message = "아직 불참 여부를 제출하지 않은 인원이 존재합니다!"
+            messages.warning(request, "아직 불참 여부를 제출하지 않은 인원이 존재합니다!")
 
     # 시간표를 확정하는 경우
     if request.method == "POST":
@@ -404,9 +395,8 @@ def timetable(request:HttpRequest) -> HttpResponse:
             # Bulk 저장
             timetable_object_list = [Timetable(schedule_id=schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_name=info_tuple[2]) for song_id, info_tuple in v.items()]
             Timetable.objects.bulk_create(timetable_object_list)
-            message = "저장되었습니다."
+            messages.success(request, "저장되었습니다.")
 
-    context['message'] = message
     return render(request, 'timetable.html', context=context)
 
 
