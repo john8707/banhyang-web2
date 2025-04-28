@@ -7,8 +7,9 @@ from abc import ABC
 from typing import List, Dict, Tuple
 
 from django.db.models import Prefetch, QuerySet
+from django.contrib.auth import get_user_model
 
-from .models import SongData, PracticeUser, Schedule, Apply, Session
+from .models import SongData, Schedule, Apply, Session
 from banhyang.core.utils import weekday_dict
 
 def calc_minute_delta(object:'QuerySet[Schedule]') -> int:
@@ -25,10 +26,10 @@ class BaseOptimizer(ABC):
     """
 
     # 공통 사용 데이터 가져오기
-    user_objects = PracticeUser.objects.prefetch_related('session')
+    user_objects = get_user_model().objects.prefetch_related('session')
     session_objects = Session.objects.all()
 
-    session_qs = Session.objects.select_related('user_name')
+    session_qs = Session.objects.select_related('user_id')
     song_objects = SongData.objects.exclude(priority=-1).prefetch_related(Prefetch('session', queryset=session_qs))
 
     def __init__(self):
@@ -63,7 +64,7 @@ class ScheduleOptimizer(BaseOptimizer):
         self.schedule_objects = Schedule.objects.filter(is_current=self.USE_CURRENT_SCHEDULE).order_by('date')
 
         # 불참 데이터에서 not available이 -1(전체 참여)인 데이터를 제외하고 가져옴
-        self.unavailable_objects = Apply.objects.filter(schedule_id__in=self.schedule_objects).exclude(not_available=-1).select_related('user_name').select_related('schedule_id')
+        self.unavailable_objects = Apply.objects.filter(schedule_id__in=self.schedule_objects).exclude(not_available=-1).select_related('user_id').select_related('schedule_id')
 
     def _get_practice_info(self) -> None:
         """
@@ -92,17 +93,17 @@ class ScheduleOptimizer(BaseOptimizer):
 
         # 불참 여부 boolean list 생성
         # unavailable dict = {유저 : {합주 id : [불참 시간대]}}
-        for user in [x.username for x in self.user_objects]:
+        for user in [x.name for x in self.user_objects]:
             unavailable_dict[user] = {}
             available_dict[user] = {}
             for scheduleId in [x.id for x in self.schedule_objects]:
                 unavailable_dict[user][scheduleId] = []
 
         for unavailable_object in self.unavailable_objects:
-            unavailable_dict[unavailable_object.user_name.username][unavailable_object.schedule_id.id].append(unavailable_object.not_available)
+            unavailable_dict[unavailable_object.user_id.name][unavailable_object.schedule_id.id].append(unavailable_object.not_available)
     
         # unavalable dict를 이용해, 인원 별 각 시간대의 참석 가능 여부의 Boolean list 생성
-        for user in [x.username for x in self.user_objects]:
+        for user in [x.name for x in self.user_objects]:
             for scheduleId in [x.id for x in self.schedule_objects]:
                 len_per_day = self.practice_info[scheduleId]['total_minutes']
                 min_per_song = self.practice_info[scheduleId]['minute_per_song']
@@ -134,7 +135,7 @@ class ScheduleOptimizer(BaseOptimizer):
             session_inst_dict = defaultdict(list)
             who_play_this_song = song_object.session.all()
             for session in who_play_this_song:
-                session_inst_dict[session.instrument].append(session.user_name.username)
+                session_inst_dict[session.instrument].append(session.user_id.name)
             song_session_dict[song_object.id] = dict(session_inst_dict)
 
         self.song_session_dict = song_session_dict
@@ -380,14 +381,14 @@ class RouteOptimizer(BaseOptimizer):
         id_object = {x.id : x for x in self.song_objects}
 
         for user in user_objects:
-            user_order_dict[user.username] = {'g':[], 'v':[], 'b':[], 'd':[], 'k':[], 'etc':[]}
+            user_order_dict[user.name] = {'g':[], 'v':[], 'b':[], 'd':[], 'k':[], 'etc':[]}
 
         for id_list in self.schedule_id_list:
             for i in id_list:
                 song_sessions = id_object[i].session.all()
 
                 for session_object in song_sessions:
-                    user_order_dict[session_object.user_name.username][session_object.instrument].append(session_object.song_id.id)
+                    user_order_dict[session_object.user_id.name][session_object.instrument].append(session_object.song_id.id)
 
         self.user_order_dict = user_order_dict
     
@@ -401,7 +402,7 @@ class RouteOptimizer(BaseOptimizer):
 
         n = 0
         for i in self.user_objects:
-            id_user_dict[n] = i.username
+            id_user_dict[n] = i.name
             n += 1
 
         self.id_user_dict = id_user_dict

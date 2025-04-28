@@ -89,7 +89,7 @@ def practice_apply(request:HttpRequest) -> HttpResponse:
         form = None
     # SUBMIT 했을 시
     if request.method == "POST":
-        form = PracticeApplyForm(request.POST)
+        form = PracticeApplyForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             message = "제출되었습니다."
@@ -179,8 +179,8 @@ def setting(request:HttpRequest) -> HttpResponse:
     current_schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
     temp_not_submitted_list = []
     for current_schedule_object in current_schedule_objects:
-        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=current_schedule_object)))
-        temp_not_submitted_list.extend([i.username for i in not_submitted])
+        not_submitted = get_user_model().objects.filter(~Exists(Apply.objects.filter(user_id=OuterRef('pk'), schedule_id=current_schedule_object)), is_confirmed=True, is_superuser=False)
+        temp_not_submitted_list.extend([i.name for i in not_submitted])
 
     not_submitted_list = list(set(temp_not_submitted_list))
     not_submitted_list.sort()
@@ -268,14 +268,14 @@ def song_list(request:HttpRequest) -> HttpResponse:
         u = SongData.objects.filter(id=update_Id).update(priority=update_value)
 
     # 곡 목록 보여주기
-    session_qs = Session.objects.select_related('user_name')
+    session_qs = Session.objects.select_related('user_id')
     songs = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs)).order_by('songname')
     song_dict = {}
     for song in songs:
         session_dict = defaultdict(list)
         sessions = song.session.all()
         for s in sessions:
-            session_dict[s.instrument].append(s.user_name.username)
+            session_dict[s.instrument].append(s.user_id.name)
         session_dict = {key: ", ".join(val) for key, val in session_dict.items()}
         # 각 곡별 세션 데이터를 딕셔너리로 정리
         song_dict[song] = dict(session_dict)
@@ -418,7 +418,7 @@ def timetable(request:HttpRequest) -> HttpResponse:
     # 불참 여부 미제출 인원 체크하기
     schedule_objects = schedule_opt.schedule_objects
     for schedule_object in schedule_objects:
-        not_submitted = PracticeUser.objects.filter(~Exists(Apply.objects.filter(user_name=OuterRef('pk'), schedule_id=schedule_object)))
+        not_submitted = get_user_model().objects.filter(~Exists(Apply.objects.filter(user_id=OuterRef('pk'), schedule_id=schedule_object)), is_confirmed=True, is_superuser=False)
         if not_submitted:
             message = "아직 불참 여부를 제출하지 않은 인원이 존재합니다!"
 
@@ -461,7 +461,7 @@ def who_is_not_coming(request:HttpRequest) -> HttpResponse:
     인원 별 불참 사유와 시간 확인 조회 페이지
     """
     context = {}
-    apply_qs = Apply.objects.select_related('user_name')
+    apply_qs = Apply.objects.select_related('user_id')
     current_schedule = Schedule.objects.filter(is_current=True).prefetch_related(Prefetch('apply', queryset=apply_qs))
     schedule_info = {}
     when_and_why = {}
@@ -483,7 +483,7 @@ def who_is_not_coming(request:HttpRequest) -> HttpResponse:
 
             # 불참 시간 정리(가공 전)
             for i in na:
-                name = i.user_name.username
+                name = i.user_id.name
                 time = i.not_available
                 not_available[schedule_id][name].append(time)
             schedule_start_time = datetime.combine(date.today(), schedule.starttime)
@@ -515,9 +515,9 @@ def who_is_not_coming(request:HttpRequest) -> HttpResponse:
 
             # 날짜 별 불참 사유 dictionary
             reason_why[schedule_id] = {}
-            reason_object = WhyNotComing.objects.filter(schedule_id=schedule).select_related('user_name')
+            reason_object = WhyNotComing.objects.filter(schedule_id=schedule).select_related('user_id')
             for i in reason_object:
-                reason_why[schedule_id][i.user_name.username] = i.reason
+                reason_why[schedule_id][i.user_id.name] = i.reason
 
             # 웹에 표시 위한 최종 정제 -> 불참시간(사유) 형식
             date_to_string = schedule.date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule.date.weekday())

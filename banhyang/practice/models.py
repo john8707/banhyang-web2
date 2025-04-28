@@ -2,6 +2,14 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
 
+# 유저 계정
+class User(AbstractUser):
+    name = models.CharField(max_length=255, unique=True)
+    student_id = models.CharField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=255, unique=True)
+    is_confirmed = models.BooleanField(null=False, default=False)
+
+    REQUIRED_FIELDS = ['email', 'name', 'student_id', 'phone_number', 'is_confirmed']
 
 # 합주 날짜
 class Schedule(models.Model):
@@ -30,7 +38,7 @@ class PracticeUser(models.Model):
 # 개개인들의 불참 데이터
 class Apply(models.Model):
     id = models.AutoField(primary_key=True)
-    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='apply')
     not_available = models.IntegerField()
 
@@ -49,17 +57,17 @@ class SongData(models.Model):
 class Session(models.Model):
     id = models.AutoField(primary_key=True)
     song_id = models.ForeignKey(SongData, on_delete=models.CASCADE, related_name='session')
-    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='session')
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='session')
     instrument = models.CharField(max_length=255)
 
     def __str__(self) -> str:
-        return ",".join([self.song_id.songname, self.user_name.username, self.instrument])
+        return ",".join([self.song_id.songname, self.user_id.name, self.instrument])
 
 
 # 불참 사유!
 class WhyNotComing(models.Model):
     id = models.AutoField(primary_key=True)
-    user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='whynotcoming')
     reason = models.CharField(max_length=255)
 
@@ -84,12 +92,3 @@ class ArrivalTime(models.Model):
     user_name = models.ForeignKey(PracticeUser, on_delete=models.CASCADE, related_name='arrivaltime')
     date = models.DateField(auto_now_add=True)
     arrival_time = models.TimeField(auto_now_add=True)
-
-
-class User(AbstractUser):
-    name = models.CharField(max_length=255, unique=True)
-    student_id = models.CharField(max_length=255, unique=True)
-    phone_number = models.CharField(max_length=255, unique=True)
-    is_confirmed = models.BooleanField(null=False, default=False)
-
-    REQUIRED_FIELDS = ['email', 'name', 'student_id', 'phone_number', 'is_confirmed']

@@ -10,20 +10,11 @@
             합주에 참여할 수 <b style="color: red; text-decoration: underline;">"없는"</b> 시간을 모두 선택해주세요. <br>
             수정이 필요한 경우 다시 제출해주세요. <br>
         </div>
+        <div><div>
             
             {% for field in form %}
-            
-            {% if field.name == 'user_name' %}
-            <div class="practice_field">
-                <div class="practice_label">{{field.label}}</div>
-                <div class="practice_input">{{field}}</div>
-                {% for error in field.errors %}
-                <div class="practice_error"><b style="color: red;">{{error}}</b></div>
-                {% endfor %}
-            </div>
-            <br> <span></span>
-        <div><div>
-            {% elif 'label' in field.name %}
+
+            {% if 'label' in field.name %}
         </div>
         </div>
             <div class="choice_wrapper">

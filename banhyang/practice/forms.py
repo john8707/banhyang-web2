@@ -156,10 +156,10 @@ class ScheduleCreateForm(forms.Form):
 
 # 합주 신청 폼
 class PracticeApplyForm(forms.Form):
-    user_name = forms.CharField(label='이름')
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if user is not None:
+            self.user = user
         self.current_schedule = Schedule.objects.filter(is_current=True).order_by('date')
         self.generate_boolean_fields()
 
@@ -230,12 +230,8 @@ class PracticeApplyForm(forms.Form):
         result = {}
         schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
         scheduleId_list = [x.id for x in schedule_objects]
-        try:
-            # 유저 이름 Validation
-            user_object = PracticeUser.objects.get(username=form_data['user_name'])
-            result['user_object'] = user_object
-        except PracticeUser.DoesNotExist:
-            raise ValidationError("이름을 다시 확인해주세요.")
+        result['user_object'] = self.user
+
 
         selected_dict = {x: [] for x in scheduleId_list}
         reason_dict = {x: form_data['why_not_coming_' + str(x)] for x in scheduleId_list}
@@ -277,14 +273,14 @@ class PracticeApplyForm(forms.Form):
         schedule_objects = form_data['schedule_objects']
 
         for schedule_object in schedule_objects:
-            Apply.objects.filter(user_name=user_object, schedule_id=schedule_object).delete()
-            WhyNotComing.objects.filter(user_name=user_object, schedule_id=schedule_object).delete()
+            Apply.objects.filter(user_id=user_object, schedule_id=schedule_object).delete()
+            WhyNotComing.objects.filter(user_id=user_object, schedule_id=schedule_object).delete()
 
             if reason_dict[schedule_object.id]:
-                w = WhyNotComing(user_name=user_object, schedule_id=schedule_object, reason=reason_dict[schedule_object.id])
+                w = WhyNotComing(user_id=user_object, schedule_id=schedule_object, reason=reason_dict[schedule_object.id])
                 w.save()
 
-            apply_bulk_list = [Apply(user_name=user_object, schedule_id=schedule_object, not_available=x) for x in selected_dict[schedule_object.id]]
+            apply_bulk_list = [Apply(user_id=user_object, schedule_id=schedule_object, not_available=x) for x in selected_dict[schedule_object.id]]
             Apply.objects.bulk_create(apply_bulk_list)
 
 
@@ -326,10 +322,10 @@ class SongAddForm(forms.Form):
         form_data = self.cleaned_data
         for key in self.session_index():
             try:
-                user_objects = [PracticeUser.objects.get(username=x.strip()) for x in form_data[key] if x]
+                user_objects = [User.objects.get(name=x.strip()) for x in form_data[key] if x]
                 form_data[key] = user_objects
 
-            except PracticeUser.DoesNotExist:
+            except User.DoesNotExist:
                 raise ValidationError("세션들의 이름을 다시 확인해주세요.")
 
         return form_data
@@ -352,7 +348,7 @@ class SongAddForm(forms.Form):
             song_object.save()
 
         for key, value in self.session_index().items():
-            session_bulk_list = [Session(song_id=song_object, user_name=x, instrument=value) for x in form_data[key] if x]
+            session_bulk_list = [Session(song_id=song_object, user_id=x, instrument=value) for x in form_data[key] if x]
             Session.objects.bulk_create(session_bulk_list)
 
 
