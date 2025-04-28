@@ -3,23 +3,24 @@ import datetime
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
 
-from .models import Schedule, PracticeUser, KakaoTalkId, ArrivalTime
+from .models import Schedule, KakaoTalkId, ArrivalTime
 
 
 def get_username_by_id(id):
     try:
         user_object = KakaoTalkId.objects.get(id=id)
-        return user_object.user_name.username
+        return user_object.user_id.name
     except KakaoTalkId.DoesNotExist:
         return False
 
 
 def get_username_by_name(name):
     try:
-        user_object = PracticeUser.objects.get(username=name)
+        user_object = get_user_model().objects.get(name=name)
         return user_object
-    except PracticeUser.DoesNotExist:
+    except get_user_model().DoesNotExist:
         return False
 
 
@@ -44,8 +45,8 @@ def attendance_check_only_first(request):
         if not user_name:
             return JsonResponse(simpletext_response("등록되지 않은 사용자다냥.\n먼저 유저 등록 메뉴를 누르거나 '등록'이라고 채팅을 보내 등록을 진행해달라냐옹."))
         try:
-            user_exist = PracticeUser.objects.get(username=user_name)
-        except PracticeUser.DoesNotExist:
+            user_exist = get_user_model().objects.get(name=user_name)
+        except get_user_model().DoesNotExist:
             return JsonResponse(simpletext_response("해당 인원이 존재하지 않다냥. 오탈자를 다시 확인하거나 관리자에게 문의해달라냥."))
 
         # 오늘 날짜 date + 0시0분0초 -> datetime 형식으로
@@ -59,11 +60,11 @@ def attendance_check_only_first(request):
         if not schedule_exist.filter(starttime__lte=(datetime.datetime.now() + datetime.timedelta(minutes=5)).time()):
             return JsonResponse(simpletext_response("합주 시작 5분 전부터 출석 체크를 할 수 있다냥. 좀만 기다려달라냥~"))
 
-        arrival_exist = ArrivalTime.objects.filter(date=datetime.date.today(), user_name=user_exist)
+        arrival_exist = ArrivalTime.objects.filter(date=datetime.date.today(), user_id=user_exist)
         if arrival_exist:
             return JsonResponse(simpletext_response("이미 출석 체크가 되어있다냥. 출석 체크는 하루에 한 번만 가능하다냥!\n출석 시간 : " + arrival_exist[0].arrival_time.strftime('%H:%M')))
 
-        s = ArrivalTime(user_name=user_exist)
+        s = ArrivalTime(user_id=user_exist)
         s.save()
 
         return JsonResponse(simpletext_response("출석 체크 되었다냥~"))
@@ -92,10 +93,10 @@ def register(request):
 
         if not registered_name:
 
-            check_if_id_is_registered = KakaoTalkId.objects.filter(user_name=user_object)
+            check_if_id_is_registered = KakaoTalkId.objects.filter(user_id=user_object)
             if check_if_id_is_registered:
                 check_if_id_is_registered.update(id=user_id)
             else:
-                s = KakaoTalkId(id=user_id, user_name=user_object)
+                s = KakaoTalkId(id=user_id, user_id=user_object)
                 s.save()
             return JsonResponse(simpletext_response("등록되었다냥"))

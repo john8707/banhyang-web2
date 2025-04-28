@@ -6,18 +6,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, ReadOnlyPasswordHashField
 
-from .models import Schedule, PracticeUser, Apply, WhyNotComing, SongData, Session, User
+from .models import Schedule, Apply, WhyNotComing, SongData, Session, User
 from banhyang.core.utils import weekday_dict
-
-
-# Check user validation from PracticeUser model
-def validate_user_exist(name, phonenumber):
-    user = PracticeUser.objects.filter(username=name)
-    if not user:
-        return False
-    else:
-        return True
-
 
 class AdminUserCreationForm(forms.ModelForm):
     """

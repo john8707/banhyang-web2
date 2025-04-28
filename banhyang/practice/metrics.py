@@ -6,9 +6,10 @@ from typing import Tuple
 
 
 from django.db.models import Prefetch, QuerySet
+from django.contrib.auth import get_user_model
 
 
-from .models import Timetable, Session, SongData, Schedule, Apply, PracticeUser
+from .models import Timetable, Session, SongData, Schedule, Apply
 from .timetable import calc_minute_delta
 
 
@@ -22,12 +23,12 @@ class AttendanceStatistics():
         song_session_dict = {}
 
         # 곡 -> 세션 -> 유저로 이어지는 DB 데이터를 쿼리 1번으로 불러오기
-        session_qs = Session.objects.select_related('user_name')
+        session_qs = Session.objects.select_related('user_id')
         song_objects = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs))
 
         # {곡 id : [참여자 이름 목록]}, 한 곡에서 한 명이 여러 세션(ex 기타 & 보컬)도 가능하기에, 중복 제거 위해 list -> set -> list로 변환
         for song_object in song_objects:
-            song_session_dict[song_object.id] = list(set([session.user_name.username for session in song_object.session.all()]))
+            song_session_dict[song_object.id] = list(set([session.user_id.name for session in song_object.session.all()]))
 
         return song_session_dict
 
@@ -38,7 +39,7 @@ class AttendanceStatistics():
         min_per_song = int(schedule_object.min_per_song / 10)
         time_count = 0
         
-        apply_objects = Apply.objects.select_related('user_name')
+        apply_objects = Apply.objects.select_related('user_id')
 
         absentee_dict = {}
         song_per_day = ceil(calc_minute_delta(schedule_object) / int(min_per_song) / 10)
@@ -46,7 +47,7 @@ class AttendanceStatistics():
         while time_count < song_per_day:
             start_time = datetime.combine(date(1, 1, 1), schedule_object.starttime) + timedelta(minutes=min_per_song * 10 * time_count)
             filtered_apply_objects = apply_objects.filter(schedule_id=schedule_id, not_available__in=range(time_count * min_per_song, (time_count + 1) * min_per_song))
-            distinct_by_name = filtered_apply_objects.distinct().values_list('user_name')
+            distinct_by_name = filtered_apply_objects.distinct().values_list('user_id')
             absentee_dict[start_time.time()] = [x[0] for x in distinct_by_name]
 
             time_count += 1
@@ -104,13 +105,13 @@ class AttendanceStatistics():
         유저 별 참석률, 합주 일자 별 참석률, 곡 별 참석률, 전체 참석률을 리턴
         """
         schedule_objects = Schedule.objects.all()
-        user_objects = PracticeUser.objects.all()
+        user_objects = get_user_model().objects.all()
 
         # {합주 id : {곡 id : ({참여자] , [불참자]})}}
         schedule_song_attendance_dict = {}
 
         # 유저별 참석, 불참 수 카운터
-        user_att_abs_counter = {x.username : [0,0] for x in user_objects}
+        user_att_abs_counter = {x.name : [0,0] for x in user_objects}
 
         # {합주 id : {곡 id : [참석, 불참 수]}}
         total_att_abs_counter = {}

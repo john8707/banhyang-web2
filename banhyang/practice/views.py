@@ -19,7 +19,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm
-from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
+from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
@@ -36,7 +36,7 @@ sched = BackgroundScheduler()
 # oracle free tier의 auto inactive 방지용
 def prevent_db_sleep():
     print("Awake db connection")
-    print(len(PracticeUser.objects.all()))
+    print(len(get_user_model().objects.all()))
 
 sched.add_job(prevent_db_sleep, 'interval', days=6)
 
@@ -127,7 +127,7 @@ def get_attendance_check(request:HttpRequest, date:int) -> HttpResponse:
     """
     context = {}
     date = integer_to_date(date)
-    user_objects = PracticeUser.objects.all()
+    user_objects = get_user_model().objects.all()
     # eta/real arrival time 비교 dict -> {날짜 : {사람 : [ETA, 실제 도착 시간, 지각(분)]}}
     attendance_dict = {}
     date_to_string = date.strftime('%m월%d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(date.weekday())
@@ -135,7 +135,7 @@ def get_attendance_check(request:HttpRequest, date:int) -> HttpResponse:
 
     # 각 인원 별 도착시간과 ETA를 비교하여 출석/지각/불참 여부 계산
     for user_object in user_objects:
-        arrival_time_object = ArrivalTime.objects.filter(user_name=user_object, date=date)
+        arrival_time_object = ArrivalTime.objects.filter(user_id=user_object, date=date)
         eta = calculate_eta(user_object=user_object, date=date)
         late_time = None
         if arrival_time_object:
@@ -145,7 +145,7 @@ def get_attendance_check(request:HttpRequest, date:int) -> HttpResponse:
         if arrival_time and eta:
             delta = (datetime.combine(datetime.today(), arrival_time) - datetime.combine(datetime.today(), eta)).total_seconds()
             late_time = max(int(delta / 60), 0)
-        attendance_dict[date_to_string][user_object.username] = [eta, arrival_time, late_time]
+        attendance_dict[date_to_string][user_object.name] = [eta, arrival_time, late_time]
 
     context['res'] = attendance_dict
     return render(request, 'get_attendance.html', context=context)
