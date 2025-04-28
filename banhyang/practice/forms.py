@@ -350,30 +350,3 @@ class SongAddForm(forms.Form):
         for key, value in self.session_index().items():
             session_bulk_list = [Session(song_id=song_object, user_id=x, instrument=value) for x in form_data[key] if x]
             Session.objects.bulk_create(session_bulk_list)
-
-
-class UserAddForm(forms.Form):
-    """
-    유저 추가 폼
-    """
-    username = forms.CharField(required=True, widget=forms.TextInput(attrs={'placeholder': '이름'}))
-
-    def clean(self):
-        """
-        등록하려는 유저의 이름이 이미 존재하는지 validate
-        """
-        form_data = self.cleaned_data
-        try:
-            user_exist = PracticeUser.objects.get(username=form_data['username'])
-            if user_exist:
-                raise ValidationError("해당 인원이 이미 존재합니다. 동명이인의 경우 숫자, 세션등을 이용해 구분하여 주세요.")
-        except PracticeUser.DoesNotExist:
-            return form_data
-
-    def save(self) -> None:
-        """
-        유저 저장
-        """
-        user_name = self.cleaned_data['username']
-        p = PracticeUser(username=user_name)
-        p.save()

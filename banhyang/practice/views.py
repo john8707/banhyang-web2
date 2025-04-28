@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
-from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, UserAddForm, SignupForm, LoginForm
+from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm
 from .models import Schedule, SongData, PracticeUser, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
@@ -284,51 +284,6 @@ def song_list(request:HttpRequest) -> HttpResponse:
     context['message'] = message
     return render(request, 'song_list.html', context=context)
 
-
-@staff_member_required
-def user_list(request:HttpRequest) -> HttpResponse:
-    """
-    유저 목록 확인 및 추가, 삭제 페이지
-    """
-    form = UserAddForm()
-    context = {}
-    message = None
-
-    # 인원 추가하는 경우
-    if request.method == "POST" and 'add' in request.POST:
-        form = UserAddForm(request.POST)
-        if form.is_valid():
-            form.save()
-            message = "추가되었습니다."
-            form = UserAddForm()
-
-        else:
-            message = form.non_field_errors()[0]
-            form = UserAddForm(request.POST)
-
-    # 인원 삭제하는 경우
-    if request.method == "POST" and 'delete' in request.POST:
-        # 체크된 인원들 삭제하기
-        delete_names = request.POST.getlist('user_name')
-        if delete_names:
-            d = PracticeUser.objects.filter(username__in=delete_names)
-            if d:
-                d.delete()
-                message = "삭제되었습니다."
-            else:
-                # 선택된 유저가 존재하지 않는 경우
-                message = "삭제에 실패하였습니다. 다시 시도해주세요."
-        else:
-            # 웹 상에서 체크를 하지 않은 경우
-            message = "하나 이상의 인원을 선택해주세요."
-
-    # 전체 인원 목록 가져와 보여주기
-    users = PracticeUser.objects.all().order_by('username')
-
-    context['form'] = form
-    context['message'] = message
-    context['users'] = users
-    return render(request, 'user_list.html', context=context)
 
 @staff_member_required
 def user_confirm_list(request:HttpRequest) -> HttpResponse:
