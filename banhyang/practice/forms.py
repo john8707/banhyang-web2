@@ -312,11 +312,15 @@ class SongAddForm(forms.Form):
         form_data = self.cleaned_data
         for key in self.session_index():
             try:
-                user_objects = [User.objects.get(name=x.strip()) for x in form_data[key] if x]
+                user_objects = []
+                for x in form_data[key]:
+                    if x:
+                        user_objects.append(User.objects.get(name=x.strip()))
                 form_data[key] = user_objects
 
             except User.DoesNotExist:
-                raise ValidationError("세션들의 이름을 다시 확인해주세요.")
+                raise ValidationError("일치하는 이름을 찾을 수 없습니다 :" + x)
+
 
         return form_data
     
