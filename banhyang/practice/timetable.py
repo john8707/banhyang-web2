@@ -168,7 +168,7 @@ class ScheduleOptimizer(BaseOptimizer):
                         total_sum += self.session_weight_parameters[session_abbrev] * len(session_name_list)
                     
                     # 최종 참석률 계산
-                    attendance_rate = round(attendance_sum / total_sum, 2) * song_priority
+                    attendance_rate = round(attendance_sum / total_sum, 2) * song_priority if total_sum else 0
                     attendance_rate_list.append(attendance_rate)
 
                 schedule_attendance_dict[scheduleId] = attendance_rate_list
