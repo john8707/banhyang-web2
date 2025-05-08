@@ -88,11 +88,20 @@
                         <th style="width: 100px; color: gray;">이메일</th>
                         <th style="width: 100px; color: gray;">전화번호</th>
                         <th style="width: 100px; color: gray;">학번</th>
+                        <th style="width: 100px; color: gray;">운영진</th>
+
                     </tr>
                     <tr>
                         <td style="width: 100px;">{{user.email}}</td>
                         <td style="width: 100px;">{{user.phone_number}}</td>
                         <td style="width: 100px;">{{user.student_id}}</td>
+                        <td style="width: 100px;">
+                            {% if user.is_staff %}
+                                O
+                            {% else %}
+                                <button type="button" class="btn btn-outline-danger btn-sm" name="grant" onclick="location.href='javascript:grantAdmin({{user.id}})'">권한 부여</button>
+                            {% endif %}
+                        </td>
                     </tr>
                 </table>
             </td>
@@ -141,6 +150,19 @@
     }
 </script>
 
+<script type="text/javascript">
+    function grantAdmin(id){
+        var message = confirm("운영진 권한을 부여하시겠습니까? 이 행동은 되돌릴 수 없습니다. 신중하게 확인해주세요.")
+        if (message) {
+            let pageMoveForm = document.createElement('form');
+            pageMoveForm.innerHTML = '{% csrf_token %}'
+            pageMoveForm.setAttribute('method', 'post');
+            pageMoveForm.setAttribute('action', '/practice/users/' + id );
+            document.body.appendChild(pageMoveForm);
+            pageMoveForm.submit();
+        }
+    }
+</script>
 
 {% endblock %}
 

@@ -316,6 +316,18 @@ def user_confirm_list(request:HttpRequest) -> HttpResponse:
     return render(request, 'user_confirm_list.html', context=context)
 
 @staff_member_required
+def grant_admin(_:HttpRequest, user_id:int) -> HttpResponseRedirect:
+    User_model = get_user_model()
+    try:
+        user = User_model.objects.get(id=user_id)
+        user.is_staff = True
+        user.save()
+        messages.success(_, user.username + "님에게 운영자 권한이 부여되었습니다.")
+    except User_model.DoesNotExist:
+        messages.error(_, "유저를 찾을 수 없습니다.")
+    return redirect("user_confirm_list")
+
+@staff_member_required
 def timetable(request:HttpRequest) -> HttpResponse:
     """
     !! 합주 시간표 생성 페이지 !!
