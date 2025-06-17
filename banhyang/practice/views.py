@@ -308,8 +308,11 @@ def user_confirm_list(request:HttpRequest) -> HttpResponse:
         delete_ids = request.POST.getlist('user_id')
         if delete_ids:
             d = User_model.objects.filter(id__in=delete_ids)
-            d.delete()
-            messages.info(request, "삭제가 완료되었습니다.")
+            if request.user in d:
+                messages.error(request, "본인의 계정은 삭제할 수 없습니다. 다시 시도해주세요.")
+            else:
+                d.delete()
+                messages.info(request, "삭제가 완료되었습니다.")
         else:
             messages.info(request, "한명 이상의 인원을 선택해주세요.")
 
