@@ -32,6 +32,10 @@
 
                 {% if is_signup %}
                 SIGN UP
+                {% elif is_user_modify %}
+                회원 정보 수정
+                {% elif is_password_modify %}
+                비밀번호 수정
                 {% else %}
                 LOGIN
                 {% endif %}
@@ -60,6 +64,10 @@
             {% if is_signup %}
                 <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">
                     SIGN UP
+                </button>
+            {% elif is_user_modify or is_password_modify %}
+                <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">
+                    수정
                 </button>
             {% else %}
                 <button type="submit" class="btn btn-outline-light btn-sm" style="margin-top: 30px;">

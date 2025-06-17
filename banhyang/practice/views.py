@@ -8,7 +8,7 @@ import typing
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
-from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm
+from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
 from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
@@ -73,6 +73,48 @@ def login(request:HttpRequest):
                 auth_login(request, user)
                 return redirect('practice_apply')
     return render(request, 'login.html', {'form':form})
+
+@login_required(login_url=URL_LOGIN)
+def user_modify(request:HttpRequest) -> RedirectOrResponse:
+    """
+    유저 정보 변경 페이지
+    """
+    if request.method == "POST":
+        form = UserModifyForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "수정되었습니다.")
+            
+            return redirect("practice_apply")
+    else:
+        form = UserModifyForm(instance=request.user)
+
+    context = {}
+    context['is_user_modify'] = True
+    context['form'] = form
+
+    return render(request, 'login.html', context)
+
+@login_required(login_url=URL_LOGIN)
+def password_modify(request:HttpRequest) -> RedirectOrResponse:
+    """
+    비밀번호 변경 페이지
+    """
+    if request.method == "POST":
+        form = PasswordModifyForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "변경되었습니다.")
+
+            return redirect('practice_apply')
+    else:
+        form = PasswordModifyForm(request.user)
+    context = {}
+    context['form'] = form
+    context['is_password_modify'] = True
+
+    return render(request, 'login.html', context=context)
 
 @login_required(login_url=URL_LOGIN)
 def practice_apply(request:HttpRequest) -> HttpResponse:

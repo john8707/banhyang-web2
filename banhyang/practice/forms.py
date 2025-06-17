@@ -4,7 +4,7 @@ from typing import Any
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm, ReadOnlyPasswordHashField
+from django.contrib.auth.forms import UserCreationForm, ReadOnlyPasswordHashField, PasswordChangeForm
 
 from .models import Schedule, Apply, WhyNotComing, SongData, Session, User
 from banhyang.core.utils import weekday_dict
@@ -118,6 +118,31 @@ class LoginForm(forms.Form):
             self.add_error("username", ValidationError("아이디가 존재하지 않습니다."))
         
 
+class UserModifyForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].label = "이름"
+        self.fields['name'].widget.attrs.update({'value': self.instance.name})
+
+        self.fields['email'].label = "이메일"
+        self.fields['email'].widget.attrs.update({'value': self.instance.email})
+
+        self.fields['student_id'].label = "학번"
+        self.fields['student_id'].widget.attrs.update({'value': self.instance.student_id})
+
+        self.fields['phone_number'].label = "전화번호"
+        self.fields['phone_number'].widget.attrs.update({'value': self.instance.phone_number})
+    class Meta:
+        model = get_user_model()
+        fields = ('name', 'email', 'student_id', 'phone_number')
+
+
+class PasswordModifyForm(PasswordChangeForm):
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+    
+    class Meta:
+        model = get_user_model()
 
 class ScheduleCreateForm(forms.Form):
     """
