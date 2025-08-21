@@ -1,0 +1,81 @@
+{% load static %}
+{% url 'new_apply' as apply_url %}
+{% url 'new_ui_na' as na_url %}
+{% url 'new_ui_schedule' as schedule_url %}
+{% url 'new_ui_song' as song_url %}
+{% url 'new_ui_user' as user_url %}
+{% url 'new_ui_timetable' as timetable_url %}
+
+{% url 'logout' as logout_url %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANHYANG</title>
+    <link rel="icon" href="{% static 'image/favicon.png' %}"/>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+    <link rel="stylesheet" href="{% static 'css/new.css' %}">
+</head>
+<body>
+    <div class="wrapper">
+        <!--Left nav bar-->
+        <div class="nav-bar">
+            <div class="nav-bar-icon">
+                <div class="nav-bar-icon-text">
+                    <a href="{{ apply_url }}">BANHYANG</a>
+                </div>
+            </div>
+            <!-- Nav bar menu list-->
+            <ul class="nav-bar-ul">
+                <li><a href="{{ apply_url }}" {% if request.path == apply_url %}class='active'{% endif %}><img src="{% static 'image/icon-check.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">불참 정보 입력</div></a></li>
+                <li><a href=""><img src="{% static 'image/icon-mytt.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">내 시간표 확인</div></a></li>
+                <li><a href="{{ na_url }}" {% if request.path == na_url %}class='active'{% endif %}><img src="{% static 'image/icon-na.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">불참 신청 내역</div></a></li>
+                <li><a href="{{ schedule_url }}" {% if request.path == schedule_url %}class='active'{% endif %}><img src="{% static 'image/icon-amp.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">합주 관리</div></a></li>
+                <li><a href="{{ song_url }}" {% if request.path == song_url %}class='active'{% endif %}><img src="{% static 'image/icon-song.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">곡 목록 관리</div></a></li>
+                <li><a href="{{ user_url }}" {% if request.path == user_url %}class='active'{% endif %}><img src="{% static 'image/icon-user.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">유저 관리</div></a></li>
+                <li><a href="{{ timetable_url }}" {% if request.path == timetable_url %}class='active'{% endif %}><img src="{% static 'image/icon-tt.svg' %}" alt="" class="nav-li-icon"><div class="nav-li-menu">시간표 짜기</div></a></li>
+            </ul>
+
+            <!-- Nav bar user section-->
+            <ul class="nav-bar-ul-bottom">
+                <li class="menu-hover" onclick="clickUserMenu(this)"><img src="{% static 'image/icon-user-profile.svg' %}" alt="" class="nav-li-icon-user"><div class="nav-li-user">{{user.name}} 님</div><img class="nav-li-arrow" src="{% static 'image/icon-right-arrow.svg' %}"></li>
+                <div class="user-menu" style="display: none;">
+                    <div class="">
+                        <a href="{{ logout_url }}">로그아웃</a>
+                    </div>
+                    <div>
+                        <a href="">정보 수정</a>
+                    </div>
+                </div>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="page-description">
+                <span class="page-name">{% block page-name %}{% endblock %}</span>
+                <span class="page-detail">{% block page-detail %}{% endblock %}</span>
+                <div class="line"></div>
+            </div>
+
+            <div class="main-content-wrapper">
+                {% block page-content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    function clickUserMenu(li){
+        const userMenu = document.getElementsByClassName('user-menu');
+        if (userMenu[0].style.display =="none"){
+            userMenu[0].style.display = "block";
+        } else{
+            userMenu[0].style.display = "none";
+        }
+    }
+</script>
+
+</html>

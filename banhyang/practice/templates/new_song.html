@@ -1,0 +1,124 @@
+{% extends 'new_base.html' %}
+{% load static %}
+
+{% block page-name %}
+곡 목록 관리
+{% endblock %}
+
+{% block page-detail %}
+공연 곡을 관리하세요
+{% endblock %}
+
+{% block page-content %}
+<div class="main-title-wrapper">
+    <div class="main-title">공연 곡 목록</div>
+</div>
+
+<div class="main-table-wrapper">
+    <div class="main-table-header">
+        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
+        <div class="main-table-td grow-1">곡 제목</div>
+        <div class="main-table-td grow-1">합주 우선순위</div>
+        <div class="main-table-td"></div>
+    </div>
+    <div class="main-table-tr">
+        <div class="main-table-td"><input type="checkbox" name="song-check" id=""></div>
+        <div class="main-table-td grow-1">김종완</div>
+        <div class="main-table-td grow-1">
+            <select name="" id="">
+                <option value="">긴급</option>
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">3</option>
+                <option value="">4</option>
+                <option value="">5</option>
+                <option value="">합주X</option>
+            </select>
+        </div>
+        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+    </div>
+    <div style="display: none;">
+
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">보컬</div>
+            <div class="main-table-td-sub">드럼</div>
+            <div class="main-table-td-sub">기타</div>
+            <div class="main-table-td-sub">베이스</div>
+            <div class="main-table-td-sub">건반</div>
+            <div class="main-table-td-sub">ETC</div>
+        </div>
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">김종완<br>임재원</div>
+            <div class="main-table-td-sub">정재원</div>
+            <div class="main-table-td-sub">김종완<br>이재경</div>
+            <div class="main-table-td-sub">이정훈</div>
+            <div class="main-table-td-sub">임재원</div>
+            <div class="main-table-td-sub"></div>
+        </div>
+    </div>
+    <div class="main-table-tr">
+        <div class="main-table-td"><input type="checkbox" name="song-check" id=""></div>
+        <div class="main-table-td grow-1">김종완</div>
+        <div class="main-table-td grow-1">
+            <select name="" id="">
+                <option value="">긴급</option>
+                <option value="">1</option>
+                <option value="">2</option>
+                <option value="">3</option>
+                <option value="">4</option>
+                <option value="">5</option>
+                <option value="">합주X</option>
+            </select>
+        </div>
+        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+    </div>
+    <div style="display: none;">
+
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">보컬</div>
+            <div class="main-table-td-sub">드럼</div>
+            <div class="main-table-td-sub">기타</div>
+            <div class="main-table-td-sub">베이스</div>
+            <div class="main-table-td-sub">건반</div>
+            <div class="main-table-td-sub">ETC</div>
+        </div>
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">김종완<br>임재원</div>
+            <div class="main-table-td-sub">정재원</div>
+            <div class="main-table-td-sub">김종완<br>이재경</div>
+            <div class="main-table-td-sub">이정훈</div>
+            <div class="main-table-td-sub">임재원</div>
+            <div class="main-table-td-sub"></div>
+        </div>
+    </div>
+
+    
+    <div class="button-wrapper">
+        <input type="button" value="삭제" class="button-delete">
+        {% url 'new_ui_song_add' as song_add_url %}
+        <input type="button" value="추가" class="button-add" onclick="location.href = '{{ song_add_url }}'">
+    </div>
+</div>
+
+<script type="text/javascript">
+    function collapse(element){
+        var content = element.parentElement.parentElement.nextElementSibling;
+        if (content.style.display != "none"){
+            element.style.transform = 'none'
+            content.style.display = "none";
+        } else {
+            content.style.display = "block"
+            element.style.transform = 'rotate(180deg)'
+        }
+    }
+
+    function selectAll(button){
+        const checkboxes = document.getElementsByName('song-check');
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = button.checked;
+        })
+    }
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,167 @@
+*, ::after, ::before{
+    box-sizing: content-box;
+}
+
+ul{
+    list-style-type: none;
+    padding-left: 0;
+}
+
+a, a:visited{
+    text-decoration: none;
+}
+
+body{
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    font-size: 13px;
+
+    background-color: black;
+}
+
+
+
+
+#main-image{
+    position: absolute;
+    top: 48%;
+    transform: translate(0, -50%);
+    width: 60%;
+    left: 5%;
+    z-index: 1;
+}
+
+#logo-image{
+    position: absolute;
+    top: 54%;
+    transform: translate(0, -50%);
+    width: 20%;
+    left: 26%;
+    z-index: 1;
+}
+
+.login-wrapper{
+    width: 35%;
+    position: absolute;
+    left: 65%;
+    height: 99vh;
+    color: white;
+    text-align: center;
+}
+
+.login-wrapper2{
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+
+.title1{
+    font-size: 45px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: white;
+}
+
+
+.title2{
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: white;
+}
+
+.button-wrapper{
+    margin-top: 120px;
+}
+
+
+
+.login-link{
+    margin: 0 auto 15px;
+    display: block;
+    width: 280px;
+    height: 42px;
+    border: white solid 1px;
+    border-radius: 7px;
+    background-color: black;
+}
+
+
+
+.login-button{
+    color: white;
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+
+    font-size: 15px;
+    font-weight: 500;
+}
+
+
+/* LOGIN, SINGUP FIELD */
+.form-wrapper{
+    margin: 80px auto 0;
+}
+.form-label{
+    width: 200px;
+
+    margin: 15px auto;
+    text-align: left;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    color: white;
+
+}
+
+
+.form-field{
+    margin-top: 15px;
+}
+
+.form-field input{
+    width: 200px;
+    height: 30px;
+
+    outline: none;
+    background: black;
+    border: white solid 1px;
+    border-radius: 4px;
+    color: white;
+
+    font-size: 14px;
+}
+
+
+.footer{
+    position: fixed;
+    bottom: 10px;
+    color: white;
+    text-align: center;
+    width: 100%;
+}
+
+input[type="submit"]{
+    height: 30px;
+    border-radius: 7px;
+    padding: 0 15px;
+
+    font-weight: 500;
+    font-size: 14px;
+    background-color: black;
+    cursor: pointer;
+
+    margin-top: 60px;
+}
+
+.button-login{
+    border: white solid 1px;
+    color: white;
+}
+
+.button-login:hover{
+    background-color: white;
+    color: black;
+}

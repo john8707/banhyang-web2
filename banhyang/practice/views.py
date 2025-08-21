@@ -41,6 +41,31 @@ def prevent_db_sleep():
 sched.add_job(prevent_db_sleep, 'interval', days=6)
 
 
+def new_ui_na(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_na.html')
+
+def new_ui_schedule(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_schedule.html')
+
+def new_ui_schedule_create(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_schedule_create.html')
+
+def new_ui_timetable(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_timetable.html')
+
+def new_ui_user(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_user.html')
+
+def new_ui_song(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_song.html')
+
+def new_ui_song_add(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_song_add.html')
+
+def new_apply(request:HttpRequest) -> HttpResponse:
+    return render(request, 'new_apply.html')
+
+
 # 회원 가입 view
 def signup(request:HttpRequest) -> RedirectOrResponse:
     context ={}

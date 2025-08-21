@@ -1,0 +1,138 @@
+{% extends 'new_base.html' %}
+
+{% block page-name %}
+합주 불참 신청
+{% endblock %}
+
+{% block page-detail %}
+합주에 참여할 수 없는 시간을 모두 선택해주세요.
+{% endblock %}
+
+{% block page-content %}
+
+<div class="main-title-wrapper">
+    <div class="main-title">04월 26일 (토) <br>16:00~20:00</div>
+</div>
+
+
+
+<div class="main-selector-wrapper">
+
+    <div class="form-field">
+        <div class="form-label">
+            불참 사유
+            <div class="form-input" style="display: inline-block; padding-left: 70px;">
+                <input type="text" name="" id="" style="width: 400px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-wrapper">
+        <label class="selector-box attend-all">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="attendAll(this)">
+            <div class="selector-checkbox-green">
+                <div class="selector-text">전체 참여</div>
+            </div>
+        </label>
+        <label class="selector-box select-all">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="selectAll(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">전체 불참</div>
+            </div>
+        </label>
+    </div>
+
+    <div class="grid-wrapper">
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:00</div>
+            </div>
+        </label>
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:30</div>
+            </div>
+        </label>
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:00</div>
+            </div>
+        </label>
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:30</div>
+            </div>
+        </label>
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:00</div>
+            </div>
+        </label>
+        <label class="selector-box select-indiv">
+            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
+            <div class="selector-checkbox">
+                <div class="selector-text">16:30</div>
+            </div>
+        </label>
+    </div>
+    
+    <div class="button-wrapper">
+        <input type="button" value="제출" class="button-add">
+    </div>
+</div>
+
+<script type="text/javascript">
+    function selectAll(button){
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select-indiv input')
+        const attendall = button.parentElement.parentElement.firstElementChild.firstElementChild;
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = button.checked;
+        })
+        if (button.checked){
+            attendall.checked = 0;
+        }
+    }
+
+    function attendAll(button) {
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select-indiv input');
+        const selectall = button.parentElement.parentElement.parentElement.querySelector('.select-all input');
+        if(button.checked){
+                checkboxes.forEach((checkbox) => {
+                checkbox.checked = 0;
+            })
+            selectall.checked = 0;
+        };
+    }
+
+    function validateButtonChecked(button) {
+        const selectall = button.parentElement.parentElement.parentElement.querySelector('.select-all input');
+        const attendall = button.parentElement.parentElement.parentElement.querySelector('.attend-all input');
+
+        if(button.checked) {
+            attendall.checked = 0;
+        }
+        
+        if(!button.checked){
+            selectall.checked = 0;
+        }
+        
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select-indiv input');
+        let allChecked = 1
+        if(button.checked){
+            checkboxes.forEach((checkbox) =>{
+                if(!checkbox.checked){
+                    allChecked = 0;
+                }
+            });
+            selectall.checked = allChecked;
+        }
+    }
+</script>
+
+
+{% endblock %}

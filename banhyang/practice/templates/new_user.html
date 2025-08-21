@@ -1,0 +1,139 @@
+{% extends 'new_base.html' %}
+{% load static %}
+{% block page-name %}
+유저 관리
+{% endblock %}
+
+{% block page-detail %}
+유저 목록을 관리하고 가입을 승인 하세요
+{% endblock %}
+
+{% block page-content %}
+<div class="main-title-wrapper">
+    <div class="main-title">가입 대기 목록</div>
+</div>
+
+<div class="main-table-wrapper">
+    <div class="main-table-header">
+        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
+        <div class="main-table-td grow-1">이름</div>
+        <div class="main-table-td grow-1">아이디</div>
+        <div class="main-table-td"></div>
+    </div>
+    <div class="main-table-tr">
+        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
+        <div class="main-table-td grow-1">김종완</div>
+        <div class="main-table-td grow-1">yourfacejw</div>
+        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+    </div>
+    <div style="display: none;">
+
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">이메일</div>
+            <div class="main-table-td-sub">전화번호</div>
+            <div class="main-table-td-sub">학번</div>
+        </div>
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">jodfdf@gmail.com</div>
+            <div class="main-table-td-sub">1231</div>
+            <div class="main-table-td-sub">1231</div>
+        </div>
+    </div>
+    <div class="main-table-tr">
+        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
+        <div class="main-table-td grow-1">김종완</div>
+        <div class="main-table-td grow-1">yourfacejw</div>
+        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+    </div>
+    <div style="display: none;">
+
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">이메일</div>
+            <div class="main-table-td-sub">전화번호</div>
+            <div class="main-table-td-sub">학번</div>
+        </div>
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">jodfdf@gmail.com</div>
+            <div class="main-table-td-sub">1231</div>
+            <div class="main-table-td-sub">1231</div>
+        </div>
+    </div>
+    
+
+    
+    <div class="button-wrapper">
+        <input type="button" value="거절" class="button-delete">
+        <input type="button" value="승인" class="button-add">
+    </div>
+</div>
+
+
+
+
+
+
+<div class="main-title-wrapper">
+    <div class="main-title">유저 목록</div>
+</div>
+
+<div class="main-table-wrapper">
+    <div class="main-table-header">
+        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
+        <div class="main-table-td grow-1">이름</div>
+        <div class="main-table-td grow-1">아이디</div>
+        <div class="main-table-td"></div>
+    </div>
+    <div class="main-table-tr">
+        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
+        <div class="main-table-td grow-1">김종완</div>
+        <div class="main-table-td grow-1">yourfacejw</div>
+        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+    </div>
+    <div style="display: none;">
+
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">이메일</div>
+            <div class="main-table-td-sub">전화번호</div>
+            <div class="main-table-td-sub">학번</div>
+            <div class="main-table-td-sub">운영진</div>
+            <div class="main-table-td-sub">비밀번호 초기화</div>
+        </div>
+        <div class="main-table-tr-sub">
+            <div class="main-table-td-sub">jodfdf@gmail.com</div>
+            <div class="main-table-td-sub">1231</div>
+            <div class="main-table-td-sub">1231</div>
+            <div class="main-table-td-sub"><input type="button" value="권한 부여" class="button-edit"></div>
+            <div class="main-table-td-sub"><input type="button" value="초기화(1234)" class="button-delete"></div>
+        </div>
+    </div>
+    
+
+    
+    <div class="button-wrapper">
+        <input type="button" value="삭제" class="button-delete">
+    </div>
+</div>
+
+<script type="text/javascript">
+    function collapse(element){
+        var content = element.parentElement.parentElement.nextElementSibling;
+        if (content.style.display != "none"){
+            element.style.transform = 'none'
+            content.style.display = "none";
+        } else {
+            content.style.display = "block"
+            element.style.transform = 'rotate(180deg)'
+        }
+    }
+
+
+    function selectAll(button){
+        const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll("input[type=checkbox]");
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = button.checked;
+        })
+    }
+
+</script>
+
+{% endblock %}

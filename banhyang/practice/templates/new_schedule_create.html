@@ -1,0 +1,70 @@
+{% extends 'new_base.html' %}
+{% load static %}
+
+{% block page-name %}
+합주 일정 생성
+{% endblock %}
+
+{% block page-detail %}
+예정된 합주 일정을 생성하세요
+{% endblock %}
+
+{% block page-content %}
+<div class="main-title-wrapper">
+    <div class="main-title main-title-left">합주 정보 입력</div>
+</div>
+
+<div class="main-form-wrapper">
+
+    <div class="form-field">
+        <div class="form-label">
+            이름 <span style="color:gray">[ex) 정기합주]</span>
+        </div>
+        <div class="form-input">
+            <input type="text" name="" id="">
+        </div>
+    </div>
+
+    <div class="form-field">
+        <div class="form-label">
+            날짜
+        </div>
+        <div class="form-input">
+            <input type="date" name="" id="">
+        </div>
+    </div>
+
+    <div class="form-field">
+        <div class="form-label">
+            시간 <span style="color:gray">[<span style="color: red;">오전 오후 구분 필수</span>]</span>
+        </div>
+        <div class="form-input">
+            <input type="time" name="" id=""> ~ <input type="time" name="" id="">
+        </div>
+    </div>
+
+    <div class="form-field">
+        <div class="form-label">
+            장소
+        </div>
+        <div class="form-input">
+            <input type="text" name="" id="">
+        </div>
+    </div>
+    
+    <div class="form-field">
+        <div class="form-label">
+            방 개수
+        </div>
+        <div class="form-input">
+            <input type="text" name="" id="">
+        </div>
+    </div>
+    
+    <div class="button-wrapper">
+        <input type="button" value="추가" class="button-add">
+    </div>
+</div>
+
+
+{% endblock %}

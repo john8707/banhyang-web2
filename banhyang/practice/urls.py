@@ -25,6 +25,17 @@ urlpatterns = [
     path('practice/attchk/<int:date>', views.get_attendance_check, name="get_attendance"),
     path('practice/metrics', views.metrics, name='metrics'),
 
+
+
+    path('test/na', views.new_ui_na, name='new_ui_na'),
+    path('test/schedule', views.new_ui_schedule, name='new_ui_schedule'),
+    path('test/schedule/create', views.new_ui_schedule_create, name='new_ui_schedule_create'),
+    path('test/timetable', views.new_ui_timetable, name='new_ui_timetable'),
+    path('test/user', views.new_ui_user, name='new_ui_user'),
+    path('test/song', views.new_ui_song, name='new_ui_song'),
+    path('test/song/add', views.new_ui_song_add, name='new_ui_song_add'),
+    path('test/apply', views.new_apply, name='new_apply'),
+
     # chatbot api server response
     path('chatbot/attendance', chatbot.attendance_check_only_first, name='chatbot_attendance'),
     path('chatbot/register', chatbot.register, name='chatbot_register')
