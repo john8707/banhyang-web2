@@ -58,4 +58,17 @@
         }
     </script>
 </body>
+
+{% if message %}
+    <script>
+            alert("{{message}}");
+    </script>
+{% endif %}
+{% if messages %}
+    {% for message in messages %}
+    <script>
+            alert("{{message}}");
+    </script>
+    {% endfor %}
+{% endif %}
 </html>
