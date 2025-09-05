@@ -10,82 +10,77 @@
 
 {% block page-content %}
 
-<div class="main-title-wrapper">
-    <div class="main-title">04월 26일 (토) <br>16:00~20:00</div>
-</div>
+
+<form action="" method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+    
+    {% if 'label_date' in field.name %}
+    <div class="main-title-wrapper">
+        <div class="main-title">
+            {{field.label}}
+            <br>
+    {% elif 'label_time' in field.name %}
+            {{field.label}}
+        </div>
+    </div>
+    
+
+    <div class="main-selector-wrapper">
+
+    {% elif 'why_not_coming' in field.name %}
+        <div class="form-field">
+            <div class="form-label">
+                불참 사유
+                <div class="form-input" style="display: inline-block; padding-left: 70px;">
+                    {{ field }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid-wrapper">
+    {% elif '-1' in field.name %}
+            <label class="selector-box attend-all">
+                {{ field }}
+                <div class="selector-checkbox-green">
+                    <div class="selector-text">전체 참여</div>
+                </div>
+            </label>
+    
+    {% elif 'selectall' in field.name %}
+            <label class="selector-box select-all">
+                {{ field }}
+                <div class="selector-checkbox">
+                    <div class="selector-text">전체 불참</div>
+                </div>
+            </label>
+        </div>
 
 
+        <div class="grid-wrapper">
+    
+    {% elif 'checkbox' in field.name %}
+            <label class="selector-box select-indiv">
+                {{ field }}
+                <div class="selector-checkbox">
+                    <div class="selector-text">{{ field.label }}</div>
+                </div>
+            </label>
+    
+    {% else %}
+        </div>
+        </div>
+    {% endif %}
+    {% endfor %}
+        <div class="main-selector-wrapper">
 
-<div class="main-selector-wrapper">
-
-    <div class="form-field">
-        <div class="form-label">
-            불참 사유
-            <div class="form-input" style="display: inline-block; padding-left: 70px;">
-                <input type="text" name="" id="" style="width: 400px;">
+            <div class="button-wrapper" style="text-align: center;">
+                <input type="submit" value="제출" class="button-add">
             </div>
         </div>
     </div>
-
-    <div class="grid-wrapper">
-        <label class="selector-box attend-all">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="attendAll(this)">
-            <div class="selector-checkbox-green">
-                <div class="selector-text">전체 참여</div>
-            </div>
-        </label>
-        <label class="selector-box select-all">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="selectAll(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">전체 불참</div>
-            </div>
-        </label>
-    </div>
-
-    <div class="grid-wrapper">
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:00</div>
-            </div>
-        </label>
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:30</div>
-            </div>
-        </label>
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:00</div>
-            </div>
-        </label>
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:30</div>
-            </div>
-        </label>
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:00</div>
-            </div>
-        </label>
-        <label class="selector-box select-indiv">
-            <input type="checkbox" name="" id="" style="display: none;" onclick="validateButtonChecked(this)">
-            <div class="selector-checkbox">
-                <div class="selector-text">16:30</div>
-            </div>
-        </label>
-    </div>
-    
-    <div class="button-wrapper">
-        <input type="button" value="제출" class="button-add">
-    </div>
-</div>
-
+</form>
 <script type="text/javascript">
     function selectAll(button){
         const checkboxes = button.parentElement.parentElement.parentElement.querySelectorAll('.select-indiv input')

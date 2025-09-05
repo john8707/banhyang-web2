@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
-from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
+from .forms import ApplyForm, PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
 from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
@@ -62,8 +62,32 @@ def new_ui_song(request:HttpRequest) -> HttpResponse:
 def new_ui_song_add(request:HttpRequest) -> HttpResponse:
     return render(request, 'new_song_add.html')
 
+@login_required(login_url=URL_LOGIN)
 def new_apply(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_apply.html')
+    """
+    합주 불참 신청 페이지
+    """
+    context = {}
+    # is_current(불참을 받을 합주)가 체크된 합주 일정을 가져옴
+    current_practice = Schedule.objects.filter(is_current=True).order_by('date')
+    if len(current_practice):
+        form = ApplyForm()
+    else:
+        form = None
+    # SUBMIT 했을 시
+    if request.method == "POST":
+        form = ApplyForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "제출되었습니다.")
+            form = ApplyForm()
+        else:
+            # Validation 에러 발생
+            messages.error(request, form.non_field_errors()[0])
+            form = ApplyForm(request.POST)
+
+    context['form'] = form
+    return render(request, 'new_apply.html', context=context)
 
 
 # 회원 가입 view

@@ -299,6 +299,145 @@ class PracticeApplyForm(forms.Form):
             Apply.objects.bulk_create(apply_bulk_list)
 
 
+class ApplyForm(forms.Form):
+    """
+    합주 불참 신청 form
+    """
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.user = user
+        self.current_schedule = Schedule.objects.filter(is_current=True).order_by('date')
+        self.generate_boolean_fields()
+
+    # 불참을 받을 합주 일정과 시간에 맞춰 동적으로 label, 불참 사유 input 및 check box 생성
+    def generate_boolean_fields(self):
+        for i in self.current_schedule:
+            time_counter = datetime.combine(date.today(), i.starttime)
+            end_time = datetime.combine(date.today(), i.endtime)
+
+            # 날짜 Display용 Fake input
+            self.fields["label_date" + str(i.id)] = forms.DateField(
+                required=False,
+                label="%s" % (i.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(i.date.weekday())))
+            self.fields["label_time" + str(i.id)] = forms.TimeField(
+                required=False,
+                label="(%s~%s)" % (i.starttime.strftime("%H:%M"),
+                                   i.endtime.strftime("%H:%M")))
+
+            # 불참 사유 input
+            self.fields["why_not_coming_" + str(i.id)] = forms.CharField(max_length=255,
+                                                                         required=False,
+                                                                         label="불참 사유",
+                                                                         widget=forms.TextInput(attrs={
+                                                                             'class': 'why_not_coming'
+                                                                         }))
+
+            # 전체 참여 Checkbox
+            self.fields["checkbox_" + str(i.id) + "_-1"] = forms.BooleanField(
+                required=False,
+                label="전체 참여",
+                widget=forms.CheckboxInput(attrs={
+                    'name': 'selected',
+                    'value': str(i.id) + "_-1",
+                    "onclick": "attendAll(this)",
+                    "style": "display: none;"
+                })
+            )
+
+            # 전체 불참 Checkbox
+            self.fields["checkbox_" + str(i.id) + "_selectall"] = forms.BooleanField(
+                required=False,
+                label="전체 불참",
+                widget=forms.CheckboxInput(attrs={
+                    'name': 'selectall',
+                    'value': 'selectall',
+                    'onclick': 'selectAll(this)',
+                    "style": "display: none;"
+                })
+            )
+
+            # 각 합주에 맞게 동적인 Checkbox 생성
+            division_counter = 0
+            while time_counter < end_time:
+
+                field_name = "checkbox_" + str(i.id) + "_" + str(division_counter)
+                self.fields[field_name] = forms.BooleanField(
+                    required=False,
+                    label=time_counter.strftime("%H:%M"),
+                    widget=forms.CheckboxInput(attrs={
+                        'value': str(i.id) + "_" + str(division_counter),
+                        'class': 'checkit',
+                        'onclick': 'validateButtonChecked(this)',
+                        "style": "display: none;"
+                    })
+                )
+                time_counter += timedelta(minutes=10)
+                division_counter += 1
+            
+            self.fields['end' + str(i.id)] = forms.IntegerField(required=False)
+
+    # Form Validation 진행
+    def clean(self) -> dict:
+        form_data = self.cleaned_data
+        result = {}
+        schedule_objects = Schedule.objects.filter(is_current=True).order_by('date')
+        scheduleId_list = [x.id for x in schedule_objects]
+        result['user_object'] = self.user
+
+
+        selected_dict = {x: [] for x in scheduleId_list}
+        reason_dict = {x: form_data['why_not_coming_' + str(x)] for x in scheduleId_list}
+        for i, v in form_data.items():
+            if 'checkbox' in i and v is True and 'selectall' not in i:
+                res = i.split('_')
+                selected_dict[int(res[1])].append(int(res[2]))
+
+        for i in scheduleId_list:
+
+            # Select At Least 1
+            if selected_dict[i] == []:
+                raise ValidationError("전체 참여 혹은 불참 시간을 각 날짜별로 선택해 주세요.")
+
+            # Select either 전체 참여 or 불참
+            elif -1 in selected_dict[i] and len(selected_dict[i]) > 1:
+                raise ValidationError("불참 혹은 전체 참여 중 1가지만 선택해 주세요.")
+
+            # Input reason if 불참
+            elif reason_dict[i] == '' and -1 not in selected_dict[i]:
+                raise ValidationError("불참 사유를 입력해 주세요.")
+
+            # 전체 참여일시 Reason 지우기
+            if -1 in selected_dict[i]:
+                reason_dict[i] = ""
+
+        result['selected_dict'] = selected_dict
+        result['reason_dict'] = reason_dict
+        result['schedule_objects'] = schedule_objects
+
+        return result
+
+    # 제출한 데이터 DB에 저장
+    def save(self) -> None:
+        form_data = self.cleaned_data
+        user_object = form_data['user_object']
+        selected_dict = form_data['selected_dict']
+        reason_dict = form_data['reason_dict']
+        schedule_objects = form_data['schedule_objects']
+
+        for schedule_object in schedule_objects:
+            Apply.objects.filter(user_id=user_object, schedule_id=schedule_object).delete()
+            WhyNotComing.objects.filter(user_id=user_object, schedule_id=schedule_object).delete()
+
+            if reason_dict[schedule_object.id]:
+                w = WhyNotComing(user_id=user_object, schedule_id=schedule_object, reason=reason_dict[schedule_object.id])
+                w.save()
+
+            apply_bulk_list = [Apply(user_id=user_object, schedule_id=schedule_object, not_available=x) for x in selected_dict[schedule_object.id]]
+            Apply.objects.bulk_create(apply_bulk_list)
+
+
+
 class SongSessionField(forms.CharField):
     """
     곡 데이터 추가 Form을 위한 커스텀 필드

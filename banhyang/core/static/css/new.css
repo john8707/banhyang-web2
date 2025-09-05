@@ -383,6 +383,7 @@ body{
 .form-input{
     margin-bottom: 15px;
 }
+
 .form-input input{
     border-radius: 3px;
     border: #4fc77d solid 1px;
@@ -392,6 +393,10 @@ body{
 
 
 /* Apply input form */
+.form-input .why_not_coming{
+    width: 500px;
+}
+
 .main-selector-wrapper{
     max-width:700px;
     margin: 50px auto 0;
@@ -449,7 +454,7 @@ input[type="checkbox"]:checked + .selector-checkbox{
     width: 100%;
 }
 
-input[type="button"]{
+input[type="submit"]{
     height: 30px;
     border-radius: 7px;
     padding: 0 15px;
