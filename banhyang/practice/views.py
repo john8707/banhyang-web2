@@ -5,7 +5,7 @@ import json
 import typing
 
 # core Django
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
@@ -19,7 +19,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
 from .forms import ApplyForm, PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
-from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime
+from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime, User
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
@@ -42,7 +42,89 @@ sched.add_job(prevent_db_sleep, 'interval', days=6)
 
 
 def new_ui_na(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_na.html')
+    """
+    불참 제출 여부 및 불참 시간, 사유 조회 페이지
+    """
+    context = {}
+    na = {}
+    # na_info[날짜] = {사람 : {시간 : , 사유 : }} -> 불참하는 인원
+    # not_submitted[날짜] = [사람] -> 미제출 인원
+    # all_participant[날짜] = [사람] -> 전체 참여 인원 세 가지 구해서 보여주기
+
+    current_schedule = Schedule.objects.filter(is_current=True)
+
+    for schedule in current_schedule:
+        schedule_na_info = {}
+        schedule_not_submitted = []
+        schedule_all_participant = []
+        all_apply_objects = Apply.objects.filter(schedule_id=schedule.id).select_related('user_id')
+
+        # 1. Apply 모델의 not_available index 값을 실제 불참 시간으로 텍스트화하기
+        # nai[유저 이름] = [불참 시간 인덱스 값]
+        not_available_by_index = defaultdict(list)
+        for apply_objects in all_apply_objects:
+            not_available_by_index[apply_objects.user_id.name].append(apply_objects.not_available)
+        schedule_start_time = datetime.combine(date.today(), schedule.starttime)
+        not_available_by_time = {}
+
+        # 불참 시간 index -> 실제 시간으로 stringify
+        for user_name, na_index_list in not_available_by_index.items():
+            na_index_list.sort(reverse=True)
+            index_to_time_string = []
+            prev_index = None
+            while na_index_list:
+                cur_index = na_index_list.pop()
+                # 현재 인덱스 값이 -1인 경우, 전참 선택
+                if cur_index == -1:
+                    index_to_time_string = ['전참']
+                    break
+                # 이전 인덱스 값이 없는 경우, 현재 인덱스 값을 기준으로 시작 시간, 끝 시간 설정
+                if prev_index is None:
+                    start_time = schedule_start_time + timedelta(minutes=10 * cur_index)
+                    end_time = start_time + timedelta(minutes=10)
+                # 인덱스가 이어지는 경우, 끝 시간 늘리기
+                elif cur_index == prev_index + 1:
+                    end_time += timedelta(minutes=10)
+                # 이어지지 않는 경우 이전의 시간 리스트에 추가 및 다시 시작 끝 시간 설정
+                else:
+                    index_to_time_string.append(start_time.strftime("%H:%M") + "~" + end_time.strftime("%H:%M"))
+                    start_time = schedule_start_time + timedelta(minutes=10 * cur_index)
+                    end_time = start_time + timedelta(minutes=10)
+                if not na_index_list:
+                    index_to_time_string.append(start_time.strftime("%H:%M") + "~" + end_time.strftime("%H:%M"))
+                prev_index = cur_index
+            not_available_by_time[user_name] = ', '.join(index_to_time_string)
+            
+        # 2. 불참 사유 구하기
+        na_reason_objects = WhyNotComing.objects.filter(schedule_id=schedule.id).select_related('user_id')
+        na_reason_dict = {}
+        for na_reason in na_reason_objects:
+            na_reason_dict[na_reason.user_id.name] = na_reason.reason
+        
+        # 1,2 합치고 전참 인원 분리하기
+        for user_name, na_time in not_available_by_time.items():
+            if na_time == '전참':
+                schedule_all_participant.append(user_name)
+            else:
+                schedule_na_info[user_name] = {
+                    '시간' : na_time,
+                    '사유' : na_reason_dict[user_name]
+                }
+
+        # 3. 미제출 인원 구하기
+        query = User.objects.filter(~Q(name__in=schedule_all_participant) & ~Q(name__in=schedule_na_info.keys()) & Q(is_confirmed=True))
+        for q in query:
+            schedule_not_submitted.append(q.name)
+
+        date_to_string = schedule.date.strftime('%m월 %d일'.encode('unicode-escape').decode()).encode().decode('unicode-escape') + weekday_dict(schedule.date.weekday())
+        na[date_to_string] = {
+            '미제출' : schedule_not_submitted,
+            '불참' : schedule_na_info,
+            '전참' : schedule_all_participant
+        }
+
+    context['na'] = na
+    return render(request, 'new_na.html', context=context)
 
 def new_ui_schedule(request:HttpRequest) -> HttpResponse:
     return render(request, 'new_schedule.html')
