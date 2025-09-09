@@ -126,11 +126,60 @@ def new_ui_na(request:HttpRequest) -> HttpResponse:
     context['na'] = na
     return render(request, 'new_na.html', context=context)
 
-def new_ui_schedule(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_schedule.html')
+def new_ui_schedule(request:HttpRequest) -> RedirectOrResponse:
+    """
+    합주 일정 관리 페이지
+    """
+    context = {}
+    schedule_objects = Schedule.objects.all().order_by('date')
+    
+    # iterator for template tag
+    iter_room= range(1,9)
+    iter_min = [10 * x for x in range(1,7)]
 
-def new_ui_schedule_create(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_schedule_create.html')
+    if request.method=="POST":
+        # 합주 일정 삭제
+        if request.POST.get('action-type') == "삭제":
+            qs = schedule_objects.filter(id__in = request.POST.getlist('schedule-delete'))
+            qs.delete()
+            messages.success(request, "삭제되었습니다.")
+        # 합주 정보 변경
+        else:
+            schedule_id, attribute, value = request.POST.get('changedValue').split('_')
+            qs = schedule_objects.get(pk=schedule_id)
+            # attribute = min, rooms, current
+            if attribute == "min":
+                qs.min_per_song = value
+            elif attribute == "rooms":
+                qs.rooms = value
+            elif attribute == "current":
+                qs.is_current = value.capitalize()
+            qs.save(force_update=True)
+        return redirect('new_ui_schedule')
+
+    context['iter_room'] = iter_room
+    context['iter_min'] = iter_min
+    context['schedules'] = schedule_objects
+    return render(request, 'new_schedule.html', context=context)
+
+def new_ui_schedule_create(request:HttpRequest) -> RedirectOrResponse:
+    """
+    합주 일정 생성 페이지
+    """
+    context = {}
+    form = ScheduleCreateForm()
+    if request.method == "POST":
+        form = ScheduleCreateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "생성되었습니다.")
+            return redirect('new_ui_schedule')
+        else:
+            messages.error(request, form.non_field_errors()[0])
+            form = ScheduleCreateForm(request.POST)
+    
+    context['form'] = form
+    return render(request, 'new_schedule_create.html', context=context)
 
 def new_ui_timetable(request:HttpRequest) -> HttpResponse:
     return render(request, 'new_timetable.html')

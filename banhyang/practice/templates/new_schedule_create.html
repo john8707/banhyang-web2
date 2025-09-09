@@ -16,54 +16,65 @@
 
 <div class="main-form-wrapper">
 
-    <div class="form-field">
-        <div class="form-label">
-            이름 <span style="color:gray">[ex) 정기합주]</span>
-        </div>
-        <div class="form-input">
-            <input type="text" name="" id="">
-        </div>
-    </div>
+    <form action="" method="post">
+        {% csrf_token %}
 
-    <div class="form-field">
-        <div class="form-label">
-            날짜
+        <div class="form-field">
+            <div class="form-label">
+                이름 <span style="color:gray">[ex) 정기합주]</span>
+            </div>
+            <div class="form-input">
+                {{form.name}}
+            </div>
         </div>
-        <div class="form-input">
-            <input type="date" name="" id="">
+        
+        <div class="form-field">
+            <div class="form-label">
+                날짜
+            </div>
+            <div class="form-input">
+                {{form.date}}
+            </div>
         </div>
-    </div>
-
-    <div class="form-field">
-        <div class="form-label">
-            시간 <span style="color:gray">[<span style="color: red;">오전 오후 구분 필수</span>]</span>
+        
+        <div class="form-field">
+            <div class="form-label">
+                시간 <span style="color:gray">[<span style="color: red;">오전 오후 구분 필수</span>]</span>
+            </div>
+            <div class="form-input">
+                {{form.starttime}} ~ {{form.endtime}}
+            </div>
         </div>
-        <div class="form-input">
-            <input type="time" name="" id=""> ~ <input type="time" name="" id="">
+        
+        <div class="form-field">
+            <div class="form-label">
+                장소
+            </div>
+            <div class="form-input">
+                {{form.location}}
+            </div>
         </div>
-    </div>
-
-    <div class="form-field">
-        <div class="form-label">
-            장소
+        <div class="form-field">
+            <div class="form-label">
+                곡 당 시간
+            </div>
+            <div class="form-input">
+                {{form.minutes}}
+            </div>
         </div>
-        <div class="form-input">
-            <input type="text" name="" id="">
+        <div class="form-field">
+            <div class="form-label">
+                방 개수
+            </div>
+            <div class="form-input">
+                {{form.rooms}}
+            </div>
         </div>
-    </div>
-    
-    <div class="form-field">
-        <div class="form-label">
-            방 개수
+        
+        <div class="button-wrapper">
+            <input type="submit" value="추가" class="button-add">
         </div>
-        <div class="form-input">
-            <input type="text" name="" id="">
-        </div>
-    </div>
-    
-    <div class="button-wrapper">
-        <input type="button" value="추가" class="button-add">
-    </div>
+    </form>
 </div>
 
 

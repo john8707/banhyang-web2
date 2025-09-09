@@ -165,7 +165,7 @@ class ScheduleCreateForm(forms.Form):
     def save(self) -> None:
         form_data = self.cleaned_data
         s = Schedule(name=form_data['name'], date=form_data['date'] + timedelta(hours=9), location=form_data['location'], rooms=form_data['rooms'],
-                     min_per_song=form_data['minutes'], starttime=form_data['starttime'], endtime=form_data['endtime'])
+                     min_per_song=form_data['minutes'], starttime=form_data['starttime'], endtime=form_data['endtime'], is_current=False)
         s.save()
 
 

@@ -25,6 +25,13 @@ class Schedule(models.Model):
 
     def __str__(self):
         return f"{self.date.strftime('%y/%m/%d(%a)')}/{self.starttime.strftime('%H:%M')}~{self.endtime.strftime('%H:%M')}/"
+    
+
+    def date_to_string(self):
+        return f"{self.date.strftime('%y/%m/%d(%a)')}"
+
+    def start_to_end_to_string(self):
+        return f"{self.starttime.strftime('%H:%M')}~{self.endtime.strftime('%H:%M')}"
 
 
 # 바냥이들의 정보
