@@ -20,6 +20,14 @@ def get_from_key_mobile(dict, key):
         return ""
     else:
         return "X"
+    
+@register.filter('convert_list_to_br')
+def convert_list_to_br(dict:dict, key:str):
+    if key in dict:
+        return "<br>".join(dict[key])
+    else:
+        return "X"
+
 
 @register.simple_tag
 def generate_random(a, b):

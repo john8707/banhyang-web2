@@ -443,9 +443,87 @@ class SongSessionField(forms.CharField):
     곡 데이터 추가 Form을 위한 커스텀 필드
     """
     def to_python(self, value):
+        """
+        입력된 문자열을 쉼표(,)로 분리하여 리스트로 변환
+        """
         if not value:
             return []
-        return value.split(',')
+        return [v for v in (item.strip() for item in value.split(',')) if v]
+
+    def clean(self, value):
+        """
+        유저 존재 여부를 validate한 후 user를 모델 objects로 변경 후 리턴
+        """
+        name_list = super().clean(value)
+        if not name_list:
+            return []
+        
+        user_objects = []
+        not_found_users = []
+        names = [name.strip() for name in name_list if name.strip()]
+        users = User.objects.filter(name__in=names)
+        user_dict = {user.name: user for user in users}
+        for name in names:
+            if name in user_dict:
+                user_objects.append(user_dict[name])
+            else:
+                not_found_users.append(name)
+        
+        if not_found_users:
+            raise ValidationError(f"일치하는 이름을 찾을 수 없습니다: {', '.join(not_found_users)}")
+        return user_objects
+    
+class NewSongAddForm(forms.Form):
+    """
+    곡 데이터 추가 폼
+    """
+    title = forms.CharField(required=False, widget=forms.TextInput())
+    vocals = SongSessionField(required=False, widget=forms.TextInput())
+    drums = SongSessionField(required=False, widget=forms.TextInput())
+    guitars = SongSessionField(required=False, widget=forms.TextInput())
+    bass = SongSessionField(required=False, widget=forms.TextInput())
+    keyboards = SongSessionField(required=False, widget=forms.TextInput())
+    etc = SongSessionField(required=False, widget=forms.TextInput())
+
+    def clean(self) -> dict:
+        """
+        title이 비어있는데 세션에 값이 있는 경우 에러 처리
+        """
+        cleaned_data = super().clean()
+
+        # title이 비어있는데 세션에 값이 있는 경우 에러 처리
+        if any(cleaned_data.values()):
+            if not cleaned_data.get('title'):
+                self.add_error('title', "곡 제목을 입력해 주세요.")
+
+        return cleaned_data
+    
+    def save(self) -> None:
+        """
+        Custom Save for NewSongAddForm.
+        이미 동명의 곡이 존재하는 경우 SongData에서 삭제 후 SongData, Session 데이터 저장
+        """
+        form_data = self.cleaned_data
+        if not form_data.get('title'):
+            return  # title이 비어있으면 저장하지 않음
+
+        song_exist = SongData.objects.filter(songname=form_data['title']).prefetch_related('session')
+        # 기존 곡이 존재하면 해당 곡의 세션 데이터 삭제
+        if song_exist:
+            for i in song_exist:
+                song_object = i
+                i.session.all().delete()
+        # 기존 곡이 존재하지 않으면 새로 생성
+        else:
+            song_object = SongData(songname=form_data['title'])
+            song_object.save()
+
+        session_index = {'vocals': 'v', 'drums': 'd', 'guitars': 'g', 'bass': 'b', 'keyboards': 'k', 'etc': 'etc'}
+
+        # 세션 데이터 bulk create
+        for key, value in session_index.items():
+            session_bulk_list = [Session(song_id=song_object, user_id=x, instrument=value) for x in form_data[key] if x]
+            Session.objects.bulk_create(session_bulk_list)
 
 
 class SongAddForm(forms.Form):

@@ -5,7 +5,8 @@ import json
 import typing
 
 # core Django
-from django.db.models import Exists, OuterRef, Prefetch, Q
+from django.db.models import Exists, OuterRef, Prefetch, Q, QuerySet
+from django.forms import formset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
@@ -18,7 +19,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # project apps
-from .forms import ApplyForm, PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
+from .forms import ApplyForm, PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm, NewSongAddForm
 from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime, User
 from .metrics import AttendanceStatistics
 from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
@@ -187,11 +188,67 @@ def new_ui_timetable(request:HttpRequest) -> HttpResponse:
 def new_ui_user(request:HttpRequest) -> HttpResponse:
     return render(request, 'new_user.html')
 
-def new_ui_song(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_song.html')
+def new_ui_song(request:HttpRequest) -> RedirectOrResponse:
+    """
+    곡 목록 페이지
+    """
+    context = {}
+    # POST
+    if request.method == "POST":
+        # 우선순위를 수정하는 경우
+        if request.POST.get('changedValue'):
+            song_id, priority = request.POST.get('changedValue').split('_')
+            qs = SongData.objects.get(id=song_id)
+            qs.priority = int(priority)
+            qs.save(force_update=True)
 
-def new_ui_song_add(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_song_add.html')
+        # 곡 삭제하는 경우
+        elif request.POST.get('song-delete'):
+            qs = SongData.objects.filter(id__in=request.POST.getlist('song-delete'))
+            qs.delete()
+            messages.success(request, "삭제되었습니다.")
+        
+        return redirect("new_ui_song")
+
+    session_qs = Session.objects.select_related('user_id')
+    song_objects = SongData.objects.prefetch_related(Prefetch('session', queryset=session_qs)).order_by('songname')
+    song_dict = {}
+    for song in song_objects:
+        session_dict = defaultdict(list)
+        sessions : QuerySet[Session] = song.session.all()
+        for s in sessions:
+            session_dict[s.instrument].append(s.user_id.name)
+        song_dict[song] = session_dict
+
+    context['songs'] = song_dict
+    return render(request, 'new_song.html', context=context)
+
+def new_ui_song_add(request:HttpRequest) -> RedirectOrResponse:
+    """
+    곡 추가 페이지
+    """
+    context = {}
+    SongAddFormSet = formset_factory(NewSongAddForm, extra=1)
+
+    # POST
+    if request.method == "POST":
+        formset = SongAddFormSet(request.POST)
+        # forms에서 validation 진행
+        if formset.is_valid():
+            for form in formset:
+                form.save()
+            messages.success(request, "등록되었습니다.")
+            return redirect('new_ui_song')
+        # validation error
+        else:
+            messages.error(request, "등록에 실패하였습니다. 다시 시도해주세요.")
+            formset = SongAddFormSet(request.POST)
+    # GET
+    else:
+        formset = SongAddFormSet()
+
+    context['formset'] = formset
+    return render(request, 'new_song_add.html', context=context)
 
 @login_required(login_url=URL_LOGIN)
 def new_apply(request:HttpRequest) -> HttpResponse:

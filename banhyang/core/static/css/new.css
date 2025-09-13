@@ -295,7 +295,7 @@ body{
 
 .main-table-tr, .main-table-header, .main-table-tr-sub{
     display: flex;
-    height: 40px;
+    min-height: 40px;
     align-items: center;
 }
 
@@ -467,7 +467,7 @@ input[type="submit"], input[type="button"]{
 
 
 .button-delete{
-    border: #F5D6D5 solid 1px;
+    border: #c74f51 solid 1px;
     color: #c74f51;
 }
 
@@ -476,7 +476,7 @@ input[type="submit"], input[type="button"]{
 }
 
 .button-add{
-    border: #D5F6E4 solid 1px;
+    border: #4fc77d solid 1px;
     color: #4fc77d;
 }
 
@@ -485,7 +485,7 @@ input[type="submit"], input[type="button"]{
 }
 
 .button-edit{
-    border: #D5E5F6 solid 1px;
+    border: #4F7FC7 solid 1px;
     color: #4F7FC7;
 }
 

@@ -14,102 +14,120 @@
     <div class="main-title">하나의 세션이 여러 명인 경우 콤마(,)로 구분, 없을 경우 비워주세요!!</div>
 </div>
 
-<div class="main-table-wrapper">
-    <div class="main-table-header">
-        <div class="main-table-td grow-1">제목</div>
-        <div class="main-table-td grow-1">보컬</div>
-        <div class="main-table-td grow-1">드럼</div>
-        <div class="main-table-td grow-1">기타</div>
-        <div class="main-table-td grow-1">베이스</div>
-        <div class="main-table-td grow-1">키보드</div>
-        <div class="main-table-td grow-1">ETC</div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
+<form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <div class="main-table-wrapper" id="form-container">
+        <div class="main-table-header">
+            <div class="main-table-td grow-1">제목</div>
+            <div class="main-table-td grow-1">보컬</div>
+            <div class="main-table-td grow-1">드럼</div>
+            <div class="main-table-td grow-1">기타</div>
+            <div class="main-table-td grow-1">베이스</div>
+            <div class="main-table-td grow-1">키보드</div>
+            <div class="main-table-td grow-1">ETC</div>
+        </div>
+        {% for form in formset %}
+        <div class="main-table-tr">
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.title }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.vocals }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.drums }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.guitars }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.bass }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.keyboards }}
+                </div>
+            </div>
+            <div class="main-table-td grow-1">
+                <div class="form-input">
+                    {{ form.etc }}
+                </div>
             </div>
         </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
+        {% if form.errors %}
+        <div class="main-table-tr">
+            <div class="main-table-td grow-1">
+                {{ form.title.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.vocals.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.drums.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.guitars.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.bass.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.keyboards.errors }}
+            </div>
+            <div class="main-table-td grow-1">
+                {{ form.etc.errors }}
             </div>
         </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
-            </div>
-        </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
-            </div>
-        </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
-            </div>
-        </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
-            </div>
-        </div>
-        <div class="main-table-td grow-1">
-            <div class="form-input">
-            <input type="text" name="" id="">
-            </div>
-        </div>
-        
-    </div>
+        {% endif %}
+        {% endfor %}
 
-    <div class="button-wrapper">
-        <input type="button" value="추가" class="button-add">
+        <div id="empty-form-template" style="display: none;">
+            <div class="main-table-tr form-row">
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.title }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.vocals }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.drums }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.guitars }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.bass }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.keyboards }}</div></div>
+                <div class="main-table-td grow-1"><div class="form-input">{{ formset.empty_form.etc }}</div></div>
+            </div>
+        </div>
+        <div class="button-wrapper">
+            <input type="button" value="행 추가" class="button-edit" id="add-form-button">
+            <input type="submit" value="저장" class="button-add">
+        </div>
     </div>
-</div>
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 테이블 전체를 감싸는 컨테이너를 선택합니다.
-    const tableWrapper = document.querySelector('.main-table-wrapper');
+    const addButton = document.getElementById('add-form-button');
+    const container = document.getElementById('form-container');
+    const template = document.getElementById('empty-form-template').innerHTML;
+    const totalFormsInput = document.querySelector('input[name="form-TOTAL_FORMS"]');
     
-    // '추가' 버튼 컨테이너를 선택합니다. 새 행은 이 컨테이너 앞에 추가됩니다.
+    // 버튼 래퍼 요소 선택.
     const buttonWrapper = document.querySelector('.button-wrapper');
 
-    // 행을 추가하는 함수
-    const addNewRow = (currentRow) => {
-        // 현재 행을 그대로 복제합니다. (true는 자식 요소까지 모두 복제)
-        const newRow = currentRow.cloneNode(true);
+    addButton.addEventListener('click', () => {
+        let currentFormCount = parseInt(totalFormsInput.value);
+        const newFormHtml = template.replace(/__prefix__/g, currentFormCount);
         
-        // 복제된 행의 모든 input 필드를 찾아서 값을 비웁니다.
-        newRow.querySelectorAll('input[type="text"]').forEach(input => {
-            input.value = '';
-        });
-
-        // 복제된 행이 또다시 행을 추가할 수 있도록, 상태를 표시하는 클래스를 제거합니다.
-        newRow.classList.remove('row-dirty');
+        // 새 폼을 버튼 래퍼의 바로 앞에 삽입
+        buttonWrapper.insertAdjacentHTML('beforebegin', newFormHtml);
         
-        // '추가' 버튼 바로 위에 복제된 빈 행을 삽입합니다.
-        tableWrapper.insertBefore(newRow, buttonWrapper);
-    };
-
-    // 테이블 컨테이너에 'input' 이벤트 리스너를 추가합니다 (이벤트 위임).
-    tableWrapper.addEventListener('input', (event) => {
-        // 이벤트가 발생한 요소가 input 태그인지 확인합니다.
-        if (event.target.tagName === 'INPUT') {
-            // 이벤트가 발생한 input을 포함하는 가장 가까운 행(.main-table-tr)을 찾습니다.
-            const currentRow = event.target.closest('.main-table-tr');
-
-            // 해당 행이 유효하고, 아직 새로운 행을 추가한 적이 없는 경우에만 실행합니다.
-            // 'row-dirty' 클래스는 행이 한 번이라도 수정되었음을 나타내는 표시입니다.
-            if (currentRow && !currentRow.classList.contains('row-dirty')) {
-                // 이 행은 이제 수정되었으므로, 'row-dirty' 클래스를 추가하여 중복 추가를 방지합니다.
-                currentRow.classList.add('row-dirty');
-                
-                // 새로운 빈 행을 추가하는 함수를 호출합니다.
-                addNewRow(currentRow);
-            }
-        }
+        totalFormsInput.value = currentFormCount + 1;
     });
 });
 </script>

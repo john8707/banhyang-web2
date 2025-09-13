@@ -1,5 +1,6 @@
 {% extends 'new_base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block page-name %}
 곡 목록 관리
@@ -14,91 +15,62 @@
     <div class="main-title">공연 곡 목록</div>
 </div>
 
-<div class="main-table-wrapper">
-    <div class="main-table-header">
-        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
-        <div class="main-table-td grow-1">곡 제목</div>
-        <div class="main-table-td grow-1">합주 우선순위</div>
-        <div class="main-table-td"></div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td"><input type="checkbox" name="song-check" id=""></div>
-        <div class="main-table-td grow-1">김종완</div>
-        <div class="main-table-td grow-1">
-            <select name="" id="">
-                <option value="">긴급</option>
-                <option value="">1</option>
-                <option value="">2</option>
-                <option value="">3</option>
-                <option value="">4</option>
-                <option value="">5</option>
-                <option value="">합주X</option>
-            </select>
+<form action="" method="post" onsubmit="return confirm('선택된 곡을 삭제하시겠습니까?')">
+    {% csrf_token %}
+    <div class="main-table-wrapper">
+        <div class="main-table-header">
+            <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
+            <div class="main-table-td grow-1">곡 제목</div>
+            <div class="main-table-td grow-1">합주 우선순위</div>
+            <div class="main-table-td"></div>
         </div>
-        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
-    </div>
-    <div style="display: none;">
-
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">보컬</div>
-            <div class="main-table-td-sub">드럼</div>
-            <div class="main-table-td-sub">기타</div>
-            <div class="main-table-td-sub">베이스</div>
-            <div class="main-table-td-sub">건반</div>
-            <div class="main-table-td-sub">ETC</div>
+        {% for song, sessions in songs.items %}
+        <div class="main-table-tr">
+            <div class="main-table-td"><input type="checkbox" name="song-delete" value="{{song.id}}"></div>
+            <div class="main-table-td grow-1">{{song.songname}}</div>
+            <div class="main-table-td grow-1">
+                <select name="" onchange="updateValue('{{song.id}}', this)">
+                    <option value="0" {% if song.priority == 0 %} selected {% endif %}>긴급</option>
+                    <option value="1" {% if song.priority == 1 %} selected {% endif %}>1</option>
+                    <option value="2" {% if song.priority == 2 %} selected {% endif %}>2</option>
+                    <option value="3" {% if song.priority == 3 %} selected {% endif %}>3</option>
+                    <option value="4" {% if song.priority == 4 %} selected {% endif %}>4</option>
+                    <option value="5" {% if song.priority == 5 %} selected {% endif %}>5</option>
+                    <option value="-1" {% if song.priority == -1 %} selected {% endif %}>합주X</option>
+                </select>
+            </div>
+            <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
         </div>
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">김종완<br>임재원</div>
-            <div class="main-table-td-sub">정재원</div>
-            <div class="main-table-td-sub">김종완<br>이재경</div>
-            <div class="main-table-td-sub">이정훈</div>
-            <div class="main-table-td-sub">임재원</div>
-            <div class="main-table-td-sub"></div>
+        <div style="display: none;">
+            
+            <div class="main-table-tr-sub">
+                <div class="main-table-td-sub">보컬</div>
+                <div class="main-table-td-sub">드럼</div>
+                <div class="main-table-td-sub">기타</div>
+                <div class="main-table-td-sub">베이스</div>
+                <div class="main-table-td-sub">건반</div>
+                <div class="main-table-td-sub">ETC</div>
+            </div>
+            <div class="main-table-tr-sub">
+                {% autoescape off %}
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"v"}}</div>
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"d"}}</div>
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"g"}}</div>
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"b"}}</div>
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"k"}}</div>
+                <div class="main-table-td-sub">{{sessions | convert_list_to_br:"etc"}}</div>
+                {% endautoescape %}
+            </div>
         </div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td"><input type="checkbox" name="song-check" id=""></div>
-        <div class="main-table-td grow-1">김종완</div>
-        <div class="main-table-td grow-1">
-            <select name="" id="">
-                <option value="">긴급</option>
-                <option value="">1</option>
-                <option value="">2</option>
-                <option value="">3</option>
-                <option value="">4</option>
-                <option value="">5</option>
-                <option value="">합주X</option>
-            </select>
-        </div>
-        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
-    </div>
-    <div style="display: none;">
-
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">보컬</div>
-            <div class="main-table-td-sub">드럼</div>
-            <div class="main-table-td-sub">기타</div>
-            <div class="main-table-td-sub">베이스</div>
-            <div class="main-table-td-sub">건반</div>
-            <div class="main-table-td-sub">ETC</div>
-        </div>
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">김종완<br>임재원</div>
-            <div class="main-table-td-sub">정재원</div>
-            <div class="main-table-td-sub">김종완<br>이재경</div>
-            <div class="main-table-td-sub">이정훈</div>
-            <div class="main-table-td-sub">임재원</div>
-            <div class="main-table-td-sub"></div>
+        {% endfor %}
+        <input type="text" name="changedValue" style="display: none;">
+        <div class="button-wrapper">
+            <input type="submit" value="삭제" class="button-delete">
+            {% url 'new_ui_song_add' as song_add_url %}
+            <input type="button" value="추가" class="button-add" onclick="location.href = '{{ song_add_url }}'">
         </div>
     </div>
-
-    
-    <div class="button-wrapper">
-        <input type="button" value="삭제" class="button-delete">
-        {% url 'new_ui_song_add' as song_add_url %}
-        <input type="button" value="추가" class="button-add" onclick="location.href = '{{ song_add_url }}'">
-    </div>
-</div>
+</form>
 
 <script type="text/javascript">
     function collapse(element){
@@ -113,12 +85,16 @@
     }
 
     function selectAll(button){
-        const checkboxes = document.getElementsByName('song-check');
+        const checkboxes = document.getElementsByName('song-delete');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = button.checked;
         })
     }
 
+    function updateValue(songId, t){
+        t.form.changedValue.value = songId + "_" + t.value;
+        t.form.submit();
+    }
 </script>
 
 {% endblock %}
