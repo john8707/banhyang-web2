@@ -13,106 +13,101 @@
     <div class="main-title">가입 대기 목록</div>
 </div>
 
-<div class="main-table-wrapper">
-    <div class="main-table-header">
-        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
-        <div class="main-table-td grow-1">이름</div>
-        <div class="main-table-td grow-1">아이디</div>
-        <div class="main-table-td"></div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
-        <div class="main-table-td grow-1">김종완</div>
-        <div class="main-table-td grow-1">yourfacejw</div>
-        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
-    </div>
-    <div style="display: none;">
-
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">이메일</div>
-            <div class="main-table-td-sub">전화번호</div>
-            <div class="main-table-td-sub">학번</div>
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="main-table-wrapper">
+        <div class="main-table-header">
+            <div class="main-table-td"><input type="checkbox" onclick="selectAll(this)"></div>
+            <div class="main-table-td grow-1">이름</div>
+            <div class="main-table-td grow-1">아이디</div>
+            <div class="main-table-td"></div>
         </div>
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">jodfdf@gmail.com</div>
-            <div class="main-table-td-sub">1231</div>
-            <div class="main-table-td-sub">1231</div>
-        </div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
-        <div class="main-table-td grow-1">김종완</div>
-        <div class="main-table-td grow-1">yourfacejw</div>
-        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
-    </div>
-    <div style="display: none;">
-
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">이메일</div>
-            <div class="main-table-td-sub">전화번호</div>
-            <div class="main-table-td-sub">학번</div>
-        </div>
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">jodfdf@gmail.com</div>
-            <div class="main-table-td-sub">1231</div>
-            <div class="main-table-td-sub">1231</div>
-        </div>
-    </div>
     
-
+        {% for user in not_confirmed %}
+        <div class="main-table-tr">
+            <div class="main-table-td"><input type="checkbox" name="user_id" value="{{ user.id }}"></div>
+            <div class="main-table-td grow-1">{{ user.name }}</div>
+            <div class="main-table-td grow-1">{{ user.username }}</div>
+            <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+        </div>
+        <div style="display: none;">
+            
+            <div class="main-table-tr-sub">
+                <div class="main-table-td-sub">이메일</div>
+                <div class="main-table-td-sub">전화번호</div>
+                <div class="main-table-td-sub">학번</div>
+            </div>
+            <div class="main-table-tr-sub">
+                <div class="main-table-td-sub">{{ user.email }}</div>
+                <div class="main-table-td-sub">{{ user.phone_number }}</div>
+                <div class="main-table-td-sub">{{ user.student_id }}</div>
+            </div>
+        </div>
+        {% endfor %}
     
-    <div class="button-wrapper">
-        <input type="button" value="거절" class="button-delete">
-        <input type="button" value="승인" class="button-add">
+    
+        <div class="button-wrapper">
+            <input type="submit" value="거절" class="button-delete" name="deny">
+            <input type="submit" value="승인" class="button-add" name="confirm">
+        </div>
     </div>
-</div>
-
-
-
-
+</form>
 
 
 <div class="main-title-wrapper">
     <div class="main-title">유저 목록</div>
 </div>
 
-<div class="main-table-wrapper">
-    <div class="main-table-header">
-        <div class="main-table-td"><input type="checkbox" name="" id="" onclick="selectAll(this)"></div>
-        <div class="main-table-td grow-1">이름</div>
-        <div class="main-table-td grow-1">아이디</div>
-        <div class="main-table-td"></div>
-    </div>
-    <div class="main-table-tr">
-        <div class="main-table-td"><input type="checkbox" name="" id=""></div>
-        <div class="main-table-td grow-1">김종완</div>
-        <div class="main-table-td grow-1">yourfacejw</div>
-        <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
-    </div>
-    <div style="display: none;">
-
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">이메일</div>
-            <div class="main-table-td-sub">전화번호</div>
-            <div class="main-table-td-sub">학번</div>
-            <div class="main-table-td-sub">운영진</div>
-            <div class="main-table-td-sub">비밀번호 초기화</div>
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="main-table-wrapper">
+        <div class="main-table-header">
+            <div class="main-table-td"><input type="checkbox" onclick="selectAll(this)"></div>
+            <div class="main-table-td grow-1">이름</div>
+            <div class="main-table-td grow-1">아이디</div>
+            <div class="main-table-td"></div>
         </div>
-        <div class="main-table-tr-sub">
-            <div class="main-table-td-sub">jodfdf@gmail.com</div>
-            <div class="main-table-td-sub">1231</div>
-            <div class="main-table-td-sub">1231</div>
-            <div class="main-table-td-sub"><input type="button" value="권한 부여" class="button-edit"></div>
-            <div class="main-table-td-sub"><input type="button" value="초기화(1234)" class="button-delete"></div>
+        {% for user in confirmed %}
+        <div class="main-table-tr">
+            <div class="main-table-td"><input type="checkbox" name="user_id" value="{{user.id}}"></div>
+            <div class="main-table-td grow-1">{{ user.name }}</div>
+            <div class="main-table-td grow-1">{{ user.username }}</div>
+            <div class="main-table-td"><img onclick="collapse(this);" class="arrow-down" src="{% static 'image/arrow-down.png' %}"></div>
+        </div>
+        <div style="display: none;">
+            
+            <div class="main-table-tr-sub">
+                <div class="main-table-td-sub">이메일</div>
+                <div class="main-table-td-sub">전화번호</div>
+                <div class="main-table-td-sub">학번</div>
+                <div class="main-table-td-sub">운영진</div>
+                <div class="main-table-td-sub">비밀번호 초기화</div>
+            </div>
+            <div class="main-table-tr-sub">
+                <div class="main-table-td-sub">{{ user.email }}</div>
+                <div class="main-table-td-sub">{{ user.phone_number }}</div>
+                <div class="main-table-td-sub">{{ user.student_id }}</div>
+                <div class="main-table-td-sub">
+                    {% if user.is_staff %}
+                        O
+                    {% else %}
+                        <button type="submit" name="grant_staff" value="{{ user.id }}" class="button-edit"
+                        onclick="return confirm('운영진 권한을 부여하시겠습니까? 이 결정은 되돌릴 수 없습니다.')">권한 부여</button>
+                    {% endif %}
+                </div>
+                <div class="main-table-td-sub">
+                        <button type="submit" name="reset_password" value="{{ user.id }}" class="button-delete"
+                        onclick="return confirm('비밀번호가 12345678로 초기화됩니다. 초기화 하시겠습니까?')">초기화</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="button-wrapper">
+            <input type="submit" value="삭제" class="button-delete" name="delete">
         </div>
     </div>
-    
-
-    
-    <div class="button-wrapper">
-        <input type="button" value="삭제" class="button-delete">
-    </div>
-</div>
+</form>
 
 <script type="text/javascript">
     function collapse(element){

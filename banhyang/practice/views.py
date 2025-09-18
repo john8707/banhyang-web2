@@ -186,7 +186,72 @@ def new_ui_timetable(request:HttpRequest) -> HttpResponse:
     return render(request, 'new_timetable.html')
 
 def new_ui_user(request:HttpRequest) -> HttpResponse:
-    return render(request, 'new_user.html')
+    """
+    유저 관리 페이지
+    """
+    context = {}
+    user_model = get_user_model()
+
+    # 가입 대기 목록
+    not_confirmed_users = user_model.objects.filter(is_confirmed=False).order_by('name')
+    # 가입 완료 목록
+    confirmed_users = user_model.objects.filter(is_confirmed=True, is_superuser=False).order_by('name')
+
+    context['not_confirmed'] = not_confirmed_users
+    context['confirmed'] = confirmed_users
+
+    if request.method == "POST":
+        # 가입 승인
+        if request.POST.get('confirm', None):
+            confirm_ids = request.POST.getlist('user_id')
+            if confirm_ids:
+                c = user_model.objects.filter(id__in=confirm_ids)
+                for obj in c:
+                    obj.is_confirmed = True
+                if len(c) == 1:
+                    c[0].save(update_fields=['is_confirmed'])
+                else:
+                    user_model.objects.bulk_update(c, ['is_confirmed'])
+                messages.success(request, "가입 승인이 완료되었습니다.")
+            else:
+                messages.error(request, "한명 이상의 인원을 선택해주세요.")
+
+        # 기존 인원 삭제 혹은 가입 거부
+        elif request.POST.get('delete', None) or request.POST.get('deny', None):
+            delete_ids = request.POST.getlist('user_id')
+            if delete_ids:
+                d = user_model.objects.filter(id__in=delete_ids)
+                if d.filter(id=request.user.id).exists():
+                    messages.error(request, "본인의 계정은 삭제할 수 없습니다. 다시 시도해주세요.")
+                else:
+                    d.delete()
+                    messages.success(request, "삭제가 완료되었습니다.")
+            else:
+                messages.error(request, "한명 이상의 인원을 선택해주세요.")
+        
+        # 운영자 권한 부여
+        elif request.POST.get('grant_staff', None):
+            user_id = request.POST.get('grant_staff')
+            try:
+                user = user_model.objects.get(id=user_id)
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
+                messages.success(request, user.name + "님에게 운영자 권한이 부여되었습니다.")
+            except user_model.DoesNotExist:
+                messages.error(request, "유저를 찾을 수 없습니다.")
+        
+        # 비밀번호 초기화
+        elif request.POST.get('reset_password', None):
+            user_id = request.POST.get('reset_password')
+            try:
+                user = user_model.objects.get(id=user_id)
+                user.set_password('12345678')
+                user.save(update_fields=['password'])
+                messages.success(request, user.name + "님의 비밀번호가 초기화되었습니다. (12345678)")
+            except user_model.DoesNotExist:
+                messages.error(request, "유저를 찾을 수 없습니다.")
+        return redirect('new_ui_user')
+    return render(request, 'new_user.html', context=context)
 
 def new_ui_song(request:HttpRequest) -> RedirectOrResponse:
     """

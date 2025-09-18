@@ -454,7 +454,7 @@ input[type="checkbox"]:checked + .selector-checkbox{
     width: 100%;
 }
 
-input[type="submit"], input[type="button"]{
+input[type="submit"], input[type="button"], button[type="submit"]{
     height: 30px;
     border-radius: 7px;
     padding: 0 15px;
