@@ -18,7 +18,6 @@ isort==4.3.21
 lazy-object-proxy==1.4.3
 loremipsum==1.0.5
 mccabe==0.6.1
-mysqlclient==1.4.4
 numpy==1.21.6
 oracledb==2.1.1
 ortools==9.5.2237
