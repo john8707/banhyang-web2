@@ -21,7 +21,7 @@ call_command('migrate')
 MIGRATE = os.getenv('MIGRATE', False)
 if MIGRATE is True:
     call_command('migrate', '--database=migrate')
-    call_command('dumpdata', 'practice', '--exclude', 'contenttypes', '--natural-foreign', '-o', 'db.json')
+    call_command('dumpdata', 'practice','--exclude', 'practice.User', '--exclude', 'contenttypes', '--natural-foreign', '-o', 'db.json')
     call_command('loaddata', 'db.json', '--database=migrate')
 
 
