@@ -60,7 +60,7 @@ def grading_home(request):
     """프론트엔드 HTML 창을 띄워주는 뷰"""
     return render(request, 'home.html')
 
-def stream_grading(request):
+def stream_grading(request: HttpRequest):
     """SSE를 통해 실시간으로 채점 진행 상황을 쏴주는 제너레이터 뷰"""
     
     def event_stream():
@@ -70,21 +70,44 @@ def stream_grading(request):
             drive_service = get_local_service("drive")
             sheets_service = get_local_service("sheets")
             
+            # TODO 폴더 아이디 하드코딩 않기
             FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
+
             google_service = GoogleService(drive_service, sheets_service, FOLDER_ID)
             parser = DocumentParser()
             llm_service = GeminiLLMService()
             grader = EssayGrader(llm_service, llm_service)
 
-            # 2. 결과 시트 생성
-            import datetime
-            now_str = datetime.datetime.now().strftime("%m/%d %H:%M")
-            yield f"data: {json.dumps({'status': 'info', 'message': '결과 스프레드시트 생성 중...'})}\n\n"
-            sheet_id = google_service.create_spreadhseet_in_folder(f"채점 결과 리포트 ({now_str})")
+            # 2. 기존 스프레드 시트 확인
+            yield f"data: {json.dumps({'status': 'info', 'message': '기존 채점 기록 확인 중...'})}\n\n"
+            existing_files = google_service.list_files_in_folder()
+            target_sheet = next((f for f in existing_files if f['name'].startswith("채점 결과 리포트") and f['mimeType'] == 'application/vnd.google-apps.spreadsheet'), None)
+
+            graded_file_ids = set()
+            sheet_id = None
+
+            # 채점 기록이 존재하는 경우
+            if target_sheet:
+                sheet_id = target_sheet['id']
+                result = sheets_service.spreadsheets().values().get(
+                    spreadsheetId=sheet_id,
+                    range="A2:A"
+                ).execute()
+
+                rows = result.get('values', [])
+                graded_file_ids = {row[0] for row in rows if row}
+
+                yield f"data: {json.dumps({'status': 'info', 'message': f'기존 기록 발견: {len(graded_file_ids)}개 파일 스킵 예정'})}\n\n"
+
+            # 채점 기록이 없으면 새로 생성
+            else:
+                import datetime
+                now_str = datetime.datetime.now().strftime("%m/%d %H:%M")
+                sheet_id = google_service.create_spreadhseet_in_folder(f"채점 결과 리포트 ({now_str})")
+                yield f"data: {json.dumps({'status': 'info', 'message': '결과 스프레드시트 생성'})}\n\n"
 
             # 3. 파일 목록 가져오기
-            files = google_service.list_files_in_folder()
-            valid_files = [f for f in files if f['mimeType'] in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']]
+            valid_files = [f for f in existing_files if f['mimeType'] in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']]
             total_files = len(valid_files)
 
             if total_files == 0:
@@ -93,6 +116,11 @@ def stream_grading(request):
 
             # 4. 본격적인 실시간 채점 루프 시작
             for idx, file in enumerate(valid_files, 1):
+                # ⏩ 스킵 기능: 이미 채점된 파일인지 확인
+                if file['id'] in graded_file_ids:
+                    yield f"data: {json.dumps({'status': 'skip', 'current': idx, 'total': total_files, 'filename': file['name']})}\n\n"
+                    continue
+
                 # 프론트엔드로 "N번째 파일 시작" 알림 쏘기
                 yield f"data: {json.dumps({'status': 'progress', 'current': idx, 'total': total_files, 'filename': file['name']})}\n\n"
 
@@ -118,7 +146,11 @@ def stream_grading(request):
                     
                     # 1개 완료될 때마다 성공 결과 쏘기
                     yield f"data: {json.dumps({'status': 'success', 'filename': file['name'], 'score': result.get('score')})}\n\n"
-                    
+                
+                except (GeneratorExit, BrokenPipeError, ConnectionResetError):
+                    print("🛑 프론트엔드에서 중지 버튼을 누르거나 창을 닫았습니다. 서버 작업을 즉시 중단합니다.")
+                    break
+
                 except Exception as e:
                     yield f"data: {json.dumps({'status': 'error', 'filename': file['name'], 'message': str(e)})}\n\n"
 

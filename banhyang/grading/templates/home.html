@@ -27,6 +27,7 @@
 <div class="container">
     <h1>📝 AI 에세이 자동 채점기</h1>
     <button id="startBtn" onclick="startGrading()">채점 시작하기</button>
+    <button id="stopBtn" onclick="stopGrading()" style="background: #ea4335; display: none;">중지하기</button>
 
     <div class="progress-container" id="progressContainer">
         <div class="progress-bar" id="progressBar"></div>
@@ -37,6 +38,7 @@
 </div>
 
 <script>
+    let eventSource = null;
     function addLog(message, type="normal") {
         const logBox = document.getElementById('logBox');
         const p = document.createElement('div');
@@ -46,9 +48,24 @@
         logBox.scrollTop = logBox.scrollHeight; // 자동 스크롤
     }
 
+    function stopGrading() {
+        if (eventSource) {
+            eventSource.close();
+            addLog("사용자에 의해 중지되었습니다", "error");
+            resetUI();
+        }
+    }
+
+    function resetUI() {
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('statusText').innerText = "중지됨";
+    }
+
     function startGrading() {
         // UI 초기화
         document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').style.display = 'block';
         document.getElementById('progressContainer').style.display = 'block';
         document.getElementById('logBox').style.display = 'block';
         document.getElementById('progressBar').style.width = '0%';
@@ -57,12 +74,17 @@
         addLog("서버에 채점을 요청했습니다...", "info");
 
         // ⭐️ 핵심: EventSource를 이용한 SSE 연결
-        const eventSource = new EventSource('/grading/stream/');
+        eventSource = new EventSource('/grading/stream/');
 
         eventSource.onmessage = function(event) {
             const data = JSON.parse(event.data);
 
-            if (data.status === 'info') {
+            if (data.status === 'skip') {
+                const percent = Math.round((data.current / data.total) * 100);
+                document.getElementById('progressBar').style.width = `${percent}%`;
+                addLog(`[스킵] ${data.filename} (이미 채점됨)`, "info");
+            }
+            else if (data.status === 'info') {
                 addLog(data.message, "info");
                 document.getElementById('statusText').innerText = data.message;
             } 
@@ -84,12 +106,14 @@
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('startBtn').innerText = "다시 시작하기";
                 eventSource.close(); // 연결 종료
+                resetUI();
             } 
             else if (data.status === 'fatal') {
                 addLog(data.message, "error");
                 document.getElementById('statusText').innerText = "시스템 오류 발생";
                 document.getElementById('startBtn').disabled = false;
                 eventSource.close();
+                resetUI();
             }
         };
 
@@ -97,6 +121,7 @@
             addLog("서버와의 연결이 끊어졌습니다.", "error");
             document.getElementById('startBtn').disabled = false;
             eventSource.close();
+            resetUI();
         };
     }
 </script>
