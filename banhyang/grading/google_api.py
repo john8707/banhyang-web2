@@ -6,41 +6,39 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
+from google.auth.transport.requests import Request
 
 from .models import GoogleOAuthToken
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive",
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email"
+    ]
 
-
-def get_google_credentials():
-    """DB에 저장된 토큰을 읽어 유효한 creds 객체를 반환하고, 필요시 갱신합니다."""
-    
-    # 1. DB에서 첫 번째(유일한) 토큰 레코드를 가져옵니다.
-    token_obj = GoogleOAuthToken.objects.first()
-    
-    if not token_obj or not token_obj.token_json:
-        raise Exception("DB에 저장된 토큰이 없습니다. /auth/login/ 으로 접속하여 인증해주세요.")
+def get_google_credentials(user_email):
+    """DB에 저장된 특정 유저의 토큰을 읽어 유효한 creds 객체를 반환합니다."""
+    try:
+        token_obj = GoogleOAuthToken.objects.get(email=user_email)
+    except GoogleOAuthToken.DoesNotExist:
+        raise Exception("DB에 저장된 토큰이 없습니다. 다시 로그인해주세요.")
         
-    # 2. JSON 문자열을 파싱하여 Credentials 객체 복원
     token_data = json.loads(token_obj.token_json)
     creds = Credentials.from_authorized_user_info(token_data, SCOPES)
         
-    # 3. 토큰 유효성 검사 및 갱신
     if not creds.valid:
         if creds.expired and creds.refresh_token:
-            # 토큰 갱신
             creds.refresh(Request())
-            # ⭐️ 갱신된 새로운 토큰을 다시 DB에 업데이트
             token_obj.token_json = creds.to_json()
             token_obj.save()
         else:
-            raise Exception("토큰이 만료되었고 갱신할 수 없습니다. 다시 로그인해주세요.")
+            raise Exception("토큰이 만료되었습니다. 다시 로그인해주세요.")
             
     return creds
 
-def get_local_service(drive_cat: str):
-    """발급받은 creds를 이용해 API 서비스 객체를 빌드합니다."""
-    creds = get_google_credentials()
+def get_local_service(drive_cat: str, user_email: str):
+    """이메일을 넘겨받아 해당 유저의 권한으로 API 서비스 객체를 빌드합니다."""
+    creds = get_google_credentials(user_email)
     
     if drive_cat == "drive":
         return build('drive', 'v3', credentials=creds)

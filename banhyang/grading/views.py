@@ -2,9 +2,11 @@ import os
 import json
 from django.conf import settings
 from django.shortcuts import redirect, render
-from django.http import HttpRequest, HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from google_auth_oauthlib.flow import Flow
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from .models import GoogleOAuthToken
 from .google_api import get_local_service, GoogleService
 from .text_parser import DocumentParser
@@ -12,7 +14,11 @@ from .gemini_service import GeminiLLMService
 from .grading_service import EssayGrader
 
 
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive",
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email"
+    ]
 
 def get_google_flow(request: HttpRequest, state=None):
     client_config = json.loads(settings.GOOGLE_CREDENTIALS_JSON)
@@ -49,12 +55,22 @@ def google_callback(request: HttpRequest):
 
     creds = flow.credentials
 
-    # ⭐️ 핵심: 파일(token.json) 대신 DB에 저장합니다.
-    # 나만 쓰는 용도이므로 기존 토큰이 있으면 덮어쓰고(업데이트), 없으면 새로 만듭니다.
-    token_obj, created = GoogleOAuthToken.objects.get_or_create(id=1) 
-    token_obj.token_json = creds.to_json()
-    token_obj.save()
-    return HttpResponse("구글 인증이 완료되어 토큰 DB 저장 완료")
+    # 발급받은 토큰(JWT)을 해독하여 사용자 이메일 추출
+    client_id = json.loads(settings.GOOGLE_CREDENTIALS_JSON)['web']['client_id']
+    id_info = id_token.verify_oauth2_token(creds.id_token, requests.Request(), client_id)
+    user_email = id_info['email']
+
+
+    # 추출한 이메일을 기준으로 DB에 토큰 저장 (있으면 업데이트, 없으면 생성)
+    GoogleOAuthToken.objects.update_or_create(
+        email=user_email,
+        defaults={'token_json': creds.to_json()}
+    )
+    
+    # 장고 서버가 "현재 접속한 사람이 누구인지" 기억하도록 세션에 이메일 저장
+    request.session['current_user_email'] = user_email
+    
+    return HttpResponse(f"{user_email} 계정으로 구글 인증이 완료되었습니다! 창을 닫고 채점을 시작하세요.")
 
 def grading_home(request):
     """프론트엔드 HTML 창을 띄워주는 뷰"""
@@ -67,8 +83,17 @@ def stream_grading(request: HttpRequest):
         try:
             # 1. 초기화 및 준비
             yield f"data: {json.dumps({'status': 'info', 'message': '서버 인증 및 서비스 초기화 중...'})}\n\n"
-            drive_service = get_local_service("drive")
-            sheets_service = get_local_service("sheets")
+            # ⭐️ 세션에서 현재 접속 중인 사용자의 이메일 확인
+            user_email = request.session.get('current_user_email')
+            if not user_email:
+                yield f"data: {json.dumps({'status': 'fatal', 'message': '로그인 정보가 없습니다. 구글 인증을 먼저 진행해주세요.'})}\n\n"
+                return
+
+            yield f"data: {json.dumps({'status': 'info', 'message': f'{user_email} 계정으로 초기화 중...'})}\n\n"
+            
+            # 서비스 객체를 생성할 때 이메일을 넘겨줍니다.
+            drive_service = get_local_service("drive", user_email)
+            sheets_service = get_local_service("sheets", user_email)
             
             # TODO 폴더 아이디 하드코딩 않기
             FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
