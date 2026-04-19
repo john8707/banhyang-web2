@@ -131,21 +131,25 @@ def stream_grading(request: HttpRequest):
                     if not extracted_text:
                         raise ValueError("텍스트 추출 실패")
                         
-                    result = grader.process_essay(extracted_text)
-                    
+
+                    # 요약 및 번역
+                    info_result = grader.extract_info_and_translate(file['name'], extracted_text)
+                    yield f"data: {json.dumps({'status': 'info', 'message': '번역 완료, 채점 진행 중'})}\n\n"
+                    score_result = grader.evaluate_score(extracted_text)
+                    yield f"data: {json.dumps({'status': 'info', 'message': '채점 완료'})}\n\n"
                     row_data = [[
                         file['id'],
                         file['name'],
-                        result.get('author_name', 'Unknown'),
-                        result.get('score', 0),
-                        "\n".join(result.get('summary', [])),
-                        result.get('reasoning', ''),
-                        result.get('translation', '')
+                        info_result.get('author_name', 'Unknown'),
+                        score_result.get('score', 0),
+                        "\n".join(info_result.get('summary', [])),
+                        score_result.get('reasoning', ''),
+                        info_result.get('translation', '')
                     ]]
                     google_service.append_spreadsheet_row(sheet_id, row_data)
                     
                     # 1개 완료될 때마다 성공 결과 쏘기
-                    yield f"data: {json.dumps({'status': 'success', 'filename': file['name'], 'score': result.get('score')})}\n\n"
+                    yield f"data: {json.dumps({'status': 'success', 'filename': file['name'], 'score': score_result.get('score')})}\n\n"
                 
                 except (GeneratorExit, BrokenPipeError, ConnectionResetError):
                     print("🛑 프론트엔드에서 중지 버튼을 누르거나 창을 닫았습니다. 서버 작업을 즉시 중단합니다.")

@@ -18,9 +18,9 @@ class EssayGrader:
         self.llm_translate = llm_service_translate
         self.llm_scoring = llm_service_scoring
 
-    def process_essay(self, text: str) -> dict:
+    def extract_info_and_translate(self, title: str, text: str) -> dict:
         # Step 1: 번역 및 요약 (Summary LLM)
-        summary_prompt = f"에세이의 작성자의 이름을 찾아내고, 에세이 전체를 한국어로 번역하고(원본), 핵심 내용을 3줄로 요약해주세요.\n\n에세이: {text}"
+        summary_prompt = f"에세이의 작성자의 이름을 찾아내고, 에세이 전체를 한국어로 번역하고(원본), 핵심 내용을 3줄로 요약해주세요.\n\n제목: {title} \n\n에세이: {text}"
         
         print("번역 및 요약 진행 중...")
         summary_result = self.llm_translate.generate_response(
@@ -28,6 +28,9 @@ class EssayGrader:
             schema=SummaryOutput # 스키마 주입
         )
 
+        return summary_result
+    
+    def evaluate_score(self, text: str) -> dict:
         # Step 2: 엄격한 채점 (Scoring LLM)
         scoring_prompt = f"""
         당신은 엄격하고 공정한 대학원 조교입니다. 다음 에세이를 읽고 아래 채점 기준에 따라 평가하세요.
@@ -46,5 +49,4 @@ class EssayGrader:
             schema=ScoringOutput # 스키마 주입
         )
 
-        # 딕셔너리 병합 후 최종 반환
-        return {**summary_result, **scoring_result}
+        return scoring_result
