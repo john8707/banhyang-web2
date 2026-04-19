@@ -137,6 +137,12 @@
         document.getElementById('logBox').style.display = 'block';
         document.getElementById('progressBar').style.width = '0%';
         document.getElementById('logBox').innerHTML = '';
+
+        // 로그창이 화면에 보이도록 부드럽게 스크롤을 내림
+        setTimeout(() => {
+            document.getElementById('logBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
         
         addLog("서버에 채점을 요청했습니다...", "info");
 
