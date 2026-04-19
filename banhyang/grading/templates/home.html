@@ -26,6 +26,13 @@
 
 <div class="container">
     <h1>📝 AI 에세이 자동 채점기</h1>
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+        <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">📁 구글 드라이브 폴더 주소</label>
+        <input type="text" id="folderUrl" 
+               value="https://drive.google.com/drive/folders/1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS" 
+               placeholder="구글 드라이브 폴더 링크를 입력하세요"
+               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+    </div>
     <p style="text-align: right; color: #666; font-size: 14px; margin-top: -15px;">
         👤 <b>{{ user_email }}</b> 계정으로 접속 중
         <a href="{% url 'google_logout' %}" style="margin-left: 10px; color: #ea4335; text-decoration: none; font-weight: bold;">[로그아웃]</a>
@@ -67,6 +74,13 @@
     }
 
     function startGrading() {
+        // 폴더 주소 확인하기
+        const folderUrl = document.getElementById('folderUrl').value;
+        if (!folderUrl) {
+            alert("폴더 주소를 입력해주세요!");
+            return;
+        }
+
         // UI 초기화
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').style.display = 'block';
@@ -78,7 +92,8 @@
         addLog("서버에 채점을 요청했습니다...", "info");
 
         // ⭐️ 핵심: EventSource를 이용한 SSE 연결
-        eventSource = new EventSource('/grading/stream/');
+        const encodedUrl = encodeURIComponent(folderUrl);
+        eventSource = new EventSource(`/grading/stream/?folder_url=${encodedUrl}`);
 
         eventSource.onmessage = function(event) {
             const data = JSON.parse(event.data);

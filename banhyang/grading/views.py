@@ -1,8 +1,7 @@
-import os
 import json
 from django.conf import settings
 from django.shortcuts import redirect, render
-from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
+from django.http import HttpRequest, StreamingHttpResponse
 from django.urls import reverse
 from google_auth_oauthlib.flow import Flow
 from google.oauth2 import id_token
@@ -12,6 +11,7 @@ from .google_api import get_local_service, GoogleService
 from .text_parser import DocumentParser
 from .gemini_service import GeminiLLMService
 from .grading_service import EssayGrader
+from .utils import extract_folder_id
 
 
 SCOPES = [
@@ -112,10 +112,11 @@ def stream_grading(request: HttpRequest):
             drive_service = get_local_service("drive", user_email)
             sheets_service = get_local_service("sheets", user_email)
             
-            # TODO 폴더 아이디 하드코딩 않기
-            FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
+            # ⭐️ 프론트엔드에서 보낸 URL 가져오기 (없으면 기본값 사용)
+            raw_url = request.GET.get('folder_url', '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS')
+            folder_id = extract_folder_id(raw_url)
 
-            google_service = GoogleService(drive_service, sheets_service, FOLDER_ID)
+            google_service = GoogleService(drive_service, sheets_service, folder_id)
             parser = DocumentParser()
             llm_service = GeminiLLMService()
             grader = EssayGrader(llm_service, llm_service)
