@@ -72,9 +72,21 @@ def google_callback(request: HttpRequest):
     
     return HttpResponse(f"{user_email} 계정으로 구글 인증이 완료되었습니다! 창을 닫고 채점을 시작하세요.")
 
-def grading_home(request):
+def grading_home(request: HttpRequest):
     """프론트엔드 HTML 창을 띄워주는 뷰"""
-    return render(request, 'home.html')
+    
+    # 1. 세션에서 현재 접속 중인 사용자의 이메일 확인
+    user_email = request.session.get('current_user_email')
+    
+    # 2. 이메일 정보가 없으면(로그인 안 했으면) 무조건 로그인 뷰로 튕겨냅니다.
+    if not user_email:
+        return redirect('google_login') # urls.py에 지정한 로그인 경로의 name
+        
+    # 3. 로그인된 사용자라면, HTML에 이메일 데이터를 담아서 화면을 띄워줍니다.
+    context = {
+        'user_email': user_email
+    }
+    return render(request, 'home.html', context)
 
 def stream_grading(request: HttpRequest):
     """SSE를 통해 실시간으로 채점 진행 상황을 쏴주는 제너레이터 뷰"""
