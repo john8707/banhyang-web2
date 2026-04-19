@@ -47,12 +47,27 @@
     </div>
     <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
         <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">📝 AI 채점 기준 설정</label>
-        <textarea id="gradingCriteria" rows="4  " 
+        <textarea id="gradingCriteria" rows="4  " class="config-input"
                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px; resize: vertical;"
         >
 - What are the main arguments in the readings? (직접 인용 및 해석 포함)
 - How can the arguments be applied? (개인적 경험 또는 사회 현상 연관성)
 - What questions or critiques come up for you? (비판적 시각)</textarea>
+    </div>
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+        <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">🎯 점수 부여 방식</label>
+        <input type="text" id="scoreRange" class="config-input"
+               value="100, 95, 90, 85 중 하나의 점수만 부여" 
+               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+    </div>
+
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+        <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">⚖️ 채점 강도</label>
+        <select id="strictness" class="config-input" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background-color: white;">
+            <option value="너그럽게 (긍정적인 부분 위주로 평가하고 후하게 점수 부여)">너그럽게 (긍정적인 부분 위주)</option>
+            <option value="보통 (객관적이고 균형잡힌 평가)" selected>보통 (객관적이고 균형잡힌 평가)</option>
+            <option value="매우 엄격하게 (사소한 문법이나 논리적 오류도 가차없이 감점)">매우 엄격하게 (사소한 실수도 감점)</option>
+        </select>
     </div>
     <button id="startBtn" onclick="startGrading()">채점 시작하기</button>
     <button id="stopBtn" onclick="stopGrading()" style="background: #ea4335; display: none;">중지하기</button>
@@ -67,6 +82,16 @@
 
 <script>
     let eventSource = null;
+    function toggleInputs(disabled) {
+        const inputs = document.querySelectorAll('.config-input, #folderUrl, #aiModel');
+        inputs.forEach(input => {
+            input.disabled = disabled;
+            // 시각적으로 잠겼다는 것을 표현
+            input.style.backgroundColor = disabled ? '#e9ecef' : 'white'; 
+        });
+        document.getElementById('startBtn').disabled = disabled;
+    }
+
     function addLog(message, type="normal") {
         const logBox = document.getElementById('logBox');
         const p = document.createElement('div');
@@ -85,6 +110,7 @@
     }
 
     function resetUI() {
+        toggleInputs(false); // ⭐️ 완료되거나 중지되면 다시 잠금 해제
         document.getElementById('startBtn').disabled = false;
         document.getElementById('stopBtn').style.display = 'none';
         document.getElementById('statusText').innerText = "중지됨";
@@ -95,12 +121,16 @@
         const folderUrl = document.getElementById('folderUrl').value;
         const aiModel = document.getElementById('aiModel').value;
         const criteria = document.getElementById('gradingCriteria').value;
+        const scoreRange = document.getElementById('scoreRange').value;
+        const strictness = document.getElementById('strictness').value;
+
         if (!folderUrl) {
             alert("폴더 주소를 입력해주세요!");
             return;
         }
 
         // UI 초기화
+        toggleInputs(true); // ⭐️ 통신 시작 전 모든 폼 잠금!
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').style.display = 'block';
         document.getElementById('progressContainer').style.display = 'block';
@@ -114,7 +144,9 @@
         const params = new URLSearchParams({
             folder_url: folderUrl,
             model: aiModel,
-            criteria: criteria
+            criteria: criteria,
+            score_range: scoreRange,
+            strictness: strictness
         })
         const encodedUrl = encodeURIComponent(folderUrl);
         eventSource = new EventSource(`/grading/stream/?${params.toString()}`);

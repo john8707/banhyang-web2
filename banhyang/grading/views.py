@@ -18,15 +18,17 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
     "openid",
     "https://www.googleapis.com/auth/userinfo.email"
-    ]
+]
 DEFAULT_CRITERIA = """
     - What are the main arguments in the readings? (직접 인용 및 해석 포함)
     - How can the arguments be applied? (개인적 경험 또는 사회 현상 연관성)
     - What questions or critiques come up for you? (비판적 시각)
 """
-
 DEFAULT_FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
 DEFAULT_MODEL = "gemini-3.1-pro-preview"
+DEAFULT_SCORE_RANGE = "100, 95, 90, 85 중 하나의 점수만 부여"
+DEFAULT_SCORE_STRICTNESS = "보통 (객관적이고 균형잡힌 평가)"
+
 
 def get_google_flow(request: HttpRequest, state=None):
     client_config = json.loads(settings.GOOGLE_CREDENTIALS_JSON)
@@ -129,7 +131,10 @@ def stream_grading(request: HttpRequest):
 
             # ⭐️ 사용자가 입력한 채점 기준 
             user_criteria = request.GET.get('criteria', DEFAULT_CRITERIA)
+            score_range = request.GET.get('score_range', DEAFULT_SCORE_RANGE) # ⭐️ 추가
+            strictness = request.GET.get('strictness', DEFAULT_SCORE_STRICTNESS) # ⭐️ 추가
 
+            # 사용할 api 및 parser 주입받기
             google_service = GoogleService(drive_service, sheets_service, folder_id)
             parser = DocumentParser()
             llm_service = GeminiLLMService(model_name=selected_model)
@@ -189,11 +194,15 @@ def stream_grading(request: HttpRequest):
                         raise ValueError("텍스트 추출 실패")
                         
 
-                    # 요약 및 번역
+                    # 요약
                     info_result = grader.extract_info_and_translate(file['name'], extracted_text)
                     yield f"data: {json.dumps({'status': 'info', 'message': '번역 완료, 채점 진행 중'})}\n\n"
-                    score_result = grader.evaluate_score(extracted_text, user_criteria)
+
+                    # 채점
+                    score_result = grader.evaluate_score(extracted_text, user_criteria, score_range, strictness)
                     yield f"data: {json.dumps({'status': 'info', 'message': '채점 완료'})}\n\n"
+
+                    # 결과 합치기
                     row_data = [[
                         file['id'],
                         file['name'],
