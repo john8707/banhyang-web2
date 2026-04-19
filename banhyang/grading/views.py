@@ -72,6 +72,11 @@ def google_callback(request: HttpRequest):
     
     return redirect('grading_home')
 
+def google_logout(request: HttpRequest):
+    """세션을 완전히 비우고 로그인 페이지로 리다이렉트합니다."""
+    request.session.flush()  # 현재 접속한 사용자의 모든 세션 데이터를 깨끗하게 삭제
+    return redirect('google_login')
+
 def grading_home(request: HttpRequest):
     """프론트엔드 HTML 창을 띄워주는 뷰"""
     
