@@ -70,7 +70,7 @@ def google_callback(request: HttpRequest):
     # 장고 서버가 "현재 접속한 사람이 누구인지" 기억하도록 세션에 이메일 저장
     request.session['current_user_email'] = user_email
     
-    return HttpResponse(f"{user_email} 계정으로 구글 인증이 완료되었습니다! 창을 닫고 채점을 시작하세요.")
+    return redirect('grading_home')
 
 def grading_home(request: HttpRequest):
     """프론트엔드 HTML 창을 띄워주는 뷰"""
