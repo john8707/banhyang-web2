@@ -7,3 +7,6 @@ ngrok.exe
 .env
 .flake8
 production/
+
+credentials.json
+token.json

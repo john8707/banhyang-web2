@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 자동 채점 시스템</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; padding: 40px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { font-size: 24px; color: #333; margin-bottom: 20px; }
+        button { background: #4285f4; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        /* 프로그레스 바 스타일 */
+        .progress-container { width: 100%; background: #e0e0e0; border-radius: 8px; margin-top: 20px; overflow: hidden; display: none; }
+        .progress-bar { width: 0%; height: 20px; background: #34a853; transition: width 0.3s ease; }
+        .status-text { margin-top: 10px; font-size: 14px; color: #555; text-align: center; }
+        
+        /* 로그 출력창 스타일 */
+        .log-box { margin-top: 20px; background: #2b2b2b; color: #a9b7c6; padding: 15px; border-radius: 8px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; display: none; }
+        .log-success { color: #6a8759; }
+        .log-error { color: #cc666e; }
+        .log-info { color: #6897bb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 AI 에세이 자동 채점기</h1>
+    <button id="startBtn" onclick="startGrading()">채점 시작하기</button>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="status-text" id="statusText">대기 중...</div>
+
+    <div class="log-box" id="logBox"></div>
+</div>
+
+<script>
+    function addLog(message, type="normal") {
+        const logBox = document.getElementById('logBox');
+        const p = document.createElement('div');
+        p.className = type === 'success' ? 'log-success' : type === 'error' ? 'log-error' : type === 'info' ? 'log-info' : '';
+        p.innerText = `> ${message}`;
+        logBox.appendChild(p);
+        logBox.scrollTop = logBox.scrollHeight; // 자동 스크롤
+    }
+
+    function startGrading() {
+        // UI 초기화
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('progressContainer').style.display = 'block';
+        document.getElementById('logBox').style.display = 'block';
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('logBox').innerHTML = '';
+        
+        addLog("서버에 채점을 요청했습니다...", "info");
+
+        // ⭐️ 핵심: EventSource를 이용한 SSE 연결
+        const eventSource = new EventSource('/grading/stream/');
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.status === 'info') {
+                addLog(data.message, "info");
+                document.getElementById('statusText').innerText = data.message;
+            } 
+            else if (data.status === 'progress') {
+                const percent = Math.round((data.current / data.total) * 100);
+                document.getElementById('progressBar').style.width = `${percent}%`;
+                document.getElementById('statusText').innerText = `${data.current} / ${data.total} 파일 처리 중...`;
+                addLog(`[진행] ${data.filename} 파싱 및 AI 분석 시작...`);
+            } 
+            else if (data.status === 'success') {
+                addLog(`[완료] ${data.filename} - 점수: ${data.score}점`, "success");
+            } 
+            else if (data.status === 'error') {
+                addLog(`[실패] ${data.filename} - 사유: ${data.message}`, "error");
+            } 
+            else if (data.status === 'done') {
+                addLog(`🎉 모든 채점이 완료되었습니다!`, "success");
+                document.getElementById('statusText').innerText = "채점 완료!";
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('startBtn').innerText = "다시 시작하기";
+                eventSource.close(); // 연결 종료
+            } 
+            else if (data.status === 'fatal') {
+                addLog(data.message, "error");
+                document.getElementById('statusText').innerText = "시스템 오류 발생";
+                document.getElementById('startBtn').disabled = false;
+                eventSource.close();
+            }
+        };
+
+        eventSource.onerror = function() {
+            addLog("서버와의 연결이 끊어졌습니다.", "error");
+            document.getElementById('startBtn').disabled = false;
+            eventSource.close();
+        };
+    }
+</script>
+
+</body>
+</html>

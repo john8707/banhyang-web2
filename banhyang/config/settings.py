@@ -28,8 +28,14 @@ from django.core.management.utils import get_random_secret_key
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+if DEBUG:
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,.ngrok-free.app").split(",")
+
+
+# 채점 서비스 전용
+GOOGLE_CREDENTIALS_JSON = os.environ.get('GOOGLE_CREDENTIALS_JSON')
 
 
 # Application definition
@@ -45,7 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'banhyang.practice',
     'debug_toolbar',
-    'django_apscheduler'
+    'django_apscheduler',
+    'banhyang.grading'
 ]
 
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a" 
