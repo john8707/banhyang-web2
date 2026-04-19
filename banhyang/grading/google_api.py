@@ -100,7 +100,7 @@ class GoogleService:
 
         spreadsheet_id = spreadsheet_file.get('id')
 
-        headers = [["파일명", "작성자", "점수", "요약", "채점 근거", "번역본"]]
+        headers = [["파일 id", "파일명", "작성자", "점수", "요약", "채점 근거", "번역본"]]
         self.append_spreadsheet_row(spreadsheet_id, headers)
 
         return spreadsheet_id

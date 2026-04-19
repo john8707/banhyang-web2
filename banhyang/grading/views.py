@@ -106,6 +106,7 @@ def stream_grading(request):
                     result = grader.process_essay(extracted_text)
                     
                     row_data = [[
+                        file['id'],
                         file['name'],
                         result.get('author_name', 'Unknown'),
                         result.get('score', 0),
