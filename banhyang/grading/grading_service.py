@@ -30,15 +30,13 @@ class EssayGrader:
 
         return summary_result
     
-    def evaluate_score(self, text: str) -> dict:
+    def evaluate_score(self, text: str, criteria: str) -> dict:
         # Step 2: 엄격한 채점 (Scoring LLM)
         scoring_prompt = f"""
         당신은 엄격하고 공정한 대학원 조교입니다. 다음 에세이를 읽고 아래 채점 기준에 따라 평가하세요.
         
         [채점 기준]
-        - What are the main arguments in the readings? (직접 인용 및 해석 포함)
-        - How can the arguments be applied? (개인적 경험 또는 사회 현상 연관성)
-        - What questions or critiques come up for you? (비판적 시각)
+        {criteria}
         
         에세이: {text}
         """

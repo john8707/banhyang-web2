@@ -19,6 +19,14 @@ SCOPES = [
     "openid",
     "https://www.googleapis.com/auth/userinfo.email"
     ]
+DEFAULT_CRITERIA = """
+    - What are the main arguments in the readings? (직접 인용 및 해석 포함)
+    - How can the arguments be applied? (개인적 경험 또는 사회 현상 연관성)
+    - What questions or critiques come up for you? (비판적 시각)
+"""
+
+DEFAULT_FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
+DEFAULT_MODEL = "gemini-3.1-pro-preview"
 
 def get_google_flow(request: HttpRequest, state=None):
     client_config = json.loads(settings.GOOGLE_CREDENTIALS_JSON)
@@ -113,11 +121,14 @@ def stream_grading(request: HttpRequest):
             sheets_service = get_local_service("sheets", user_email)
             
             # ⭐️ 프론트엔드에서 보낸 URL 가져오기 (없으면 기본값 사용)
-            raw_url = request.GET.get('folder_url', '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS')
+            raw_url = request.GET.get('folder_url', DEFAULT_FOLDER_ID)
             folder_id = extract_folder_id(raw_url)
 
             # ⭐️ 선택된 모델 이름 읽기 (안 보냈을 경우 기본값은 pro)
-            selected_model = request.GET.get('model', "gemini-3.1-pro-preview")
+            selected_model = request.GET.get('model', DEFAULT_MODEL)
+
+            # ⭐️ 사용자가 입력한 채점 기준 
+            user_criteria = request.GET.get('criteria', DEFAULT_CRITERIA)
 
             google_service = GoogleService(drive_service, sheets_service, folder_id)
             parser = DocumentParser()
@@ -181,7 +192,7 @@ def stream_grading(request: HttpRequest):
                     # 요약 및 번역
                     info_result = grader.extract_info_and_translate(file['name'], extracted_text)
                     yield f"data: {json.dumps({'status': 'info', 'message': '번역 완료, 채점 진행 중'})}\n\n"
-                    score_result = grader.evaluate_score(extracted_text)
+                    score_result = grader.evaluate_score(extracted_text, user_criteria)
                     yield f"data: {json.dumps({'status': 'info', 'message': '채점 완료'})}\n\n"
                     row_data = [[
                         file['id'],
