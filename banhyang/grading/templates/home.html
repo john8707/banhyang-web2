@@ -33,6 +33,15 @@
                placeholder="구글 드라이브 폴더 링크를 입력하세요"
                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
     </div>
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+        <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">🧠 AI 채점 모델 선택</label>
+        <select id="aiModel" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background-color: white;">
+            <option value="gemini-3.1-pro-preview" selected>Gemini 3.1 Pro (최고의 논리력, 정밀 채점용)</option>
+            <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite (초고속, 대량 처리용)</option>
+            <option value="gemini-3-flash-preview">Gemini 3 Flash (구버젼)</option>
+        </select>
+    </div>
+
     <p style="text-align: right; color: #666; font-size: 14px; margin-top: -15px;">
         👤 <b>{{ user_email }}</b> 계정으로 접속 중
         <a href="{% url 'google_logout' %}" style="margin-left: 10px; color: #ea4335; text-decoration: none; font-weight: bold;">[로그아웃]</a>
@@ -74,8 +83,9 @@
     }
 
     function startGrading() {
-        // 폴더 주소 확인하기
+        // 사용자 입력 값 불러오기
         const folderUrl = document.getElementById('folderUrl').value;
+        const aiModel = document.getElementById('aiModel').value;
         if (!folderUrl) {
             alert("폴더 주소를 입력해주세요!");
             return;
@@ -92,8 +102,12 @@
         addLog("서버에 채점을 요청했습니다...", "info");
 
         // ⭐️ 핵심: EventSource를 이용한 SSE 연결
+        const params = new URLSearchParams({
+            folder_url: folderUrl,
+            model: aiModel,
+        })
         const encodedUrl = encodeURIComponent(folderUrl);
-        eventSource = new EventSource(`/grading/stream/?folder_url=${encodedUrl}`);
+        eventSource = new EventSource(`/grading/stream/?${params.toString()}`);
 
         eventSource.onmessage = function(event) {
             const data = JSON.parse(event.data);

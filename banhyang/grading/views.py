@@ -116,9 +116,12 @@ def stream_grading(request: HttpRequest):
             raw_url = request.GET.get('folder_url', '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS')
             folder_id = extract_folder_id(raw_url)
 
+            # ⭐️ 선택된 모델 이름 읽기 (안 보냈을 경우 기본값은 pro)
+            selected_model = request.GET.get('model', "gemini-3.1-pro-preview")
+
             google_service = GoogleService(drive_service, sheets_service, folder_id)
             parser = DocumentParser()
-            llm_service = GeminiLLMService()
+            llm_service = GeminiLLMService(model_name=selected_model)
             grader = EssayGrader(llm_service, llm_service)
 
             # 2. 기존 스프레드 시트 확인
