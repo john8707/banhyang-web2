@@ -72,10 +72,16 @@ def google_callback(request: HttpRequest):
 
 
     # 추출한 이메일을 기준으로 DB에 토큰 저장 (있으면 업데이트, 없으면 생성)
-    GoogleOAuthToken.objects.update_or_create(
-        email=user_email,
-        defaults={'token_json': creds.to_json()}
-    )
+    try:
+        token_obj = GoogleOAuthToken.objects.get(email=user_email)
+        token_obj.token_json = creds.to_json()
+        token_obj.save()
+
+    except GoogleOAuthToken.DoesNotExist:
+        GoogleOAuthToken.objects.create(
+            email=user_email,
+            token_json=creds.to_json()
+        )
     
     # 장고 서버가 "현재 접속한 사람이 누구인지" 기억하도록 세션에 이메일 저장
     request.session['current_user_email'] = user_email
