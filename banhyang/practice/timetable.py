@@ -1,4 +1,4 @@
-from ortools.linear_solver import pywraplp
+from ortools.sat.python import cp_model
 import pandas as pd
 from datetime import datetime, date, timedelta
 from math import ceil
@@ -232,8 +232,7 @@ class ScheduleOptimizer(BaseOptimizer):
 
         Integer programming을 이용해 최적화 된 합주를 생성
         """
-        i = 0
-        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.SAT_INTEGER_PROGRAMMING)
+        self.model = cp_model.CpModel()
 
         # 결정 변수 선언
         # p : 합주 id
@@ -244,36 +243,47 @@ class ScheduleOptimizer(BaseOptimizer):
         for p in self.scheduleId_list:
             for t in self.time_iter(p):
                 for s in self.songId_list:
-                    self.x[p, t, s] = self.solver.BoolVar('self.x[%i, %i, %i]' % (p, t, s))
+                    self.x[p, t, s] = self.model.NewBoolVar('self.x[%i, %i, %i]' % (p, t, s))
 
         # 목적 함수 선언
-        self.solver.Maximize(self.solver.Sum([self.song_available_dict[s][p][t] * self.x[p, t, s] for s in self.songId_list for p in self.scheduleId_list for t in self.time_iter(p)]))
+        # CP-SAT requires integer coefficients, so scale the float value to int
+        objective_terms = []
+        for s in self.songId_list:
+            for p in self.scheduleId_list:
+                for t in self.time_iter(p):
+                    coef = int(self.song_available_dict[s][p][t] * 100)
+                    objective_terms.append(coef * self.x[p, t, s])
+        
+        self.model.Maximize(sum(objective_terms))
 
 
         # 제약 조건 추가
         ## 전체 합주 통틀어서 곡 당 최대 한번 (if 가능한 총 합주 타임이 곡의 갯수보다 많을 경우)
         for s in self.songId_list:
-            self.solver.Add(self.solver.Sum([self.x[p, t, s] for p in self.scheduleId_list for t in self.time_iter(p)]) <= 1)
+            self.model.AddAtMostOne([self.x[p, t, s] for p in self.scheduleId_list for t in self.time_iter(p)])
 
         ## 같은 곡은 하루에 한번만!
         for p in self.scheduleId_list:
             for s in self.songId_list:
-                self.solver.Add(self.solver.Sum([self.x[p, t, s] for t in self.time_iter(p)]) <= 1)
+                self.model.AddAtMostOne([self.x[p, t, s] for t in self.time_iter(p)])
 
         ## required! 한 타임에 최대 곡 수는 방 갯수 만큼
         for p in self.scheduleId_list:
             for t in self.time_iter(p):
-                self.solver.Add(self.solver.Sum([self.x[p, t, s] for s in self.songId_list]) <= self.practice_info[p]['room_count'])
+                self.model.Add(sum([self.x[p, t, s] for s in self.songId_list]) <= self.practice_info[p]['room_count'])
 
         ## required! 같은 타임에 세션이 겹치는 곡이 없도록
         for duplicated_list in self.song_conflict_list:
             for p in self.scheduleId_list:
                 for t in self.time_iter(p):
-                    self.solver.Add(self.x[p, t, duplicated_list[0]] + self.x[p, t, duplicated_list[1]] <= 1)
+                    self.model.AddAtMostOne([self.x[p, t, duplicated_list[0]], self.x[p, t, duplicated_list[1]]])
 
 
-        # 최적화 하기 -> 결과값 조회 방법 : self.x[1,3,4].solution_value()
-        self.solver.Solve()
+        # 최적화 하기 -> 결과값 조회 방법 : self.solver.Value(self.x[1,3,4])
+        self.solver = cp_model.CpSolver()
+        # 성능 최적화: 멀티스레드 사용 활성화 (코어 수에 따라 8, 16 등을 조절할 수 있습니다)
+        self.solver.parameters.num_search_workers = 8 
+        self.status = self.solver.Solve(self.model)
 
     
     def post_process(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, List[str]]]:
@@ -307,7 +317,7 @@ class ScheduleOptimizer(BaseOptimizer):
             for t in self.time_iter(p):
                 room_count = 0
                 for s in self.songId_list:
-                    if self.x[p, t, s].solution_value() > 0:
+                    if self.solver.Value(self.x[p, t, s]) > 0:
                         timetable_df.iloc[t, room_count] = self.songId_to_name[s]
                         room_count += 1
 
@@ -434,7 +444,7 @@ class RouteOptimizer(BaseOptimizer):
 
         For further details of decision variables, objective function, or constraints, please check the each annotation.
         """
-        self.solver = pywraplp.Solver('SolveAssignmentProblemMIP', pywraplp.Solver.SAT_INTEGER_PROGRAMMING)
+        self.model = cp_model.CpModel()
 
         # 결정 변수 선언
 
@@ -445,7 +455,7 @@ class RouteOptimizer(BaseOptimizer):
         for t in range(len(self.schedule_id_list)):
             for r in range(self.total_room_number):
                 for i in self.schedule_id_list[t]:
-                    self.s[i, t, r] = self.solver.BoolVar('self.s[%i, %i, %i]' % (i, t, r))
+                    self.s[i, t, r] = self.model.NewBoolVar('self.s[%i, %i, %i]' % (i, t, r))
 
         ## y[p, s, n] -> p: 유저 id, s: 세션, n: n번째 곡 
         ## p의 s세션 n번째 곡 이후 이동 여부 Boolean Var
@@ -454,7 +464,7 @@ class RouteOptimizer(BaseOptimizer):
         for p in self.id_user_dict:
             for s in self.session_abb_id_dict:
                 for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_abb_id_dict[s]]) - 1):
-                    self.y[p, s, n] = self.solver.BoolVar('self.y[%i, %i, %i]' % (p, s, n))
+                    self.y[p, s, n] = self.model.NewBoolVar('self.y[%i, %i, %i]' % (p, s, n))
 
         ## y의 값을 구하기 위한 Dummy Var x
         self.x = {}
@@ -462,13 +472,13 @@ class RouteOptimizer(BaseOptimizer):
             for s in self.session_abb_id_dict:
                 for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_abb_id_dict[s]]) - 1):
                     for r in range(self.total_room_number):
-                        self.x[p, s, n, r] = self.solver.BoolVar('self.x[%i, %i, %i, %i]' % (p, s, n, r))
+                        self.x[p, s, n, r] = self.model.NewBoolVar('self.x[%i, %i, %i, %i]' % (p, s, n, r))
 
         # 목적 함수 설정
         # Minimize y * 세션별 weight
         # y -> 합주 후 방 이동 여부이므로 해당 값을 최소화하는 s(곡 별 방 배정)를 계산함!
-        self.solver.Minimize(
-            self.solver.Sum([self.y[p, s, n] * self.session_weight_dict[s]
+        self.model.Minimize(
+            sum([self.y[p, s, n] * self.session_weight_dict[s]
                              for p in self.id_user_dict
                              for s in self.session_abb_id_dict
                              for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_abb_id_dict[s]]) - 1)]))
@@ -477,14 +487,14 @@ class RouteOptimizer(BaseOptimizer):
         ## 곡 i는 t타임에서 전체 room 중 반드시 하나에만 들어가야함
         for t in range(len(self.schedule_id_list)):
             for i in self.schedule_id_list[t]:
-                self.solver.Add(self.solver.Sum(self.s[i, t, r] for r in range(self.total_room_number)) == 1)
+                self.model.Add(sum(self.s[i, t, r] for r in range(self.total_room_number)) == 1)
 
         ## x = 1 -> y = 0 / x = 0 -> y = 1
         ## x가 모두 0일 경우, 즉 아래 제약 조건에 의해 n번째 곡의 방과 n+1번째 곡의 방이 서로 다를 경우 이동이 발생하므로 y = 1이 되게 함
         for p in self.id_user_dict:
             for s in self.session_abb_id_dict:
                 for n in range(len(self.user_order_dict[self.id_user_dict[p]][self.session_abb_id_dict[s]]) - 1):
-                    self.solver.Add(self.y[p, s, n] + self.solver.Sum(self.x[p, s, n, r] for r in range(self.total_room_number)) == 1)        
+                    self.model.Add(self.y[p, s, n] + sum(self.x[p, s, n, r] for r in range(self.total_room_number)) == 1)        
 
         ## 현재 곡과 다음 곡의 방이 같을 경우 x = 1이 되게 함
         for p in self.id_user_dict:
@@ -504,18 +514,21 @@ class RouteOptimizer(BaseOptimizer):
                             break
                     for r in range(self.total_room_number):
                             
-                        self.solver.Add(self.x[p, s, n, r] <= self.s[song_id, t_pointer, r])
-                        self.solver.Add(self.x[p, s, n, r] <= self.s[song_id2, t_pointer2, r])
-                        self.solver.Add(self.x[p, s, n, r] >= self.s[song_id, t_pointer, r] + self.s[song_id2, t_pointer2, r] - 1)
+                        self.model.Add(self.x[p, s, n, r] <= self.s[song_id, t_pointer, r])
+                        self.model.Add(self.x[p, s, n, r] <= self.s[song_id2, t_pointer2, r])
+                        self.model.Add(self.x[p, s, n, r] >= self.s[song_id, t_pointer, r] + self.s[song_id2, t_pointer2, r] - 1)
 
         ## 같은 t의 서로 다른 곡들은 같은 방을 사용하지 않음
         for t in range(len(self.schedule_id_list)):
             for r in range(self.total_room_number):
-                self.solver.Add(self.solver.Sum(self.s[i, t, r] for i in self.schedule_id_list[t]) <= 1)
+                self.model.AddAtMostOne([self.s[i, t, r] for i in self.schedule_id_list[t]])
 
 
         # 풀기
-        self.solver.Solve()
+        self.solver = cp_model.CpSolver()
+        # 성능 최적화: 멀티스레드 사용 활성화. 만약 코드가 중단되지 않길 원한다면 max_time을 걸어볼 수 있습니다.
+        self.solver.parameters.num_search_workers = 8 
+        self.status = self.solver.Solve(self.model)
 
     def post_process(self) -> pd.DataFrame:
         """
@@ -529,7 +542,7 @@ class RouteOptimizer(BaseOptimizer):
         for t in range(len(self.schedule_id_list)):
             for r in range(self.total_room_number):
                 for i in self.schedule_id_list[t]:
-                    if self.s[i, t, r].solution_value() > 0:
+                    if self.solver.Value(self.s[i, t, r]) > 0:
                         new_dataframe.iloc[t, r] = id_song_dict[i]
 
         return new_dataframe.fillna('X')
