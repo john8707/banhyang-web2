@@ -213,3 +213,10 @@ STATIC_ROOT = os.path.join(ROOT_DIR, '.static_root')
 
 # For https proxy header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Celery / Redis setting for async timetable optimization
+USE_CELERY = os.environ.get('USE_CELERY', 'False') == 'True'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

@@ -19,6 +19,9 @@ urlpatterns = [
     path('practice/users', views.user_confirm_list, name='user_confirm_list'),
     path('practice/users/<int:user_id>', views.grant_admin, name='grant_admin'),
     path('practice/timetable', views.timetable, name='timetable'),
+    # 비동기 status 및 result 확인용
+    path('practice/timetable/status/<str:task_id>', views.check_task_status, name='check_task_status'),
+    path('practice/timetable/result/<str:task_id>', views.timetable_result, name='timetable_result'),
     path('practice/delete/<int:schedule_id>', views.schedule_delete, name='schedule_delete'),
     path('practice/NA', views.who_is_not_coming, name='who_is_not_coming'),
     path('practice/attchk', views.attendance_check_index, name='attendance_check'),

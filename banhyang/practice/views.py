@@ -3,25 +3,29 @@ from collections import defaultdict
 from datetime import timedelta, date, datetime
 import json
 import typing
+import pandas as pd
 
 # core Django
 from django.db.models import Exists, OuterRef, Prefetch
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 
 # django third party apps
 from apscheduler.schedulers.background import BackgroundScheduler
+from celery.result import AsyncResult
 
 # project apps
 from .forms import PracticeApplyForm, ScheduleCreateForm, SongAddForm, SignupForm, LoginForm, UserModifyForm, PasswordModifyForm
 from .models import Schedule, SongData, Apply, Session, WhyNotComing, Timetable, ArrivalTime
 from .metrics import AttendanceStatistics
-from .timetable import BaseOptimizer, ScheduleOptimizer, RouteOptimizer, timetable_df_to_objects, get_all_na_users
+from .tasks import generate_timetable_task, core_timetable_logic
+from .timetable import ScheduleOptimizer, timetable_df_to_objects
 from banhyang.core.utils import weekday_dict, calculate_eta, date_to_integer, integer_to_date
 
 # LOGIN Redirecting 페이지 -> 로그인이 필요한 페이지에 로그인 없이 접근할 경우 해당 링크로 redirect됨
@@ -372,62 +376,66 @@ def grant_admin(_:HttpRequest, user_id:int) -> HttpResponseRedirect:
         messages.error(_, "유저를 찾을 수 없습니다.")
     return redirect("user_confirm_list")
 
+
 @staff_member_required
 def timetable(request:HttpRequest) -> HttpResponse:
-    """
-    !! 합주 시간표 생성 페이지 !!
+    use_celery = getattr(settings, 'USE_CELERY', False) # settings.py에서 환경변수 읽기
     
-    자세한 로직은 timetable.py 참고하기
-    """
-    context = {}
+    if use_celery:
+        # [운영 환경] 비동기 처리 -> 로딩 페이지 렌더링
+        task = generate_timetable_task.delay()
+        return render(request, 'loading.html', {'task_id': task.id})
+    else:
+        # [로컬 환경] 동기 처리 -> 60초 대기 후 바로 결과 페이지로 SSR 렌더링
+        result_data = core_timetable_logic()
+        return render_timetable_result(request, result_data)
 
+# 로딩 화면용 상태 체크 API
+@staff_member_required
+def check_task_status(request:HttpRequest, task_id:str) -> JsonResponse:
+    task_result = AsyncResult(task_id)
+    return JsonResponse({'state': task_result.state})
+
+# Celery 작업 완료 시 리다이렉트되어 들어오는 결과 뷰
+@staff_member_required
+def timetable_result(request:HttpRequest, task_id:str) -> HttpResponse:
+    task_result = AsyncResult(task_id)
+    if task_result.state == 'SUCCESS':
+        result_data = task_result.result
+        return render_timetable_result(request, result_data)
+    
+    # 실패하거나 직접 주소 치고 들어온 경우 되돌려보냄
+    return redirect('timetable') 
+
+# 실제 SSR 렌더링 및 POST 저장을 담당하는 헬퍼 함수
+def render_timetable_result(request, result_data):
+    context = {}
+    
+    # 1. 쪼개진 JSON 데이터를 다시 Pandas DataFrame으로 복원
+    schedule_df_result = {}
+    schedule_df_dict = {} # POST 저장을 위해 원본 dict 모양도 복원
+    
+    for date_str, (schedule_id, df_dict) in result_data['df_json'].items():
+        df = pd.DataFrame(data=df_dict['data'], index=df_dict['index'], columns=df_dict['columns'])
+        schedule_df_result[date_str] = [schedule_id, df]
+        schedule_df_dict[schedule_id] = df
+
+    context['df'] = schedule_df_result
+    context['na_songs'] = result_data['na_songs']
+    context['na_users'] = result_data['na_users']
+    context['na_indexes'] = result_data['na_indexes']
+
+    # 2. 미제출 인원 경고
     schedule_opt = ScheduleOptimizer()
     schedule_opt.retreive_data()
     schedule_opt.process()
-    schedule_opt.optimize()
-    schedule_df_dict, na_indexes = schedule_opt.post_process()
-
-    # 웹의 가독성을 위해 dataframe의 Nan을 'X'로 변경
-    schedule_df_dict = {i: v.fillna("X") for i, v in schedule_df_dict.items()}
-    # 동선 최적화 위한 데이터 가져오기
-    for i,df in schedule_df_dict.items():
-        route_opt = RouteOptimizer(df)
-        route_opt.retreive_data()
-        route_opt.process()
-        route_opt.optimize()
-        new_dataframe = route_opt.post_process()
-
-        schedule_df_dict[i] = new_dataframe
-
-    # 웹 가독성을 위해 시간표들의 dictionary의 키를 schedule id -> MM월 DD일 (요일)으로 변환
-    schedule_df_result = {}
-    for i, v in schedule_df_dict.items():
-        schedule_df_result[schedule_opt.practiceId_to_date[i]] = [i,v]
-        na_indexes[i].append(schedule_opt.practiceId_to_date[i])
-
-    context['df'] = schedule_df_result
-
-    # 합주 진행하지 않는 (곡 목록의 우선 순위 상에서 합주 X로 선택된) 곡들
-    na_songs = SongData.objects.filter(priority=-1)
-    na_songs = [x.songname for x in na_songs]
-    context['na_songs'] = na_songs
-
-    na_users = get_all_na_users(schedule_opt.available_dict, 
-                                schedule_opt.song_session_set, 
-                                schedule_opt.songId_to_name)
-    context['na_users'] = na_users
-    context['na_indexes'] = na_indexes
-
-    # 불참 여부 미제출 인원 체크하기
-    schedule_objects = schedule_opt.schedule_objects
-    for schedule_object in schedule_objects:
+    for schedule_object in schedule_opt.schedule_objects:
         not_submitted = get_user_model().objects.filter(~Exists(Apply.objects.filter(user_id=OuterRef('pk'), schedule_id=schedule_object)), is_confirmed=True, is_superuser=False)
         if not_submitted:
             messages.warning(request, "아직 불참 여부를 제출하지 않은 인원이 존재합니다!")
 
-    # 시간표를 확정하는 경우
+    # 3. 시간표 확정(저장) POST 처리
     if request.method == "POST":
-        # POST 데이터 파싱하기 -> 기존 Dataframe의 순서 수정
         for key, value in request.POST.items():
             post_parsed = key.split('_')
             if post_parsed[0] == 'timetable':
@@ -437,25 +445,21 @@ def timetable(request:HttpRequest) -> HttpResponse:
                 row = int(post_parsed[3])
                 schedule_df_dict[parsed_id].iloc[col, row] = song_name
 
-        # 확정된 시간표를 db 저장하기 위해 데이터 가공
+        # timetable_df_to_objects에 필요한 practice_info 등을 다시 얻기 위해 빠른 처리 객체 재활용
         timetable_object_dict = timetable_df_to_objects(schedule_df_dict, 
                                                         schedule_opt.practice_info, 
                                                         schedule_opt.song_objects)
 
         for schedule_id, v in timetable_object_dict.items():
-            schedule_id = Schedule.objects.get(id=schedule_id)
-            existing_timetable_object = Timetable.objects.filter(schedule_id=schedule_id)
-            # DB에 존재하는 해당 합주 시간표 조회 후 삭제
-            if existing_timetable_object:
-                existing_timetable_object.delete()
-
-            # Bulk 저장
-            timetable_object_list = [Timetable(schedule_id=schedule_id, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_name=info_tuple[2]) for song_id, info_tuple in v.items()]
+            schedule_id_obj = Schedule.objects.get(id=schedule_id)
+            Timetable.objects.filter(schedule_id=schedule_id_obj).delete()
+            
+            timetable_object_list = [Timetable(schedule_id=schedule_id_obj, song_id=SongData.objects.get(id=song_id), start_time=info_tuple[0], end_time=info_tuple[1], room_name=info_tuple[2]) for song_id, info_tuple in v.items()]
             Timetable.objects.bulk_create(timetable_object_list)
-            messages.success(request, "저장되었습니다.")
+            
+        messages.success(request, "저장되었습니다.")
 
     return render(request, 'timetable.html', context=context)
-
 
 @staff_member_required
 def who_is_not_coming(request:HttpRequest) -> HttpResponse:
