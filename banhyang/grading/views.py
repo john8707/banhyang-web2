@@ -23,6 +23,7 @@ DEFAULT_CRITERIA = """
     - What are the main arguments in the readings? (직접 인용 및 해석 포함)
     - How can the arguments be applied? (개인적 경험 또는 사회 현상 연관성)
     - What questions or critiques come up for you? (비판적 시각)
+    - 직접 인용(페이지 기재) 없으면 감점!
 """
 DEFAULT_FOLDER_ID = '1Qrn6ERqgcl0pvSko0-wt-4bGwWmtvjQS'
 DEFAULT_MODEL = "gemini-3.1-pro-preview"
